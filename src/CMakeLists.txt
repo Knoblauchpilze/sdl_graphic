@@ -23,6 +23,7 @@ set(SDL_GRAPHIC_LIBRARY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 target_link_libraries(sdl_graphic_library
   ${SDL2_LIBRARY}
   ${SDL2_TTF_LIBRARIES}
+  sdl_core
   )
 
 target_include_directories (sdl_graphic_library PUBLIC
@@ -30,4 +31,3 @@ target_include_directories (sdl_graphic_library PUBLIC
   ${SDL2_INCLUDE_DIR}
   ${SDL2_TTF_INCLUDE_DIRS}
   )
-
