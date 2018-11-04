@@ -7,28 +7,15 @@ release:
 clean:
 	rm -rf build
 
-cleanSandbox:
-	rm -rf sandbox
+r: release
 
-copyRelease:
-	rsync -avH build/Release/lib build/Release/bin sandbox/
+d: debug
 
-copyDebug:
-	rsync -avH build/Debug/lib build/Debug/bin sandbox/
+install:
+	sudo cp build/Release/lib/libsdl_graphic.so /usr/local/lib
+	sudo mkdir /usr/local/include/sdl_graphic
+	sudo cp src/*.hh /usr/local/include/sdl_graphic
+	sudo cp src/*.hxx /usr/local/include/sdl_graphic
 
 
-copy:
-	mkdir -p sandbox/
-	rsync -avH data sandbox/
-	mv sandbox/data/*.sh sandbox/
-
-sandbox: release copy copyRelease
-
-distDebug: debug copy copyDebug
-
-r: sandbox
-	cd sandbox && ./run.sh local
-
-d: distDebug
-	cd sandbox && ./debug.sh local
 

@@ -1,7 +1,7 @@
 #ifndef    FONTEXCEPTION_HH
 # define   FONTEXCEPTION_HH
 
-# include "SdlException.hh"
+# include <sdl_core/SdlException.hh>
 
 namespace sdl {
   namespace graphic {
