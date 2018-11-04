@@ -1,9 +1,9 @@
-# graphic_library
+# sdl_graphic
 Contains a description of containers allowing to display graphic information (pictures, text...)
 
 # Installation
 
-- Clone the repo: `git clone git@github.com:Knoblauchpilze/graphic_library.git`
+- Clone the repo: `git clone git@github.com:Knoblauchpilze/sdl_graphic.git`
 - Go to the project's directory `cd ~/path/to/the/repo`
 - Compile: `make r`
 - Install: `make install`
