@@ -10,6 +10,8 @@ find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
   Font.cc
+  LinearLayout.cc
+  GridLayout.cc
   )
 
 add_library (sdl_graphic SHARED
