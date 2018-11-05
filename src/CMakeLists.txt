@@ -12,6 +12,7 @@ set (SOURCES
   Font.cc
   LinearLayout.cc
   GridLayout.cc
+  PictureContainer.cc
   )
 
 add_library (sdl_graphic SHARED
