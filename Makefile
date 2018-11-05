@@ -11,7 +11,7 @@ r: release
 
 d: debug
 
-install:
+install: r
 	sudo cp build/Release/lib/libsdl_graphic.so /usr/local/lib
 	sudo mkdir -p /usr/local/include/sdl_graphic
 	sudo cp src/*.hh /usr/local/include/sdl_graphic
