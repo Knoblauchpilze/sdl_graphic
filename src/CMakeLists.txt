@@ -12,6 +12,7 @@ set (SOURCES
   Font.cc
   LinearLayout.cc
   GridLayout.cc
+  SelectorLayout.cc
   PictureContainer.cc
   )
 

@@ -41,7 +41,7 @@ namespace sdl {
     }
 
     int
-    GridLayout::addItem(sdl::core::SdlWidgetShPtr container,
+    GridLayout::addItem(sdl::core::SdlWidget* container,
                         const unsigned& x,
                         const unsigned& y,
                         const unsigned& w,

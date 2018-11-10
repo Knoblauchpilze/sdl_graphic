@@ -28,7 +28,7 @@ namespace sdl {
         getMargin() const noexcept;
 
         int
-        addItem(std::shared_ptr<sdl::core::SdlWidget> container,
+        addItem(sdl::core::SdlWidget* container,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
