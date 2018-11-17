@@ -1,10 +1,10 @@
 
-# include "PictureContainer.hh"
+# include "PictureWidget.hh"
 
 namespace sdl {
   namespace graphic {
 
-    PictureContainer::PictureContainer(const std::string& name,
+    PictureWidget::PictureWidget(const std::string& name,
                                        const std::string& picture,
                                        const Mode& mode,
                                        SdlWidget* parent,
@@ -18,33 +18,32 @@ namespace sdl {
       m_picture(nullptr)
     {}
 
-    PictureContainer::~PictureContainer() {
+    PictureWidget::~PictureWidget() {
       if (m_picture != nullptr) {
         SDL_DestroyTexture(m_picture);
       }
     }
 
-    SDL_Texture*
-    PictureContainer::createContentPrivate(SDL_Renderer* renderer) const {
+    void
+    PictureWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
       // Load the picture.
       loadPicture(renderer);
-
-      // Create the surface based on the dimensions of this container.
-      SDL_Texture* croppedArea = sdl::core::SdlWidget::createContentPrivate(renderer);
-      if (croppedArea == nullptr) {
-        throw sdl::core::SdlException(std::string("Unable to create perform rendering for picture container \"") + getName() + "\" using file " + m_file);
-      }
 
       // Compute the blit position of the picture so that it is centered.
       if (m_picture != nullptr) {
 
         SDL_Texture* initialRenderingArea = SDL_GetRenderTarget(renderer);
-        SDL_SetRenderTarget(renderer, croppedArea);
+        SDL_SetRenderTarget(renderer, texture);
+
+        // SDL_BlendMode initialMode;
+        // SDL_GetRenderDrawBlendMode(renderer, &initialMode);
+        // SDL_SetRenderDrawBlendMode(renderer, m_blendMode);
+        SDL_SetTextureAlphaMod(m_picture, m_background.a);
 
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
           int wt, ht;
-          SDL_QueryTexture(croppedArea, nullptr, nullptr, &wt, &ht);
+          SDL_QueryTexture(texture, nullptr, nullptr, &wt, &ht);
 
           int wp, hp;
           SDL_QueryTexture(m_picture, nullptr, nullptr, &wp, &hp);
@@ -56,6 +55,7 @@ namespace sdl {
             static_cast<Uint16>(wp),
             static_cast<Uint16>(hp)
           };
+
           SDL_RenderCopy(renderer, m_picture, nullptr, &dstRect);
         }
 
@@ -64,10 +64,8 @@ namespace sdl {
         }
 
         SDL_SetRenderTarget(renderer, initialRenderingArea);
+        // SDL_SetRenderDrawBlendMode(renderer, initialMode);
       }
-
-      // This is the final image for this container.
-      return croppedArea;
     }
 
   }

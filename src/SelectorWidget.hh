@@ -25,9 +25,6 @@ namespace sdl {
         void
         setActiveWidget(const int& index);
 
-        void
-        onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) override;
-
       private:
 
     };

@@ -1,15 +1,15 @@
-#ifndef    PICTURECONTAINER_HXX
-# define   PICTURECONTAINER_HXX
+#ifndef    PICTUREWIDGET_HXX
+# define   PICTUREWIDGET_HXX
 
 # include <sdl_core/SdlException.hh>
-# include "PictureContainer.hh"
+# include "PictureWidget.hh"
 
 namespace sdl {
   namespace graphic {
 
     inline
     void
-    PictureContainer::setImagePath(const std::string& path) {
+    PictureWidget::setImagePath(const std::string& path) {
       std::lock_guard<std::mutex> guard(getLocker());
       m_file = path;
       makeDirty();
@@ -17,7 +17,7 @@ namespace sdl {
 
     inline
     void
-    PictureContainer::setMode(const Mode& mode) {
+    PictureWidget::setMode(const Mode& mode) {
       std::lock_guard<std::mutex> guard(getLocker());
       m_mode = mode;
       makeDirty();
@@ -25,13 +25,13 @@ namespace sdl {
 
     inline
     void
-    PictureContainer::clear() {
+    PictureWidget::clear() {
       setImagePath(std::string(""));
     }
 
     inline
     void
-    PictureContainer::loadPicture(SDL_Renderer* renderer) const {
+    PictureWidget::loadPicture(SDL_Renderer* renderer) const {
       // Clear existing image if any.
       if (m_picture != nullptr) {
         SDL_DestroyTexture(m_picture);
@@ -57,4 +57,4 @@ namespace sdl {
   }
 }
 
-#endif // PICTURECONTAINER_HXX
+#endif    /* PICTUREWIDGET_HXX */

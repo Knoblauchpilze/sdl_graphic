@@ -1,5 +1,5 @@
-#ifndef    PICTURECONTAINER_HH
-# define   PICTURECONTAINER_HH
+#ifndef    PICTUREWIDGET_HH
+# define   PICTUREWIDGET_HH
 
 #include <memory>
 #include <string>
@@ -8,7 +8,7 @@
 namespace sdl {
   namespace graphic {
 
-    class PictureContainer: public sdl::core::SdlWidget {
+    class PictureWidget: public sdl::core::SdlWidget {
       public:
 
         enum class Mode {
@@ -18,13 +18,13 @@ namespace sdl {
 
       public:
 
-        PictureContainer(const std::string& name,
+        PictureWidget(const std::string& name,
                          const std::string& picture,
                          const Mode& mode = Mode::Crop,
                          SdlWidget* parent = nullptr,
                          const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
 
-        virtual ~PictureContainer();
+        virtual ~PictureWidget();
 
         void
         setImagePath(const std::string& path);
@@ -37,8 +37,8 @@ namespace sdl {
 
       protected:
 
-        virtual SDL_Texture*
-        createContentPrivate(SDL_Renderer* renderer) const;
+        void
+        drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept override;
 
       private:
 
@@ -53,10 +53,10 @@ namespace sdl {
 
     };
 
-    using PictureContainerShPtr = std::shared_ptr<PictureContainer>;
+    using PictureWidgetShPtr = std::shared_ptr<PictureWidget>;
   }
 }
 
-# include "PictureContainer.hxx"
+# include "PictureWidget.hxx"
 
-#endif    /* PICTURECONTAINER_HH */
+#endif    /* PICTUREWIDGET_HH */

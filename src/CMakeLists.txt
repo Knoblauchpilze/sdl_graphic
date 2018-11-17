@@ -13,7 +13,7 @@ set (SOURCES
   LinearLayout.cc
   GridLayout.cc
   SelectorLayout.cc
-  PictureContainer.cc
+  PictureWidget.cc
   )
 
 add_library (sdl_graphic SHARED

@@ -33,17 +33,6 @@ namespace sdl {
       getLayoutAs<SelectorLayout>()->setActiveItem(index);
     }
 
-    inline
-    void
-    SelectorWidget::onMouseButtonReleasedEvent(const SDL_MouseButtonEvent& mouseButtonEvent) {
-      std::lock_guard<std::mutex> guard(getLocker());
-      SelectorLayout* layout = getLayoutAs<SelectorLayout>();
-      if (layout != nullptr) {
-        layout->setActiveItem((layout->getActiveItemId() + 1) % layout->getItemsCount());
-      }
-      makeDirty();
-    }
-
   }
 }
 
