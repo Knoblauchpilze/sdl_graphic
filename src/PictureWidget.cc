@@ -35,9 +35,6 @@ namespace sdl {
         SDL_Texture* initialRenderingArea = SDL_GetRenderTarget(renderer);
         SDL_SetRenderTarget(renderer, texture);
 
-        // SDL_BlendMode initialMode;
-        // SDL_GetRenderDrawBlendMode(renderer, &initialMode);
-        // SDL_SetRenderDrawBlendMode(renderer, m_blendMode);
         SDL_SetTextureAlphaMod(m_picture, m_background.a);
 
         // Perform the copy operation according to the display mode.
@@ -64,7 +61,6 @@ namespace sdl {
         }
 
         SDL_SetRenderTarget(renderer, initialRenderingArea);
-        // SDL_SetRenderDrawBlendMode(renderer, initialMode);
       }
     }
 

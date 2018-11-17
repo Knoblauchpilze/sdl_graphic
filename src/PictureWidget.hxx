@@ -42,14 +42,14 @@ namespace sdl {
       if (!m_file.empty()) {
         SDL_Surface* imageAsSurface = SDL_LoadBMP(m_file.c_str());
         if (imageAsSurface == nullptr) {
-          throw sdl::core::SdlException(std::string("Unable to create picture container \"") + getName() + "\" using file " + m_file);
+          throw sdl::core::SdlException(std::string("Unable to create picture widget \"") + getName() + "\" using file \"" + m_file + "\"");
         }
 
         m_picture = SDL_CreateTextureFromSurface(renderer, imageAsSurface);
         SDL_FreeSurface(imageAsSurface);
 
         if (m_picture == nullptr) {
-          throw sdl::core::SdlException(std::string("Unable to create picture container \"") + getName() + "\" using file " + m_file);
+          throw sdl::core::SdlException(std::string("Unable to create picture widget \"") + getName() + "\" using file \"" + m_file + "\"");
         }
       }
     }

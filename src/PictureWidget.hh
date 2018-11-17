@@ -1,9 +1,9 @@
 #ifndef    PICTUREWIDGET_HH
 # define   PICTUREWIDGET_HH
 
-#include <memory>
-#include <string>
-#include <sdl_core/SdlWidget.hh>
+# include <memory>
+# include <string>
+# include <sdl_core/SdlWidget.hh>
 
 namespace sdl {
   namespace graphic {

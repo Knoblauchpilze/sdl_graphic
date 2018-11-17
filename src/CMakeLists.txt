@@ -14,6 +14,7 @@ set (SOURCES
   GridLayout.cc
   SelectorLayout.cc
   PictureWidget.cc
+  LabelWidget.cc
   )
 
 add_library (sdl_graphic SHARED
