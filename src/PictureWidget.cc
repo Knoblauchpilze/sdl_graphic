@@ -8,9 +8,10 @@ namespace sdl {
                                        const std::string& picture,
                                        const Mode& mode,
                                        SdlWidget* parent,
-                                       const SDL_Color& backgroundColor):
+                                       const SDL_Color& backgroundColor,
+                                       const sdl::core::Boxf& area):
       sdl::core::SdlWidget(name,
-                           sdl::core::Boxf(),
+                           area,
                            parent,
                            backgroundColor),
       m_file(picture),
@@ -34,8 +35,6 @@ namespace sdl {
 
         SDL_Texture* initialRenderingArea = SDL_GetRenderTarget(renderer);
         SDL_SetRenderTarget(renderer, texture);
-
-        SDL_SetTextureAlphaMod(m_picture, m_background.a);
 
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {

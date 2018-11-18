@@ -22,7 +22,8 @@ namespace sdl {
                          const std::string& picture,
                          const Mode& mode = Mode::Crop,
                          SdlWidget* parent = nullptr,
-                         const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
+                         const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE},
+                         const sdl::core::Boxf& area = sdl::core::Boxf());
 
         virtual ~PictureWidget();
 
