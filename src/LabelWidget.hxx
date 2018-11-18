@@ -52,12 +52,12 @@ namespace sdl {
         m_label = nullptr;
       }
 
-      if (m_font == nullptr) {
-        throw FontException(std::string("Cannot create text \"") + m_text + "\" for \"" + getName() + "\", invalid null font");
-      }
-
-      // Load the image
+      // Load the text
       if (!m_text.empty()) {
+        if (m_font == nullptr) {
+          throw FontException(std::string("Cannot create text \"") + m_text + "\" for \"" + getName() + "\", invalid null font");
+        }
+
         m_label = m_font->render(renderer, m_text);
         if (m_label == nullptr) {
           throw sdl::core::SdlException(std::string("Unable to create label widget \"") + getName() + "\" using text \"" + m_text + "\"");

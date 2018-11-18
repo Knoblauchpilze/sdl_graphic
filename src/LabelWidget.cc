@@ -1,4 +1,5 @@
 
+# include <sdl_core/RendererState.hh>
 # include "LabelWidget.hh"
 
 namespace sdl {
@@ -39,8 +40,8 @@ namespace sdl {
 
       // Compute the blit position of the picture so that it is centered.
       if (m_label != nullptr) {
-
-        SDL_Texture* initialRenderingArea = SDL_GetRenderTarget(renderer);
+        // Save the current state of the renderer.
+        sdl::core::RendererState state(renderer);
         SDL_SetRenderTarget(renderer, texture);
 
         // Perform the copy operation according to the alignment.
@@ -86,8 +87,6 @@ namespace sdl {
         };
 
         SDL_RenderCopy(renderer, m_label, nullptr, &dstRect);
-
-        SDL_SetRenderTarget(renderer, initialRenderingArea);
       }
     }
 
