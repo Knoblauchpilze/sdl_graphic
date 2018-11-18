@@ -12,6 +12,17 @@ namespace sdl {
       m_font(font),
       m_color(color),
       m_dirty(true),
+      // This blend mode is needed to allow transparency on text embedded in a widget. See sdl::core::SdlWidget for more details.
+      m_mode(
+        SDL_ComposeCustomBlendMode(
+          SDL_BLENDFACTOR_SRC_ALPHA,
+          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          SDL_BLENDOPERATION_ADD,
+          SDL_BLENDFACTOR_DST_ALPHA,
+          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          SDL_BLENDOPERATION_ADD
+        )
+      ),
       m_text(nullptr)
     {}
 
@@ -51,8 +62,10 @@ namespace sdl {
     SDL_Texture*
     ColoredFont::render(SDL_Renderer* renderer, const std::string& text) {
       if (m_dirty) {
-        SDL_DestroyTexture(m_text);
-        m_text = nullptr;
+        if (m_text != nullptr) {
+          SDL_DestroyTexture(m_text);
+          m_text = nullptr;
+        }
 
         SDL_Surface* textAsSurface = m_font->render(text, m_color);
         if (textAsSurface == nullptr) {
@@ -65,7 +78,7 @@ namespace sdl {
           throw FontException(std::string("Could not create texture from surface for text \"") + text + "\" and font \"" + m_font->getName() + "\"");
         }
 
-        SDL_SetTextureBlendMode(m_text, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureBlendMode(m_text, m_mode);
         SDL_SetTextureAlphaMod(m_text, m_color.a);
 
         m_dirty = false;

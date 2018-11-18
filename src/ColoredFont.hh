@@ -34,6 +34,7 @@ namespace sdl {
 
         FontShPtr m_font;
         SDL_Color m_color;
+        SDL_BlendMode m_mode;
         bool m_dirty;
 
         SDL_Texture* m_text;
