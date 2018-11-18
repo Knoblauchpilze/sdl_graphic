@@ -12,7 +12,7 @@ namespace sdl {
     PictureWidget::setImagePath(const std::string& path) {
       std::lock_guard<std::mutex> guard(getLocker());
       m_file = path;
-      makeDirty();
+      m_pictureDirty = true;
     }
 
     inline
@@ -20,7 +20,6 @@ namespace sdl {
     PictureWidget::setMode(const Mode& mode) {
       std::lock_guard<std::mutex> guard(getLocker());
       m_mode = mode;
-      makeDirty();
     }
 
     inline
@@ -47,9 +46,6 @@ namespace sdl {
 
         m_picture = SDL_CreateTextureFromSurface(renderer, imageAsSurface);
         SDL_FreeSurface(imageAsSurface);
-
-        SDL_SetTextureAlphaMod(m_picture, m_background.a);
-
         if (m_picture == nullptr) {
           throw sdl::core::SdlException(std::string("Unable to create picture widget \"") + getName() + "\" using file \"" + m_file + "\"");
         }

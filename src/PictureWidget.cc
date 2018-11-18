@@ -1,4 +1,5 @@
 
+# include <sdl_core/RendererState.hh>
 # include "PictureWidget.hh"
 
 namespace sdl {
@@ -16,7 +17,8 @@ namespace sdl {
                            backgroundColor),
       m_file(picture),
       m_mode(mode),
-      m_picture(nullptr)
+      m_picture(nullptr),
+      m_pictureDirty(true)
     {}
 
     PictureWidget::~PictureWidget() {
@@ -28,13 +30,19 @@ namespace sdl {
     void
     PictureWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
       // Load the picture.
-      loadPicture(renderer);
+      if (m_pictureDirty) {
+        loadPicture(renderer);
+        m_pictureDirty = false;
+      }
 
       // Compute the blit position of the picture so that it is centered.
       if (m_picture != nullptr) {
-
-        SDL_Texture* initialRenderingArea = SDL_GetRenderTarget(renderer);
+        // Save the current state of the renderer.
+        sdl::core::RendererState state(renderer);
         SDL_SetRenderTarget(renderer, texture);
+
+        // Update the alpha channel for the picture based on the global transparency.
+        SDL_SetTextureAlphaMod(m_picture, m_background.a);
 
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
@@ -58,8 +66,6 @@ namespace sdl {
         if (m_mode == Mode::Fit) {
           SDL_RenderCopy(renderer, m_picture, nullptr, nullptr);
         }
-
-        SDL_SetRenderTarget(renderer, initialRenderingArea);
       }
     }
 

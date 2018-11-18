@@ -51,6 +51,7 @@ namespace sdl {
         std::string m_file;
         Mode m_mode;
         mutable SDL_Texture* m_picture;
+        mutable bool m_pictureDirty;
 
     };
 
