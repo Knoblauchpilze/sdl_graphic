@@ -15,6 +15,7 @@ namespace sdl {
 
         SelectorWidget(const std::string& name,
                        sdl::core::SdlWidget* parent = nullptr,
+                       const bool transparent = false,
                        const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
 
         ~SelectorWidget() = default;

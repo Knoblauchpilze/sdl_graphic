@@ -78,7 +78,6 @@ namespace sdl {
           throw FontException(std::string("Could not create texture from surface for text \"") + text + "\" and font \"" + m_font->getName() + "\"");
         }
 
-        SDL_SetTextureBlendMode(m_text, m_mode);
         SDL_SetTextureAlphaMod(m_text, m_color.a);
 
         m_dirty = false;

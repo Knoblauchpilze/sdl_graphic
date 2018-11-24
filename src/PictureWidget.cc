@@ -9,11 +9,13 @@ namespace sdl {
                                        const std::string& picture,
                                        const Mode& mode,
                                        SdlWidget* parent,
+                                       const bool transparent,
                                        const SDL_Color& backgroundColor,
                                        const sdl::core::Boxf& area):
       sdl::core::SdlWidget(name,
                            area,
                            parent,
+                           transparent,
                            backgroundColor),
       m_file(picture),
       m_mode(mode),

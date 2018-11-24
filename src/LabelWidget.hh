@@ -32,6 +32,7 @@ namespace sdl {
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
+                    const bool transparent = false,
                     const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
 
         virtual ~LabelWidget();
@@ -56,7 +57,7 @@ namespace sdl {
       private:
 
         void
-        createText(SDL_Renderer* renderer) const;
+        loadText(SDL_Renderer* renderer) const;
 
       private:
 

@@ -37,7 +37,7 @@ namespace sdl {
         m_picture = nullptr;
       }
 
-      // Load the image
+      // Load the image.
       if (!m_file.empty()) {
         SDL_Surface* imageAsSurface = SDL_LoadBMP(m_file.c_str());
         if (imageAsSurface == nullptr) {

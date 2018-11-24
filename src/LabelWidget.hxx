@@ -45,7 +45,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::createText(SDL_Renderer* renderer) const {
+    LabelWidget::loadText(SDL_Renderer* renderer) const {
       // Clear existing label if any.
       if (m_label != nullptr) {
         SDL_DestroyTexture(m_label);
