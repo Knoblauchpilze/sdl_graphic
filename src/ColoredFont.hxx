@@ -12,17 +12,6 @@ namespace sdl {
       m_font(font),
       m_color(color),
       m_dirty(true),
-      // This blend mode is needed to allow transparency on text embedded in a widget. See sdl::core::SdlWidget for more details.
-      m_mode(
-        SDL_ComposeCustomBlendMode(
-          SDL_BLENDFACTOR_SRC_ALPHA,
-          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-          SDL_BLENDOPERATION_ADD,
-          SDL_BLENDFACTOR_DST_ALPHA,
-          SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-          SDL_BLENDOPERATION_ADD
-        )
-      ),
       m_text(nullptr)
     {}
 

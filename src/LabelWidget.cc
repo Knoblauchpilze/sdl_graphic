@@ -46,14 +46,6 @@ namespace sdl {
         sdl::core::RendererState state(renderer);
         SDL_SetRenderTarget(renderer, texture);
 
-        // Update the alpha channel for the label based on the global transparency.
-        // Indeed the label texture has no blend mode. Which means that it will not use the global widget transparency
-        // and thus will not be affected by the widget transparency.
-        // We cannot set a blend mode for the text because if the widget is transparent, the text will be also transparent (due
-        // to the blend mode) no matter the transparency of the real background color.
-        // So we need to guarantee that the text color is actually applied the background texture by using the alpha mod function.
-        SDL_SetTextureAlphaMod(texture, m_background.a);
-
         // Perform the copy operation according to the alignment.
         SDL_Rect dstRect;
         int wl, hl;
@@ -97,6 +89,19 @@ namespace sdl {
         };
 
         SDL_RenderCopy(renderer, m_label, nullptr, &dstRect);
+
+        // Update the alpha channel for the global texture based on the text transparency.
+        // Indeed in the case of a transparent widget with an opaque background color and a semi transparent
+        // text, the fact that the blend mode of the input 'texture' is set to preserving dstAlpha, we will not
+        // be able to benefit from a transparent background and a transparent text.
+        // Thus if the background is transparent, we need to set the transparency to the text's transparency.
+        // This way we can still benefit from the text's transparency.
+        if (m_transparent) {
+          SDL_SetTextureAlphaMod(texture, m_font->getColor().a);
+        }
+        else {
+          SDL_SetTextureAlphaMod(texture, m_background.a);
+        }
       }
     }
 
