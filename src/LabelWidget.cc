@@ -33,6 +33,42 @@ namespace sdl {
     }
 
     void
+    LabelWidget::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {
+      std::lock_guard<std::mutex> guard(m_drawingLocker);
+      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
+           widget != m_children.cend() ;
+           ++widget)
+      {
+        widget->second->onKeyReleasedEvent(keyEvent);
+      }
+
+      if (keyEvent.keysym.sym == SDLK_KP_7) {
+        SDL_Color color = m_font->getColor();
+        if (color.a > 245) {
+          color.a = 255;
+        }
+        else {
+          color.a = std::min(255, color.a + 10);
+        }
+        m_font->setColor(color);
+        m_textDirty = true;
+        std::cout << "[LAB] " << getName() << " alpha: " << std::to_string(color.a) << std::endl;
+      }
+      if (keyEvent.keysym.sym == SDLK_KP_4) {
+        SDL_Color color = m_font->getColor();
+        if (color.a < 10) {
+          color.a = 0;
+        }
+        else {
+          color.a = std::max(0, color.a - 10);
+        }
+        m_font->setColor(color);
+        m_textDirty = true;
+        std::cout << "[LAB] " << getName() << " alpha: " << std::to_string(color.a) << std::endl;
+      }
+    }
+
+    void
     LabelWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
       // Load the text.
       if (m_textDirty) {
