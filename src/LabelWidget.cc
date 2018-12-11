@@ -125,19 +125,6 @@ namespace sdl {
         };
 
         SDL_RenderCopy(renderer, m_label, nullptr, &dstRect);
-
-        // Update the alpha channel for the global texture based on the text transparency.
-        // Indeed in the case of a transparent widget with an opaque background color and a semi transparent
-        // text, the fact that the blend mode of the input 'texture' is set to preserving dstAlpha, we will not
-        // be able to benefit from a transparent background and a transparent text.
-        // Thus if the background is transparent, we need to set the transparency to the text's transparency.
-        // This way we can still benefit from the text's transparency.
-        if (m_transparent) {
-          SDL_SetTextureAlphaMod(texture, m_font->getColor().a);
-        }
-        else {
-          SDL_SetTextureAlphaMod(texture, m_background.a);
-        }
       }
     }
 

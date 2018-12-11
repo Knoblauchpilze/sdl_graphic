@@ -44,7 +44,7 @@ namespace sdl {
         SDL_SetRenderTarget(renderer, texture);
 
         // Update the alpha channel for the picture based on the global transparency.
-        SDL_SetTextureAlphaMod(m_picture, m_background.a);
+        // SDL_SetTextureAlphaMod(m_picture, m_background.a);
 
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
