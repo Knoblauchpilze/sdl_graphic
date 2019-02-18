@@ -11,12 +11,12 @@ namespace sdl {
     SelectorWidget::SelectorWidget(const std::string& name,
                                    sdl::core::SdlWidget* parent,
                                    const bool transparent,
-                                   const SDL_Color& backgroundColor):
+                                   const core::Palette& palette):
       sdl::core::SdlWidget(name,
                            sdl::core::Boxf(),
                            parent,
                            transparent,
-                           backgroundColor)
+                           palette)
     {
       setLayout(std::make_shared<SelectorLayout>(0.0f, this));
     }

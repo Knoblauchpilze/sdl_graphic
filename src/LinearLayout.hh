@@ -2,12 +2,12 @@
 # define   LINEARLAYOUT_HH
 
 # include <memory>
-# include <sdl_core/SdlLayout.hh>
+# include <sdl_core/Layout.hh>
 
 namespace sdl {
   namespace graphic {
 
-    class LinearLayout: public sdl::core::SdlLayout {
+    class LinearLayout: public sdl::core::Layout {
       public:
 
         enum class Direction {

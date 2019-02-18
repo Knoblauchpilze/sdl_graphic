@@ -7,17 +7,17 @@ namespace sdl {
 
     LabelWidget::LabelWidget(const std::string& name,
                              const std::string& text,
-                             ColoredFontShPtr font,
+                             core::ColoredFontShPtr font,
                              const HorizontalAlignment& hAlignment,
                              const VerticalAlignment& vAlignment,
                              SdlWidget* parent,
                              const bool transparent,
-                             const SDL_Color& backgroundColor):
+                             const core::Palette& palette):
       sdl::core::SdlWidget(name,
                            sdl::core::Boxf(),
                            parent,
                            transparent,
-                           backgroundColor),
+                           palette),
       m_text(text),
       m_font(font),
       m_hAlignment(hAlignment),
@@ -43,26 +43,26 @@ namespace sdl {
       }
 
       if (keyEvent.keysym.sym == SDLK_KP_7) {
-        SDL_Color color = m_font->getColor();
+        SDL_Color color = m_font->getColor()();
         if (color.a > 245) {
           color.a = 255;
         }
         else {
           color.a = std::min(255, color.a + 10);
         }
-        m_font->setColor(color);
+        m_font->setColor(core::Color(color));
         m_textDirty = true;
         std::cout << "[LAB] " << getName() << " alpha: " << std::to_string(color.a) << std::endl;
       }
       if (keyEvent.keysym.sym == SDLK_KP_4) {
-        SDL_Color color = m_font->getColor();
+        SDL_Color color = m_font->getColor()();
         if (color.a < 10) {
           color.a = 0;
         }
         else {
           color.a = std::max(0, color.a - 10);
         }
-        m_font->setColor(color);
+        m_font->setColor(core::Color(color));
         m_textDirty = true;
         std::cout << "[LAB] " << getName() << " alpha: " << std::to_string(color.a) << std::endl;
       }

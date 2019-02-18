@@ -9,7 +9,7 @@ namespace sdl {
                            const unsigned& height,
                            const float& margin,
                            sdl::core::SdlWidget* widget):
-      sdl::core::SdlLayout(widget),
+      sdl::core::Layout(widget),
       m_width(width),
       m_height(height),
       m_margin(margin),
@@ -47,7 +47,7 @@ namespace sdl {
                         const unsigned& w,
                         const unsigned& h)
     {
-      int containerIndex = sdl::core::SdlLayout::addItem(container);
+      int containerIndex = sdl::core::Layout::addItem(container);
       m_itemsLocation[containerIndex] = {
         1.0f * std::min(m_width - 1, x),
         1.0f * std::min(m_height - 1, y),

@@ -7,7 +7,7 @@ namespace sdl {
 
     SelectorLayout::SelectorLayout(const float& margin,
                                    sdl::core::SdlWidget* widget):
-      sdl::core::SdlLayout(widget),
+      sdl::core::Layout(widget),
       m_margin(margin),
       m_activeItem(-1)
     {

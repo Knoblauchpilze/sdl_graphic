@@ -2,12 +2,12 @@
 # define   SELECTORLAYOUT_HH
 
 # include <memory>
-# include <sdl_core/SdlLayout.hh>
+# include <sdl_core/Layout.hh>
 
 namespace sdl {
   namespace graphic {
 
-    class SelectorLayout: public sdl::core::SdlLayout {
+    class SelectorLayout: public sdl::core::Layout {
       public:
 
         SelectorLayout(const float& margin = 1.0f,

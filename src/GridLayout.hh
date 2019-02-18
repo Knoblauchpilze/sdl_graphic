@@ -3,12 +3,12 @@
 
 # include <memory>
 # include <unordered_map>
-# include <sdl_core/SdlLayout.hh>
+# include <sdl_core/Layout.hh>
 
 namespace sdl {
   namespace graphic {
 
-    class GridLayout: public sdl::core::SdlLayout {
+    class GridLayout: public sdl::core::Layout {
       public:
 
         GridLayout(const unsigned& width,

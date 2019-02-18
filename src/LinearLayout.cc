@@ -9,7 +9,7 @@ namespace sdl {
                                const float& margin,
                                const float& interMargin,
                                sdl::core::SdlWidget* widget):
-      sdl::core::SdlLayout(widget),
+      sdl::core::Layout(widget),
       m_direction(direction),
       m_margin(margin),
       m_componentMargin(interMargin)

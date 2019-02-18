@@ -3,8 +3,9 @@
 
 # include <memory>
 # include <string>
+# include <sdl_core/Palette.hh>
 # include <sdl_core/SdlWidget.hh>
-# include "ColoredFont.hh"
+# include <sdl_core/ColoredFont.hh>
 
 namespace sdl {
   namespace graphic {
@@ -28,12 +29,12 @@ namespace sdl {
 
         LabelWidget(const std::string& name,
                     const std::string& text,
-                    ColoredFontShPtr font,
+                    core::ColoredFontShPtr font,
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
                     const bool transparent = false,
-                    const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE});
+                    const core::Palette& palette = core::Palette());
 
         virtual ~LabelWidget();
 
@@ -41,7 +42,7 @@ namespace sdl {
         setText(const std::string& text) noexcept;
 
         void
-        setFont(ColoredFontShPtr font) noexcept;
+        setFont(core::ColoredFontShPtr font) noexcept;
 
         void
         setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept;
@@ -65,7 +66,7 @@ namespace sdl {
       private:
 
         std::string m_text;
-        ColoredFontShPtr m_font;
+        core::ColoredFontShPtr m_font;
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textDirty;

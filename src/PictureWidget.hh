@@ -23,7 +23,7 @@ namespace sdl {
                          const Mode& mode = Mode::Crop,
                          SdlWidget* parent = nullptr,
                          const bool transparent = false,
-                         const SDL_Color& backgroundColor = SDL_Color{0, 0, 0, SDL_ALPHA_OPAQUE},
+                         const core::Palette& palette = core::Palette(),
                          const sdl::core::Boxf& area = sdl::core::Boxf());
 
         virtual ~PictureWidget();

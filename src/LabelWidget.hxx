@@ -18,7 +18,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::setFont(ColoredFontShPtr font) noexcept {
+    LabelWidget::setFont(core::ColoredFontShPtr font) noexcept {
       std::lock_guard<std::mutex> guard(getLocker());
       m_font = font;
       m_textDirty = true;
@@ -55,7 +55,7 @@ namespace sdl {
       // Load the text
       if (!m_text.empty()) {
         if (m_font == nullptr) {
-          throw FontException(std::string("Cannot create text \"") + m_text + "\" for \"" + getName() + "\", invalid null font");
+          throw core::FontException(std::string("Cannot create text \"") + m_text + "\" for \"" + getName() + "\", invalid null font");
         }
 
         m_label = m_font->render(renderer, m_text);
