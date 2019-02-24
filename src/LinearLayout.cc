@@ -102,7 +102,7 @@ namespace sdl {
       // defined by the widgets.
       // Indeed each widget can provide a `stretch` which allows to specify that
       // the widget should occupy a larger portion of the available space.
-      // As an example if we have two widget `A` and `B` with `A.stretch = 1`
+      // As an example if we have two widgets `A` and `B` with `A.stretch = 1`
       // and `B.stretch = 2`, the layout will allocate space so that `B` is twice
       // the size of `A`.
 
@@ -147,7 +147,7 @@ namespace sdl {
       // defined by the widgets.
       // Indeed each widget can provide a `stretch` which allows to specify that
       // the widget should occupy a larger portion of the available space.
-      // As an example if we have two widget `A` and `B` with `A.stretch = 1`
+      // As an example if we have two widgets `A` and `B` with `A.stretch = 1`
       // and `B.stretch = 2`, the layout will allocate space so that `B` is twice
       // the size of `A`.
 
