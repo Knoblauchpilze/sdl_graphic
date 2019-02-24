@@ -5,13 +5,20 @@
 namespace sdl {
   namespace graphic {
 
-    GridLayout::GridLayout(const unsigned& width,
-                           const unsigned& height,
+    GridLayout::GridLayout(const unsigned& columns,
+                           const unsigned& rows,
                            const float& margin,
                            sdl::core::SdlWidget* widget):
       sdl::core::Layout(widget),
-      m_width(width),
-      m_height(height),
+      m_columns(columns),
+      m_rows(rows),
+
+      m_columnsMinimumWidth(columns, 0.0f),
+      m_rowsMinimumHeight(rows, 0.0f),
+
+      m_columnsStretches(columns, 1.0f),
+      m_rowsStretches(rows, 1.0f),
+
       m_margin(margin),
       m_itemsLocation()
     {
@@ -22,39 +29,50 @@ namespace sdl {
 
     void
     GridLayout::updatePrivate(const sdl::core::Boxf& window) {
-      // Compute available dimensions.
-      const float cw = (window.w() - 2.0f * m_margin) / m_width;
-      const float ch = (window.h() - 2.0f * m_margin) / m_height;
+      // Compute the dimensions available for each logical _cell_
+      // defines for columns and rows.
+      float cw;
+      computeColumnsWidth(window.w(), cw);
 
-      // Apply the new size to each item based on its proportion of the total area occupied by this component.
+      float rh;
+      computeRowsHeight(window.h(), rh);
+
+      // The `cw` and `rh` variables now hold the available width and height
+      // for each logical _cell_ in this layout. We now can apply these values
+      // to each column/row based on its stretch.
+
+      // Compute the origins for each column/row.
+      std::vector<float> co = computeColumnsOrigin(cw);
+      std::vector<float> ro = computeRowsOrigin(rh);
+
+      // We now need to process each column/row based on the computed dimensions.
       for (std::unordered_map<int, ItemInfo>::const_iterator item = m_itemsLocation.cbegin() ;
            item != m_itemsLocation.cend() ;
            ++item)
       {
-        m_items[item->first]->setRenderingArea(sdl::core::Boxf(
-          m_margin + item->second.x * cw + cw / 2.0f,
-          m_margin + item->second.y * ch + ch / 2.0f,
-          cw * item->second.w,
-          ch * item->second.h
-        ));
-      }
-    }
+        // Retrieve the properties of the widget.
+        const int widgetId = item->first;
+        const ItemInfo info = item->second;
 
-    int
-    GridLayout::addItem(sdl::core::SdlWidget* container,
-                        const unsigned& x,
-                        const unsigned& y,
-                        const unsigned& w,
-                        const unsigned& h)
-    {
-      int containerIndex = sdl::core::Layout::addItem(container);
-      m_itemsLocation[containerIndex] = {
-        1.0f * std::min(m_width - 1, x),
-        1.0f * std::min(m_height - 1, y),
-        1.0f * std::min(m_width - x, w),
-        1.0f * std::min(m_height - y, h)
-      };
-      return containerIndex;
+        // This widget spans across the columns `info.x` through `info.x + info.w`.
+        // It also spans across the rows `info.y` through `info.y + info.h`.
+        // We can compute the total width and height for this widget based on the
+        // dimensions a single logical _cell_ and the stretch for all the spanning
+        // column.
+        float w;
+        float h;
+        computeWidgetSpan(info, cw, rh, w, h);
+
+        // Update the position and dimensions for this widget.
+        m_items[widgetId]->setRenderingArea(
+          sdl::core::Boxf(
+            co[info.x] + w / 2.0f,
+            ro[info.y] + h / 2.0f,
+            w,
+            h
+          )
+        );
+      }
     }
 
   }

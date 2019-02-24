@@ -11,21 +11,33 @@ namespace sdl {
     class GridLayout: public sdl::core::Layout {
       public:
 
-        GridLayout(const unsigned& width,
-                   const unsigned& height,
+        GridLayout(const unsigned& columns,
+                   const unsigned& rows,
                    const float& margin = 0.0f,
                    sdl::core::SdlWidget* widget = nullptr);
 
         virtual ~GridLayout();
 
         const unsigned&
-        getWidth() const noexcept;
+        getColumnCount() const noexcept;
 
         const unsigned&
-        getHeight() const noexcept;
+        getRowCount() const noexcept;
 
         const float&
         getMargin() const noexcept;
+
+        void
+        setColumnMinimumWidth(const unsigned& column, const float& width);
+
+        void
+        setRowMinimumHeight(const unsigned& row, const float& height);
+
+        void
+        setColumnHorizontalStretch(const unsigned& column, const float& stretch);
+
+        void
+        setRowVerticalStretch(const unsigned& row, const float& stretch);
 
         int
         addItem(sdl::core::SdlWidget* container,
@@ -35,7 +47,7 @@ namespace sdl {
                 const unsigned& h) override;
 
         void
-        setGrid(const unsigned& w, const unsigned& h);
+        setGrid(const unsigned& columns, const unsigned& rows);
 
       protected:
 
@@ -46,11 +58,39 @@ namespace sdl {
 
         // Convenience record to hold the position of items in the layout.
         struct ItemInfo {
-          float x, y, w, h;
+          unsigned x, y, w, h;
         };
 
-        unsigned m_width;
-        unsigned m_height;
+        void
+        computeColumnsWidth(const float& totalWidth, float& cw) const noexcept;
+
+        void
+        computeRowsHeight(const float& totalHeight, float& rh) const noexcept;
+
+        std::vector<float>
+        computeColumnsOrigin(const float& cw) const noexcept;
+
+        std::vector<float>
+        computeRowsOrigin(const float& rh) const noexcept;
+
+        void
+        computeWidgetSpan(const ItemInfo& info,
+                          const float& cw,
+                          const float& rh,
+                          float& w,
+                          float& h) const noexcept;
+
+      private:
+
+        unsigned m_columns;
+        unsigned m_rows;
+
+        std::vector<float> m_columnsMinimumWidth;
+        std::vector<float> m_rowsMinimumHeight;
+
+        std::vector<float> m_columnsStretches;
+        std::vector<float> m_rowsStretches;
+
         float m_margin;
         std::unordered_map<int, ItemInfo> m_itemsLocation;
 
