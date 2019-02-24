@@ -28,7 +28,14 @@ namespace sdl {
       const float ch = window.h() - 2.0f * m_margin;
 
       // Assign the space for the active child.
-      m_items[m_activeItem]->setRenderingArea(sdl::core::Boxf(m_margin + cw / 2.0f, m_margin + ch / 2.0f, cw, ch));
+      m_items[m_activeItem]->setRenderingArea(
+        sdl::core::Boxf(
+          m_margin + cw / 2.0f,
+          m_margin + ch / 2.0f,
+          cw,
+          ch
+        )
+      );
 
       // Disable other items.
       for (unsigned indexItem = 0u ; indexItem < m_items.size() ; ++indexItem) {

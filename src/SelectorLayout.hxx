@@ -49,7 +49,7 @@ namespace sdl {
       }
 
       m_activeItem = index;
-      makeDirty();
+      invalidate();
     }
 
     inline
