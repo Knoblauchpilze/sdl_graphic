@@ -13,7 +13,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(getLocker());
       m_text = text;
       m_textDirty = true;
-      makeDirty();
+      makeContentDirty();
     }
 
     inline
@@ -22,7 +22,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(getLocker());
       m_font = font;
       m_textDirty = true;
-      makeDirty();
+      makeContentDirty();
     }
 
     inline
@@ -31,7 +31,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(getLocker());
       m_hAlignment = alignment;
       m_textDirty = true;
-      makeDirty();
+      makeContentDirty();
     }
 
     inline
@@ -40,7 +40,7 @@ namespace sdl {
       std::lock_guard<std::mutex> guard(getLocker());
       m_vAlignment = alignment;
       m_textDirty = true;
-      makeDirty();
+      makeContentDirty();
     }
 
     inline

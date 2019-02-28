@@ -34,6 +34,124 @@ namespace sdl {
       // The input `window` specifies the available space for all the widgets
       // and represents the space to split.
 
+      std::vector<unsigned> fw;
+      std::vector<unsigned> fh;
+
+      std::vector<unsigned> ew;
+      std::vector<unsigned> eh;
+
+      std::vector<unsigned> sw;
+      std::vector<unsigned> sh;
+
+      // First sort widgets based on their size policy in both directions.
+      // In the meantime compute the total size required for widgets so that
+      // we can work on how to allocate space for the rest. A first approach
+      // is to use the size hint in order to work a first approximation of
+      // the needed size and iterate from there.
+
+      // TODO: Handle minimum sizes when computing both the minimum size and
+      // when determining which componend can shrink.
+      // Also what happens with component which do not have `shrink` flag but
+      // which size hint is larger than the minimum ?
+
+      float preferredWidth = 0.0f;
+      float preferredHeight = 0.0f;
+
+      for (unsigned indexItem = 0u ; indexItem < m_items.size() ; ++indexItem) {
+        const sdl::core::SizePolicy& policy = m_items[indexItem]->getSizePolicy();
+        if (policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+          fw.push_back(indexItem);
+        }
+        else if (policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Grow) {
+          ew.push_back(indexItem);
+        }
+        else if (policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Shrink) {
+          sw.push_back(indexItem);
+        }
+
+        if (policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+          fh.push_back(indexItem);
+        }
+        else if (policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Grow) {
+          eh.push_back(indexItem);
+        }
+        else if (policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Shrink) {
+          sh.push_back(indexItem);
+        }
+
+        preferredWidth += m_items[indexItem]->getSizeHint().w();
+        preferredWidth += m_items[indexItem]->getSizeHint().h();
+      }
+
+      // Compute the total available size.
+      const float totalWidth = computeAvailableSize(window, Direction::Horizontal);
+      const float totalHeight = computeAvailableSize(window, Direction::Vertical);
+
+      // Compute the size occupied by all fixed size components.
+      const float fixedWidth = computeHintedSize(fw, Direction::Horizontal);
+      const float fixedHeight = computeHintedSize(fh, Direction::Vertical);
+
+      // Now we have two main cases for each direction: either the available dimensions
+      // are sufficient for to contain all the widgets with their fixed size or it is
+      // not.
+      // In the first case we want to grow and expand widgets which can in order to use
+      // the available space.
+      // In the second case we want to shrink the widgets which can in order to save
+      // some space.
+      std::vector<sdl::core::Boxf> widgetsBoxes;
+
+      // First, discard cases where it is obvisously not possible to do anything to
+      // balance components.
+      if (totalWidth < fixedWidth) {
+        throw sdl::core::SdlException(
+          std::string("Cannot recompute layout, insufficient width (") +
+          std::to_string(totalWidth) + " provided, " +
+          std::to_string(fixedWidth) + " needed)"
+        );
+      }
+      if (totalHeight < fixedHeight) {
+        throw sdl::core::SdlException(
+          std::string("Cannot recompute layout, insufficient height (") +
+          std::to_string(totalHeight) + " provided, " +
+          std::to_string(fixedHeight) + " needed)"
+        );
+      }
+
+      // Handle horizontal resizing of widgets.
+      if (totalWidth < preferredWidth) {
+        widgetsBoxes = handleWidgetsShrinking(
+          sw,
+          totalWidth - fixedWidth,
+          Direction::Horizontal
+        );
+      }
+      else {
+        widgetsBoxes = handleWidgetsExpanding(
+          ew,
+          totalWidth - fixedWidth,
+          Direction::Horizontal
+        );
+      }
+
+      // Handle vertical resizing of widgets.
+      if (totalHeight < preferredHeight) {
+        widgetsBoxes = handleWidgetsShrinking(
+          sh,
+          totalHeight - fixedHeight,
+          Direction::Vertical
+        );
+      }
+      else {
+        widgetsBoxes = handleWidgetsExpanding(
+          eh,
+          totalHeight - fixedHeight,
+          Direction::Vertical
+        );
+      }
+
+      // TODO: Performs the widget expanding and remove the horizontal layout
+      // (or at least move it).
+
       // Split the available space according to the number of elements to space.
       float cw, ch;
       switch(m_direction) {

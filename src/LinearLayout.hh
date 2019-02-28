@@ -38,12 +38,30 @@ namespace sdl {
 
       private:
 
-        void
+        float
+        computeHintedSize(const std::vector<unsigned>& widgets,
+                          const Direction& direction) const noexcept;
+
+        float
+        computeAvailableSize(const sdl::core::Boxf& totalArea,
+                             const Direction& direction) const noexcept;
+
+        std::vector<sdl::core::Boxf>
+        handleWidgetsExpanding(const std::vector<unsigned>& widgets,
+                               const float& targetSize,
+                               const Direction& direction) const;
+
+        std::vector<sdl::core::Boxf>
+        handleWidgetsShrinking(const std::vector<unsigned>& widgets,
+                               const float& targetSize,
+                               const Direction& direction) const;
+
+        std::vector<sdl::core::Boxf>
         handleHorizontalLayout(const sdl::core::Boxf& totalArea,
                                float& cw,
                                float& ch) const;
 
-        void
+        std::vector<sdl::core::Boxf>
         handleVerticalLayout(const sdl::core::Boxf& totalArea,
                              float& cw,
                              float& ch) const;
