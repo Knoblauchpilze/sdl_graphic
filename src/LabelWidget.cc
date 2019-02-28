@@ -12,9 +12,10 @@ namespace sdl {
                              const VerticalAlignment& vAlignment,
                              SdlWidget* parent,
                              const bool transparent,
-                             const core::Palette& palette):
+                             const core::Palette& palette,
+                             const sdl::core::Sizef& area):
       sdl::core::SdlWidget(name,
-                           sdl::core::Boxf(),
+                           area,
                            parent,
                            transparent,
                            palette),

@@ -34,7 +34,8 @@ namespace sdl {
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
                     const bool transparent = false,
-                    const core::Palette& palette = core::Palette());
+                    const core::Palette& palette = core::Palette(),
+                    const sdl::core::Sizef& area = sdl::core::Sizef());
 
         virtual ~LabelWidget();
 

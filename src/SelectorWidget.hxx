@@ -11,9 +11,10 @@ namespace sdl {
     SelectorWidget::SelectorWidget(const std::string& name,
                                    sdl::core::SdlWidget* parent,
                                    const bool transparent,
-                                   const core::Palette& palette):
+                                   const core::Palette& palette,
+                                   const sdl::core::Sizef& area):
       sdl::core::SdlWidget(name,
-                           sdl::core::Boxf(),
+                           area,
                            parent,
                            transparent,
                            palette)
