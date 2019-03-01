@@ -28,7 +28,7 @@ namespace sdl {
     GridLayout::~GridLayout() {}
 
     void
-    GridLayout::updatePrivate(const sdl::core::Boxf& window) {
+    GridLayout::updatePrivate(const sdl::utils::Boxf& window) {
       // Compute the dimensions available for each logical _cell_
       // defines for columns and rows.
       float cw;
@@ -65,7 +65,7 @@ namespace sdl {
 
         // Update the position and dimensions for this widget.
         m_items[widgetId]->setRenderingArea(
-          sdl::core::Boxf(
+          sdl::utils::Boxf(
             co[info.x] + w / 2.0f,
             ro[info.y] + h / 2.0f,
             w,

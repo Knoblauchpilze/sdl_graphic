@@ -20,263 +20,90 @@ namespace sdl {
     LinearLayout::~LinearLayout() {}
 
     void
-    LinearLayout::updatePrivate(const sdl::core::Boxf& window) {
-      // The LinearLayout allows to arrange widgets in a single direction
-      // and to provide equal space to each widget. Widgets can override the
-      // default behavior using a stretch, which tells the layout that the
-      // widget should span a multiple of the initial available space.
+    LinearLayout::updatePrivate(const sdl::utils::Boxf& window) {
+      // The `LinearLayout` allows to arrange widgets using a flow along a
+      // specified axis. THe default behavior is to provide an equal allocation
+      // of the available space to all widgets, but also to take into account
+      // the provided stretch factors in order to obtain a nice growing/shrinking
+      // behavior if needed.
       //
-      // The space which is not spanned by the linear layout (i.e. vertical
-      // space for an horizontal layout and horizontal space for a vertical
-      // layout is set to be filled up by the widgets unless other indications
-      // are specified in the widget's size policy.
-      //
-      // The input `window` specifies the available space for all the widgets
-      // and represents the space to split.
+      // Widgets are stretched to use all the space in which the layout is not
+      // flowing (i.e. vertical space for horizontal layout and horizontal space
+      // for vertical layout) unless other indications are specified in the
+      // widget's size policy.
 
-      std::vector<unsigned> fw;
-      std::vector<unsigned> fh;
+      // First, we need to compute the available size for this layout. We need
+      // to take into account margins.
+      const sdl::utils::Sizef internalSize = computeAvailableSize(window);
 
-      std::vector<unsigned> ew;
-      std::vector<unsigned> eh;
-
-      std::vector<unsigned> sw;
-      std::vector<unsigned> sh;
-
-      // First sort widgets based on their size policy in both directions.
-      // In the meantime compute the total size required for widgets so that
-      // we can work on how to allocate space for the rest. A first approach
-      // is to use the size hint in order to work a first approximation of
-      // the needed size and iterate from there.
-
-      // TODO: Handle minimum sizes when computing both the minimum size and
-      // when determining which componend can shrink.
-      // Also what happens with component which do not have `shrink` flag but
-      // which size hint is larger than the minimum ?
-
-      float preferredWidth = 0.0f;
-      float preferredHeight = 0.0f;
-
-      for (unsigned indexItem = 0u ; indexItem < m_items.size() ; ++indexItem) {
-        const sdl::core::SizePolicy& policy = m_items[indexItem]->getSizePolicy();
-        if (policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
-          fw.push_back(indexItem);
-        }
-        else if (policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Grow) {
-          ew.push_back(indexItem);
-        }
-        else if (policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Shrink) {
-          sw.push_back(indexItem);
-        }
-
-        if (policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
-          fh.push_back(indexItem);
-        }
-        else if (policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Grow) {
-          eh.push_back(indexItem);
-        }
-        else if (policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Shrink) {
-          sh.push_back(indexItem);
-        }
-
-        preferredWidth += m_items[indexItem]->getSizeHint().w();
-        preferredWidth += m_items[indexItem]->getSizeHint().h();
+      // Copy the current size of widgets so that we can work with it without
+      // requesting constantly information or setting information multiple times.
+      std::vector<sdl::core::SizePolicy> widgetsPolicies(m_items.size());
+      std::vector<sdl::utils::Sizef> widgetsHints(m_items.size());
+      std::vector<sdl::utils::Boxf> widgetsBoxes(m_items.size());
+      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+        widgetsPolicies[index] = m_items[index]->getSizePolicy();
+        widgetsHints[index] = m_items[index]->getSizeHint();
+        widgetsBoxes[index] = m_items[index]->getRenderingArea();
       }
 
-      // Compute the total available size.
-      const float totalWidth = computeAvailableSize(window, Direction::Horizontal);
-      const float totalHeight = computeAvailableSize(window, Direction::Vertical);
+      // Now we need to compute and assign size information to each widget based
+      // on its policy and required min/hint/max dimensions. We also need to
+      // provide a first valid size hint for widgets which still don't have any.
+      // In a first approach, we will try to allocate fairly the available space
+      // among all the widgets.
+      // This approach is likely to fail because some widgets will have specific
+      // constraints, in which case we will modify the default behavior to account
+      // for these modifications.
+      
+      // Compute the default box to assign to each widget.
+      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(internalSize);
 
-      // Compute the size occupied by all fixed size components.
-      const float fixedWidth = computeHintedSize(fw, Direction::Horizontal);
-      const float fixedHeight = computeHintedSize(fh, Direction::Vertical);
+      // We need to first account for the fixed size widgets which have a defined
+      // size hint: these widgets will be the first to handle we have no margin in
+      // handling their definitive size. Indeed it must stay the size provided by
+      // the size hint.
+      // In order to ease the computations, we can just ignore the space occupied
+      // by these widgets and subtract it from the available size.
 
-      // Now we have two main cases for each direction: either the available dimensions
-      // are sufficient for to contain all the widgets with their fixed size or it is
-      // not.
-      // In the first case we want to grow and expand widgets which can in order to use
-      // the available space.
-      // In the second case we want to shrink the widgets which can in order to save
-      // some space.
-      std::vector<sdl::core::Boxf> widgetsBoxes;
+      // Build the set of widgets which are fixed and aiwht a valid size hint. This
+      // will build the first basis to exclude from further computations the widgets
+      // which have been successfully handled.
+      std::unordered_set<unsigned> handledWidgets;
+      float incompressibleSize = computeIncompressibleSize(
+        handledWidgets,
+        widgetsPolicies,
+        widgetsHints
+      );
 
-      // First, discard cases where it is obvisously not possible to do anything to
-      // balance components.
-      if (totalWidth < fixedWidth) {
+      // Check whether we have some margin to perform an adjustment: if even at this
+      // point the incompressible size is larger than the available size we're screwed.
+      float relevantSize = (getDirection() == Direction::Horizontal ? internalSize.w() : internalSize.h());
+
+      if (incompressibleSize > relevantSize) {
         throw sdl::core::SdlException(
-          std::string("Cannot recompute layout, insufficient width (") +
-          std::to_string(totalWidth) + " provided, " +
-          std::to_string(fixedWidth) + " needed)"
-        );
-      }
-      if (totalHeight < fixedHeight) {
-        throw sdl::core::SdlException(
-          std::string("Cannot recompute layout, insufficient height (") +
-          std::to_string(totalHeight) + " provided, " +
-          std::to_string(fixedHeight) + " needed)"
+          std::string("Cannot handle linear layout, ") +
+          "available size is " + std::to_string(relevantSize) +
+          " but widgets occupy at least " + std::to_string(incompressibleSize)
         );
       }
 
-      // Handle horizontal resizing of widgets.
-      if (totalWidth < preferredWidth) {
-        widgetsBoxes = handleWidgetsShrinking(
-          sw,
-          totalWidth - fixedWidth,
-          Direction::Horizontal
-        );
+      // Compute the working size available for this layout by subtracting the chunk
+      // of incompressible size occupied by fixed sized widgets with valid size hints.
+      sdl::utils::Sizef workingSize;
+      if (getDirection() == Direction::Horizontal) {
+        workingSize = sdl::utils::Sizef(internalSize.w() - incompressibleSize, internalSize.h());
+      }
+      else if (getDirection() == Direction::Vertical) {
+        workingSize = sdl::utils::Sizef(internalSize.w(), internalSize.h() - incompressibleSize);
       }
       else {
-        widgetsBoxes = handleWidgetsExpanding(
-          ew,
-          totalWidth - fixedWidth,
-          Direction::Horizontal
-        );
+        throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
       }
 
-      // Handle vertical resizing of widgets.
-      if (totalHeight < preferredHeight) {
-        widgetsBoxes = handleWidgetsShrinking(
-          sh,
-          totalHeight - fixedHeight,
-          Direction::Vertical
-        );
-      }
-      else {
-        widgetsBoxes = handleWidgetsExpanding(
-          eh,
-          totalHeight - fixedHeight,
-          Direction::Vertical
-        );
-      }
-
-      // TODO: Performs the widget expanding and remove the horizontal layout
-      // (or at least move it).
-
-      // Split the available space according to the number of elements to space.
-      float cw, ch;
-      switch(m_direction) {
-        case Direction::Horizontal:
-          handleHorizontalLayout(window, cw, ch);
-          break;
-        case Direction::Vertical:
-        default:
-          handleVerticalLayout(window, cw, ch);
-          break;
-      }
-
-      // The `cw` and `ch` variables now hold the available width and height
-      // for each logical _cell_ in this layout. We now can apply these values
-      // to each widget based on its stretch.
-
-      // Hold the current coordinates.
-      float xStart = m_margin;
-      float yStart = m_margin;
-
-      // Update each widget handled by this layout.
-      for (int indexItem = 0 ; indexItem < m_items.size() ; ++indexItem) {
-        // Compute the span of this widget based on its stretch.
-        const float w = m_items[indexItem]->getSizePolicy().getHorizontalStretch() * cw;
-        const float h = m_items[indexItem]->getSizePolicy().getVerticalStretch() * ch;
-
-        // Update the position and dimensions for this widget.
-        m_items[indexItem]->setRenderingArea(
-          sdl::core::Boxf(
-            xStart + w / 2.0f,
-            yStart + h / 2.0f,
-            w,
-            h
-          )
-        );
-
-        // Update the starting coordinates.
-        if (m_direction == Direction::Horizontal) {
-          xStart += (w + m_componentMargin);
-        }
-        if (m_direction == Direction::Vertical) {
-          yStart += (h + m_componentMargin);
-        }
-      }
-    }
-
-    void
-    LinearLayout::handleHorizontalLayout(const sdl::core::Boxf& totalArea,
-                                         float& cw,
-                                         float& ch) const
-    {
-      // In the case of horizontal layout, we want to split up the space along
-      // the horizontal axis (i.e. the available width) among all the widgets
-      // and provide the maximum available space along the vertical axis (i.e.
-      // the height) for each widget.
-
-      // The width available for each widget corresponds to the total width minus
-      // the global margin and the margin between components.
-      const float availableWidth =
-          totalArea.w()
-        - 2.0f * m_margin
-        - (m_items.size() - 1) * m_componentMargin
-      ;
-
-      // Now we need to split this available width among all the logical _cells_
-      // defined by the widgets.
-      // Indeed each widget can provide a `stretch` which allows to specify that
-      // the widget should occupy a larger portion of the available space.
-      // As an example if we have two widgets `A` and `B` with `A.stretch = 1`
-      // and `B.stretch = 2`, the layout will allocate space so that `B` is twice
-      // the size of `A`.
-
-      // Compute the number of logical _cells_ from the components.
-      float cells = 0.0f;
-      for (int indexItem = 0 ; indexItem < m_items.size() ; ++indexItem) {
-        cells += m_items[indexItem]->getSizePolicy().getHorizontalStretch();
-      }
-
-      // The available width can now be split evenly between all the cells.
-      cw = availableWidth / cells;
-
-      // The height available for each widget corresponds to the total height
-      // minus the margin.
-      ch = totalArea.h() - 2.0f * m_margin;
-    }
-
-    inline
-    void
-    LinearLayout::handleVerticalLayout(const sdl::core::Boxf& totalArea,
-                                       float& cw,
-                                       float& ch) const
-    {
-      // In the case of vertical layout, we want to split up the space along
-      // the vertical axis (i.e. the available height) among all the widgets
-      // and provide the maximum available space along the horizontal axis
-      // (i.e. the width) for each widget.
-
-      // The width available for each widget corresponds to the total width
-      // minus the margin.
-      cw = totalArea.w() - 2.0f * m_margin;
-
-      // The height available for each widget corresponds to the total height minus
-      // the global margin and the margin between components.
-      const float availableHeight =
-          totalArea.h()
-        - 2.0f * m_margin
-        - (m_items.size() - 1) * m_componentMargin
-      ;
-
-      // Now we need to split this available height among all the logical _cells_
-      // defined by the widgets.
-      // Indeed each widget can provide a `stretch` which allows to specify that
-      // the widget should occupy a larger portion of the available space.
-      // As an example if we have two widgets `A` and `B` with `A.stretch = 1`
-      // and `B.stretch = 2`, the layout will allocate space so that `B` is twice
-      // the size of `A`.
-
-      // Compute the number of logical _cells_ from the components.
-      float cells = 0.0f;
-      for (int indexItem = 0 ; indexItem < m_items.size() ; ++indexItem) {
-        cells += m_items[indexItem]->getSizePolicy().getVerticalStretch();
-      }
-
-      // The available width can now be split evenly between all the cells.
-      ch = availableHeight / cells;
+      std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
+      std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
+      std::cout << "[LAY] Working size: " << workingSize.w() << "x" << workingSize.h() << std::endl;
     }
 
   }

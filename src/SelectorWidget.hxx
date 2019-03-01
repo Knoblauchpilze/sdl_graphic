@@ -12,7 +12,7 @@ namespace sdl {
                                    sdl::core::SdlWidget* parent,
                                    const bool transparent,
                                    const core::Palette& palette,
-                                   const sdl::core::Sizef& area):
+                                   const sdl::utils::Sizef& area):
       sdl::core::SdlWidget(name,
                            area,
                            parent,

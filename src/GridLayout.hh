@@ -52,7 +52,7 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const sdl::core::Boxf& area) override;
+        updatePrivate(const sdl::utils::Boxf& area) override;
 
       private:
 

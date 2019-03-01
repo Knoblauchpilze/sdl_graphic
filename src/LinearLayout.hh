@@ -2,7 +2,10 @@
 # define   LINEARLAYOUT_HH
 
 # include <memory>
+# include <unordered_set>
 # include <sdl_core/Layout.hh>
+# include <sdl_core/Size.hh>
+# include <sdl_core/SizePolicy.hh>
 
 namespace sdl {
   namespace graphic {
@@ -34,37 +37,20 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const sdl::core::Boxf& window) override;
+        updatePrivate(const sdl::utils::Boxf& window) override;
 
       private:
 
-        float
-        computeHintedSize(const std::vector<unsigned>& widgets,
-                          const Direction& direction) const noexcept;
+        sdl::utils::Sizef
+        computeAvailableSize(const sdl::utils::Boxf& totalArea) const;
+
+        sdl::utils::Sizef
+        computeDefaultWidgetBox(const sdl::utils::Sizef& area) const;
 
         float
-        computeAvailableSize(const sdl::core::Boxf& totalArea,
-                             const Direction& direction) const noexcept;
-
-        std::vector<sdl::core::Boxf>
-        handleWidgetsExpanding(const std::vector<unsigned>& widgets,
-                               const float& targetSize,
-                               const Direction& direction) const;
-
-        std::vector<sdl::core::Boxf>
-        handleWidgetsShrinking(const std::vector<unsigned>& widgets,
-                               const float& targetSize,
-                               const Direction& direction) const;
-
-        std::vector<sdl::core::Boxf>
-        handleHorizontalLayout(const sdl::core::Boxf& totalArea,
-                               float& cw,
-                               float& ch) const;
-
-        std::vector<sdl::core::Boxf>
-        handleVerticalLayout(const sdl::core::Boxf& totalArea,
-                             float& cw,
-                             float& ch) const;
+        computeIncompressibleSize(std::unordered_set<unsigned>& hintedWidgets,
+                                  const std::vector<sdl::core::SizePolicy>& widgetsPolicies,
+                                  const std::vector<sdl::utils::Sizef>& widgetsHints) const;
 
       private:
 
