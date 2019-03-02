@@ -124,30 +124,26 @@ namespace sdl {
         // In any other case, we can apply the `defaultBox` to the
         // widget without problems.
 
-        // Check whether the size hint for this widget is valid
-        if (widgetsHints[index].isValid()) {
-          // The size hint is valid, this gives a first indication regarding
-          // dimensions for this widget.
-        }
-        else {
-          // No valid hint for this widget, we should be able to apply
-          // the `defaultBox` if possible. This scenario only matters if
-          // the minimum or maximum size conflicts with the desired
-          // `defaultBox` though, otherwise everything's fine.
-          
-          sdl::utils::Sizef area = computeSizeFromPolicy(
-            defaultBox,
-            widgetsPolicies[index],
-            widgetsMins[index],
-            widgetsHints[index],
-            widgetsMaxs[index]
-          );
-          outputBoxes[index].w() = area.w();
-          outputBoxes[index].h() = area.h();
+        // Use the dedicated handler to compute a suited size for this
+        // widget.
+        sdl::utils::Sizef area = computeSizeFromPolicy(
+          defaultBox,
+          widgetsPolicies[index],
+          widgetsMins[index],
+          widgetsHints[index],
+          widgetsMaxs[index]
+        );
+        outputBoxes[index].w() = area.w();
+        outputBoxes[index].h() = area.h();
 
-          // Update the extra width/height if the box is not identical to the
-          // provided one.
+        // Update the extra width/height if the box is not identical to the
+        // provided one. This only applies if the policy for the widget is
+        // not fixed, in which case the extra width has already been handled
+        // by the `incompressibleSize` information.
+        if (widgetsPolicies[index].getHorizontalPolicy() != sdl::core::SizePolicy::Fixed) {
           extraWidth += (defaultBox.w() - area.w());
+        }
+        if (widgetsPolicies[index].getVerticalPolicy() != sdl::core::SizePolicy::Fixed) {
           extraHeight += (defaultBox.h() - area.h());
         }
 
@@ -168,10 +164,28 @@ namespace sdl {
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
         // Position the widget based on the position of the previous ones.
-        // TODO : Handle centering of widget with smaller dimensions than the
-        // required dimensions.
-        outputBoxes[index].x() = x + outputBoxes[index].w() / 2.0f;
-        outputBoxes[index].y() = y + outputBoxes[index].h() / 2.0f;
+        // In addition to this mechanism, we should handle some kind of
+        // centering to allow widgets with sizes smaller than the provided
+        // layout's dimensions to still be nicely displayed in the center
+        // of the layout.
+        // To handle this case we check whether the dimensions of the size
+        // of the widget is smaller than the dimension stored in `internalSize`
+        // in which case we can center it.
+        // The centering only takes place in the perpendicular direction of
+        // the flow of the layout (e.g. vertical direction for horizontal
+        // layout and horizontal direction for vertical layout).
+        float xWidget = x + outputBoxes[index].w() / 2.0f;
+        float yWidget = y + outputBoxes[index].h() / 2.0f;
+
+        if (getDirection() == Direction::Horizontal && outputBoxes[index].h() < internalSize.h()) {
+          yWidget += ((internalSize.h() - outputBoxes[index].h()) / 2.0f);
+        }
+        if (getDirection() == Direction::Vertical && outputBoxes[index].w() < internalSize.w()) {
+          xWidget += ((internalSize.w() - outputBoxes[index].w()) / 2.0f);
+        }
+
+        outputBoxes[index].x() = xWidget;;
+        outputBoxes[index].y() = yWidget;
 
         // Update the position for the next widget based on the layout's
         // direction.
