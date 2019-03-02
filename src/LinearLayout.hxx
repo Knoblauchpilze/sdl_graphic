@@ -189,17 +189,17 @@ namespace sdl {
       }
 
       // Check shrinking policy.
-      if (outputBox.w() < hint.w() && !(policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Shrink)) {
+      if (outputBox.w() < hint.w() && !(policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
         outputBox.setWidth(hint.w());
       }
-      if (outputBox.h() < hint.h() && !(policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Shrink)) {
+      if (outputBox.h() < hint.h() && !(policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
         outputBox.setHeight(hint.h());
       }
 
-      if (outputBox.w() > hint.w() && !(policy.getHorizontalPolicy() | sdl::core::SizePolicy::Policy::Expand)) {
+      if (outputBox.w() > hint.w() && !(policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
         outputBox.setWidth(hint.w());
       }
-      if (outputBox.h() > hint.h() && !(policy.getVerticalPolicy() | sdl::core::SizePolicy::Policy::Expand)) {
+      if (outputBox.h() > hint.h() && !(policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
         outputBox.setHeight(hint.h());
       }
 
