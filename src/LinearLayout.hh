@@ -49,6 +49,7 @@ namespace sdl {
 
         sdl::utils::Sizef
         computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
+                              const sdl::utils::Boxf& currentSize,
                               const WidgetInfo& info) const;
 
       private:

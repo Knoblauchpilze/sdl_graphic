@@ -83,10 +83,14 @@ namespace sdl {
     inline
     sdl::utils::Sizef
     LinearLayout::computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
+                                        const sdl::utils::Boxf& currentSize,
                                         const WidgetInfo& info) const
     {
       // Create the return size and assume the desired size is valid.
-      sdl::utils::Sizef outputBox(desiredSize);
+      sdl::utils::Sizef outputBox(
+        currentSize.w() + desiredSize.w(),
+        currentSize.h() + desiredSize.h()
+      );
 
       bool widthDone = false;
       bool heightDone = false;
@@ -157,10 +161,22 @@ namespace sdl {
         outputBox.setHeight(info.hint.h());
       }
 
-      if (outputBox.w() > info.hint.w() && !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
+      if (outputBox.w() > info.hint.w() &&
+          (
+          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Grow) &&
+          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)
+          )
+         )
+      {
         outputBox.setWidth(info.hint.w());
       }
-      if (outputBox.h() > info.hint.h() && !(info.policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
+      if (outputBox.h() > info.hint.h() &&
+          (
+          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Grow) &&
+          !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)
+          )
+         )
+      {
         outputBox.setHeight(info.hint.h());
       }
 

@@ -80,17 +80,8 @@ namespace sdl {
         );
       }
 
-      // Compute the working size available for this layout by subtracting the chunk
-      // of incompressible size occupied by fixed sized widgets with valid size hints.
-      sdl::utils::Sizef workingSize = computeWorkingSize(internalSize, incompressibleSize);
-      
-      // Compute the default box to assign to each not handled yet widget.
-      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(workingSize, m_items.size());
-
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
-      std::cout << "[LAY] Working size: " << workingSize.w() << "x" << workingSize.h() << std::endl;
-      std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
 
       std::vector<sdl::utils::Boxf> outputBoxes(m_items.size());
 
@@ -100,46 +91,102 @@ namespace sdl {
       // declared right now in order to keep track of additional space or missing space
       // for example in case the minimum/maximum size of a widget prevent it from being
       // set to the `defaultBox`.
-      float extraWidth = 0.0f;
-      float extraHeight = 0.0f;
+      // After updating all widgets, we need to loop again to apply the space we have
+      // not used uup before. This process continues until we run out of space to allocate
+      // (usually meaning that we could expand some widgets to take the space not used
+      // by others) or if no more container can be expanded or shrinked without bypassing
+      // the sizes provided to bound the widgets.
+      std::unordered_set<unsigned> widgetsToAdjust;
 
+      // In a first approach all the widgets can be adjusted.
       for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
-        // We now enter the core of the widgets' dimensions update.
-        // The aim of this loop is to apply the `defaultBox` to as many
-        // widgets as possible.
-        // The exceptions to this rule occur when:
-        // 1) The widget has a fixed policy and a valid size hint.
-        // 2) The widget has a minimum size larger than the required
-        //    size.
-        // 3) The widget has a maximum size smaller than the required
-        //    size.
-        // In any other case, we can apply the `defaultBox` to the
-        // widget without problems.
+        widgetsToAdjust.insert(index);
+      }
 
-        // Use the dedicated handler to compute a suited size for this
-        // widget.
-        sdl::utils::Sizef area = computeSizeFromPolicy(defaultBox, widgetsInfo[index]);
-        outputBoxes[index].w() = area.w();
-        outputBoxes[index].h() = area.h();
+      // Also assume that we didn't use up all the available space.
+      sdl::utils::Sizef spaceToUse = internalSize;
+      bool allSpaceUsed = false;
 
-        // Update the extra width/height if the box is not identical to the
-        // provided one. This only applies if the policy for the widget is
-        // not fixed, in which case the extra width has already been handled
-        // by the `incompressibleSize` information.
-        if (widgetsInfo[index].policy.getHorizontalPolicy() != sdl::core::SizePolicy::Fixed) {
-          extraWidth += (defaultBox.w() - area.w());
+      // Loop until no more widgets can be used to adjust the space needed or all the
+      // available space has been used up.
+      // TODO: Handle cases where the space cannot be reached because no more widgets
+      // can be used ?
+      while (!widgetsToAdjust.empty() && !allSpaceUsed) {
+
+        // Compute the amount of space we will try to allocate to each widget still
+        // available for adjustment.
+        // The `defaultBox` is computed by dividing equally the remaining `workingSize`
+        // among all the available widgets.
+        const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, widgetsToAdjust.size());
+
+        std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
+
+        // Loop on all the widgets that can still be used to adjust the space used by
+        // this layout and perform the size adjustements.
+        for (std::unordered_set<unsigned>::const_iterator widget = widgetsToAdjust.cbegin() ;
+             widget != widgetsToAdjust.cend() ;
+             ++widget)
+        {
+          // Try to assign the `defaultBox` to this widget: we use a dedicated handler
+          // to handle the case where the provided space is too large/small/not suited
+          // to the widget for some reasons, in which case the handelr will provide a
+          // size which can be applied to the widget.
+          sdl::utils::Sizef area = computeSizeFromPolicy(defaultBox, outputBoxes[*widget], widgetsInfo[*widget]);
+          outputBoxes[*widget].w() = area.w();
+          outputBoxes[*widget].h() = area.h();
+
+          std::cout << "[LAY] Widget \"" << m_items[*widget]->getName() << "\": "
+                    << outputBoxes[*widget].x() << ", " << outputBoxes[*widget].y()
+                    << ", dims: "
+                    << outputBoxes[*widget].w() << ", " << outputBoxes[*widget].h()
+                    << std::endl;
         }
-        if (widgetsInfo[index].policy.getVerticalPolicy() != sdl::core::SizePolicy::Fixed) {
-          extraHeight += (defaultBox.h() - area.h());
+
+        // We have tried to apply the `defaultBox` to all the widgets. This might have fail
+        // in some cases (for example due to a `FIxed` size policy for a widget) and thus
+        // we might end up with a total size for all the widget different from the one desired
+        // and expected when the `defaultBox` has been computed.
+        // In order to fix things, we must compute the deviation from the expected size and
+        // try to allocate the remaining space to other widgets (or remove the missing space
+        // from widgets which can give up some).
+
+        // Compute the total size of the bounding boxes.
+        sdl::utils::Sizef achievedSize = computeSizeOfWidgets(getDirection(), outputBoxes);
+
+        // Check whether all the space have been used.
+        if (achievedSize == internalSize) {
+          // We used up all the available space, no more adjustments to perform.
+          allSpaceUsed = true;
+          continue;
         }
 
-        std::cout << "[LAY] Widget \"" << m_items[index]->getName() << "\": "
-                  << outputBoxes[index].x() << ", " << outputBoxes[index].y()
-                  << ", dims: "
-                  << outputBoxes[index].w() << ", " << outputBoxes[index].h()
-                  << ", extra dims: "
-                  << extraWidth << ", " << extraHeight
+        // All space has not been used. Update the relevant `spaceToUse` in order to perform
+        // the next iteration.
+        spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
+
+        // Determine the policy to apply based on the achieved size.
+        const sdl::core::SizePolicy::Policy action = shrinkOrGrow(getDirection(), internalSize, achievedSize);
+
+        std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
+                  << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
+                  << " space: " << spaceToUse.w() << ", " << spaceToUse.h()
                   << std::endl;
+
+        // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
+        // Based on the `policy` provided by the base class method, we can now determine which
+        // widget should be used to perform the needed adjustments.
+        std::unordered_set<unsigned> widgetsToUse;
+        for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
+          // Check whether this widget can be used to grow/shrink.
+          if (canBeUsedTo(widgetsInfo[index], outputBoxes[index], action, getDirection())) {
+            std::cout << "[LAY] " << m_items[index]->getName() << " can be used to " << std::to_string(static_cast<int>(action)) << std::endl;
+            widgetsToUse.insert(index);
+          }
+        }
+
+        // Use the computed list of widgets to perform the next action in order
+        // to reach the desired space.
+        widgetsToAdjust.swap(widgetsToUse);
       }
 
       // All widgets have suited dimensions, we can now handle the position of each
@@ -193,8 +240,6 @@ namespace sdl {
                   << outputBoxes[index].w() << ", " << outputBoxes[index].h()
                   << std::endl;
       }
-
-      std::cout << "[LAY] Remaining extra space: " << extraWidth << ", " << extraHeight << std::endl;
 
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < outputBoxes.size() ; ++index) {
