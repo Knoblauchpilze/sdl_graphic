@@ -65,51 +65,83 @@ namespace sdl {
     }
 
     inline
-    float
-    LinearLayout::computeIncompressibleSize(std::unordered_set<unsigned>& hintedWidgets,
-                                            const std::vector<sdl::core::SizePolicy>& widgetsPolicies,
-                                            const std::vector<sdl::utils::Sizef>& widgetsHints) const
+    sdl::utils::Sizef
+    LinearLayout::computeIncompressibleSize(std::unordered_set<unsigned>& fixedWidgetsAlongDirection,
+                                            const std::vector<WidgetInfo>& widgets) const
     {
-      float incompressibleSize = 0.0f;
+      float flowingSize = 0.0f;
+      float perpendicularSize = 0.0f;
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+        float increment = 0.0f;
         float size = 0.0f;
-        sdl::core::SizePolicy::Policy policy;
 
         if (getDirection() == Direction::Horizontal) {
-          size = widgetsHints[index].w();
-          policy = widgetsPolicies[index].getHorizontalPolicy();
+          // This layout stacks widgets using an horizontal flow:
+          // we should add the incompressible size of this widget
+          // if it has any in the horizontal direction and retrieve
+          // its vertical size if any.
+          if (widgets[index].policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+            size = widgets[index].hint.h();
+          }
+          increment = widgets[index].hint.w();
+
+          // Mark this widget as fixed in the layout's direction.
+          if (widgets[index].hint.isValid() && widgets[index].policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+            fixedWidgetsAlongDirection.insert(index);
+          }
         }
         else if (getDirection() == Direction::Vertical) {
-          size = widgetsHints[index].h();
-          policy = widgetsPolicies[index].getVerticalPolicy();
+          // This layout stacks widgets using a vertical flow:
+          // we should add the incompressible size of this widget
+          // if it has any in the vertical direction and retrieve
+          // its horizontal size if any.
+          if (widgets[index].policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+            size = widgets[index].hint.w();
+          }
+          increment = widgets[index].hint.h();
+
+          // Mark this widget as fixed in the layout's direction.
+          if (widgets[index].hint.isValid() && widgets[index].policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+            fixedWidgetsAlongDirection.insert(index);
+          }
         }
         else {
           throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
         }
 
-        if (policy == sdl::core::SizePolicy::Fixed && widgetsHints[index].isValid()) {
-          // This widget already has a valid size hint and its policy is set to
-          // fixed: we have no margin whatsoever in resizing it so we'd better
-          // ignore the space it occupies for the rest of the computations.
-          incompressibleSize += size;
-          hintedWidgets.insert(index);
+        // Increse the `incompressibleSize` with the provided `size` (which may be
+        // 0 if the widget does not have a valid size hint) and performs a comparison
+        // of the size of the widget in the other direction (i.e. not in the direction
+        // of the flow) against the current maximum and update it if needed.
+        flowingSize += increment;
+        if (perpendicularSize < size) {
+          perpendicularSize = size;
         }
       }
 
-      return incompressibleSize;
+      // Create a valid size based on this layout's direction.
+      if (getDirection() == Direction::Horizontal) {
+        return sdl::utils::Sizef(flowingSize, perpendicularSize);
+      }
+      else if (getDirection() == Direction::Vertical) {
+        return sdl::utils::Sizef(perpendicularSize, flowingSize);
+      }
+      else {
+        throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
+      }
     }
 
     inline
     sdl::utils::Sizef
     LinearLayout::computeWorkingSize(const sdl::utils::Sizef& size,
-                                     const float& unavailable) const
+                                     const sdl::utils::Sizef& unavailable) const
     {
       if (getDirection() == Direction::Horizontal) {
-        return sdl::utils::Sizef(size.w() - unavailable, size.h());
+        return sdl::utils::Sizef(size.w() - unavailable.w(), size.h());
       }
       else if (getDirection() == Direction::Vertical) {
-        return sdl::utils::Sizef(size.w(), size.h() - unavailable);
+        return sdl::utils::Sizef(size.w(), size.h() - unavailable.h());
       }
       else {
         throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
@@ -119,10 +151,7 @@ namespace sdl {
     inline
     sdl::utils::Sizef
     LinearLayout::computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
-                                        const sdl::core::SizePolicy& policy,
-                                        const sdl::utils::Sizef& minSize,
-                                        const sdl::utils::Sizef& hint,
-                                        const sdl::utils::Sizef& maxSize) const
+                                        const WidgetInfo& info) const
     {
       // Create the return size and assume the desired size is valid.
       sdl::utils::Sizef outputBox(desiredSize);
@@ -133,22 +162,22 @@ namespace sdl {
       // Check the policy for fixed size. If the policy is fixed, we should assign
       // the `hint` size whatever the input `desiredSize`. Except of course if the
       // `hint` is not a valid size, in which case we can use the `desiredSize`.
-      if (policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
+      if (info.policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
-        if (hint.isValid()) {
-          outputBox.setWidth(hint.w());
+        if (info.hint.isValid()) {
+          outputBox.setWidth(info.hint.w());
         }
 
         widthDone = true;
       }
-      if (policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
+      if (info.policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
         // Two distinct cases:
         // 1) The `hint` is valid, in which case we have to use it.
         // 2) The `hint` is not valid in which case we have to use the `desiredSize`.
-        if (hint.isValid()) {
-          outputBox.setHeight(hint.h());
+        if (info.hint.isValid()) {
+          outputBox.setHeight(info.hint.h());
         }
 
         heightDone = true;
@@ -161,18 +190,18 @@ namespace sdl {
 
       // At least one of the dimension is not set to fixed, so we have to check for
       // min and max sizes.
-      if (outputBox.w() < minSize.w()) {
-        outputBox.setWidth(minSize.w());
+      if (outputBox.w() < info.min.w()) {
+        outputBox.setWidth(info.min.w());
       }
-      if (outputBox.h() < minSize.h()) {
-        outputBox.setHeight(minSize.h());
+      if (outputBox.h() < info.min.h()) {
+        outputBox.setHeight(info.min.h());
       }
 
-      if (outputBox.w() > maxSize.w()) {
-        outputBox.setWidth(maxSize.w());
+      if (outputBox.w() > info.max.w()) {
+        outputBox.setWidth(info.max.w());
       }
-      if (outputBox.h() > maxSize.h()) {
-        outputBox.setHeight(maxSize.h());
+      if (outputBox.h() > info.max.h()) {
+        outputBox.setHeight(info.max.h());
       }
 
       // The last thing to check concerns the size policy. FOr example if the `desiredSize`
@@ -182,25 +211,25 @@ namespace sdl {
       // and the policy is not set to `Shrink`: the `hint` should be used.
       // If course all this is only relevant if the hint is valid, otherwise we can use the
       // `desiredSize`.
-      if (!hint.isValid()) {
+      if (!info.hint.isValid()) {
         // Nothing more to do, the `desiredSize` can be used once clamped using the `minSize`
         // and `maxSize`.
         return outputBox;
       }
 
       // Check shrinking policy.
-      if (outputBox.w() < hint.w() && !(policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
-        outputBox.setWidth(hint.w());
+      if (outputBox.w() < info.hint.w() && !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
+        outputBox.setWidth(info.hint.w());
       }
-      if (outputBox.h() < hint.h() && !(policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
-        outputBox.setHeight(hint.h());
+      if (outputBox.h() < info.hint.h() && !(info.policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Shrink)) {
+        outputBox.setHeight(info.hint.h());
       }
 
-      if (outputBox.w() > hint.w() && !(policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
-        outputBox.setWidth(hint.w());
+      if (outputBox.w() > info.hint.w() && !(info.policy.getHorizontalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
+        outputBox.setWidth(info.hint.w());
       }
-      if (outputBox.h() > hint.h() && !(policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
-        outputBox.setHeight(hint.h());
+      if (outputBox.h() > info.hint.h() && !(info.policy.getVerticalPolicy() & sdl::core::SizePolicy::Policy::Expand)) {
+        outputBox.setHeight(info.hint.h());
       }
 
       // We can return the computed box.

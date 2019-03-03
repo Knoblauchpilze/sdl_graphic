@@ -38,18 +38,7 @@ namespace sdl {
 
       // Copy the current size of widgets so that we can work with it without
       // requesting constantly information or setting information multiple times.
-      std::vector<sdl::core::SizePolicy> widgetsPolicies(m_items.size());
-      std::vector<sdl::utils::Sizef> widgetsMins(m_items.size());
-      std::vector<sdl::utils::Sizef> widgetsHints(m_items.size());
-      std::vector<sdl::utils::Sizef> widgetsMaxs(m_items.size());
-      std::vector<sdl::utils::Boxf> widgetsBoxes(m_items.size());
-      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
-        widgetsPolicies[index] = m_items[index]->getSizePolicy();
-        widgetsMins[index] = m_items[index]->getMinSize();
-        widgetsHints[index] = m_items[index]->getSizeHint();
-        widgetsMaxs[index] = m_items[index]->getMaxSize();
-        widgetsBoxes[index] = m_items[index]->getRenderingArea();
-      }
+      std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
 
       // Now we need to compute and assign size information to each widget based
       // on its policy and required min/hint/max dimensions. We also need to
@@ -67,24 +56,24 @@ namespace sdl {
       // In order to ease the computations, we can just ignore the space occupied
       // by these widgets and subtract it from the available size.
 
-      // Build the set of widgets which are fixed and aiwht a valid size hint. This
+      // Build the set of widgets which are fixed and with a valid size hint. This
       // will build the first basis to exclude from further computations the widgets
       // which have been successfully handled.
-      std::unordered_set<unsigned> handledWidgets;
-      float incompressibleSize = computeIncompressibleSize(
-        handledWidgets,
-        widgetsPolicies,
-        widgetsHints
+      std::unordered_set<unsigned> widgetsIncompressibleInLayoutDirection;
+      sdl::utils::Sizef incompressibleSize = computeIncompressibleSize(
+        widgetsIncompressibleInLayoutDirection,
+        widgetsInfo
       );
 
       // Check whether we have some margin to perform an adjustment: if even at this
       // point the incompressible size is larger than the available size we're screwed.
-      float relevantSize = (getDirection() == Direction::Horizontal ? internalSize.w() : internalSize.h());
-      if (incompressibleSize > relevantSize) {
+      if (incompressibleSize.w() > internalSize.w() || incompressibleSize.h() > internalSize.h()) {
         throw sdl::core::SdlException(
           std::string("Cannot handle linear layout, ") +
-          "available size is " + std::to_string(relevantSize) +
-          " but widgets occupy at least " + std::to_string(incompressibleSize)
+          "available size is " + std::to_string(internalSize.w()) +
+          "x" + std::to_string(internalSize.h()) +
+          " but widgets occupy at least " + std::to_string(incompressibleSize.w()) +
+          "x" + std::to_string(incompressibleSize.h())
         );
       }
 
@@ -93,7 +82,7 @@ namespace sdl {
       sdl::utils::Sizef workingSize = computeWorkingSize(internalSize, incompressibleSize);
       
       // Compute the default box to assign to each not handled yet widget.
-      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(workingSize, m_items.size() - handledWidgets.size());
+      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(workingSize, m_items.size() - widgetsIncompressibleInLayoutDirection.size());
 
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
@@ -111,7 +100,7 @@ namespace sdl {
       float extraWidth = 0.0f;
       float extraHeight = 0.0f;
 
-      for (unsigned index = 0u ; index < widgetsBoxes.size() ; ++index) {
+      for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
         // We now enter the core of the widgets' dimensions update.
         // The aim of this loop is to apply the `defaultBox` to as many
         // widgets as possible.
@@ -126,13 +115,7 @@ namespace sdl {
 
         // Use the dedicated handler to compute a suited size for this
         // widget.
-        sdl::utils::Sizef area = computeSizeFromPolicy(
-          defaultBox,
-          widgetsPolicies[index],
-          widgetsMins[index],
-          widgetsHints[index],
-          widgetsMaxs[index]
-        );
+        sdl::utils::Sizef area = computeSizeFromPolicy(defaultBox, widgetsInfo[index]);
         outputBoxes[index].w() = area.w();
         outputBoxes[index].h() = area.h();
 
@@ -140,10 +123,10 @@ namespace sdl {
         // provided one. This only applies if the policy for the widget is
         // not fixed, in which case the extra width has already been handled
         // by the `incompressibleSize` information.
-        if (widgetsPolicies[index].getHorizontalPolicy() != sdl::core::SizePolicy::Fixed) {
+        if (widgetsInfo[index].policy.getHorizontalPolicy() != sdl::core::SizePolicy::Fixed) {
           extraWidth += (defaultBox.w() - area.w());
         }
-        if (widgetsPolicies[index].getVerticalPolicy() != sdl::core::SizePolicy::Fixed) {
+        if (widgetsInfo[index].policy.getVerticalPolicy() != sdl::core::SizePolicy::Fixed) {
           extraHeight += (defaultBox.h() - area.h());
         }
 
@@ -207,6 +190,8 @@ namespace sdl {
                   << outputBoxes[index].w() << ", " << outputBoxes[index].h()
                   << std::endl;
       }
+
+      std::cout << "[LAY] Remaining extra space: " << extraWidth << ", " << extraHeight << std::endl;
 
       // Assign the rendering area to widgets.
       for (unsigned index = 0u; index < outputBoxes.size() ; ++index) {

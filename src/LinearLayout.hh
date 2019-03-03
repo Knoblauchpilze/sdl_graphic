@@ -48,21 +48,17 @@ namespace sdl {
         computeDefaultWidgetBox(const sdl::utils::Sizef& area,
                                 const unsigned& widgetsCount) const;
 
-        float
-        computeIncompressibleSize(std::unordered_set<unsigned>& hintedWidgets,
-                                  const std::vector<sdl::core::SizePolicy>& widgetsPolicies,
-                                  const std::vector<sdl::utils::Sizef>& widgetsHints) const;
+        sdl::utils::Sizef
+        computeIncompressibleSize(std::unordered_set<unsigned>& fixedWidgetsAlongDirection,
+                                  const std::vector<WidgetInfo>& widgets) const;
 
         sdl::utils::Sizef
         computeWorkingSize(const sdl::utils::Sizef& size,
-                          const float& unavailable) const;
+                           const sdl::utils::Sizef& unavailable) const;
 
         sdl::utils::Sizef
         computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
-                              const sdl::core::SizePolicy& policy,
-                              const sdl::utils::Sizef& minSize,
-                              const sdl::utils::Sizef& hint,
-                              const sdl::utils::Sizef& maxSize) const;
+                              const WidgetInfo& info) const;
 
       private:
 
