@@ -56,12 +56,15 @@ namespace sdl {
       // In order to ease the computations, we can just ignore the space occupied
       // by these widgets and subtract it from the available size.
 
-      // Build the set of widgets which are fixed and with a valid size hint. This
-      // will build the first basis to exclude from further computations the widgets
-      // which have been successfully handled.
-      std::unordered_set<unsigned> widgetsIncompressibleInLayoutDirection;
+      // Compute the incompressible size for this layout. This size simply adds up
+      // all the sizes of widgets which have both a fixed size policy and a valid
+      // size hint.
+      // One should provide the direction into which the sizes are added: for example
+      // in the case of an horizontal layout, incomrpessible size is mostly relevant
+      // in the horizontal direction. The vertical direction can be handled by
+      // finding the maximum size in this direction.
       sdl::utils::Sizef incompressibleSize = computeIncompressibleSize(
-        widgetsIncompressibleInLayoutDirection,
+        getDirection(),
         widgetsInfo
       );
 
@@ -82,7 +85,7 @@ namespace sdl {
       sdl::utils::Sizef workingSize = computeWorkingSize(internalSize, incompressibleSize);
       
       // Compute the default box to assign to each not handled yet widget.
-      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(workingSize, m_items.size() - widgetsIncompressibleInLayoutDirection.size());
+      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(workingSize, m_items.size());
 
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;

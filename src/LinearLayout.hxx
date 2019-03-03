@@ -8,7 +8,7 @@ namespace sdl {
   namespace graphic {
 
     inline
-    const LinearLayout::Direction&
+    const sdl::core::Layout::Direction&
     LinearLayout::getDirection() const noexcept {
       return m_direction;
     }
@@ -62,74 +62,6 @@ namespace sdl {
         );
       }
       throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
-    }
-
-    inline
-    sdl::utils::Sizef
-    LinearLayout::computeIncompressibleSize(std::unordered_set<unsigned>& fixedWidgetsAlongDirection,
-                                            const std::vector<WidgetInfo>& widgets) const
-    {
-      float flowingSize = 0.0f;
-      float perpendicularSize = 0.0f;
-
-      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
-        float increment = 0.0f;
-        float size = 0.0f;
-
-        if (getDirection() == Direction::Horizontal) {
-          // This layout stacks widgets using an horizontal flow:
-          // we should add the incompressible size of this widget
-          // if it has any in the horizontal direction and retrieve
-          // its vertical size if any.
-          if (widgets[index].policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
-            size = widgets[index].hint.h();
-          }
-          increment = widgets[index].hint.w();
-
-          // Mark this widget as fixed in the layout's direction.
-          if (widgets[index].hint.isValid() && widgets[index].policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
-            fixedWidgetsAlongDirection.insert(index);
-          }
-        }
-        else if (getDirection() == Direction::Vertical) {
-          // This layout stacks widgets using a vertical flow:
-          // we should add the incompressible size of this widget
-          // if it has any in the vertical direction and retrieve
-          // its horizontal size if any.
-          if (widgets[index].policy.getHorizontalPolicy() == sdl::core::SizePolicy::Fixed) {
-            size = widgets[index].hint.w();
-          }
-          increment = widgets[index].hint.h();
-
-          // Mark this widget as fixed in the layout's direction.
-          if (widgets[index].hint.isValid() && widgets[index].policy.getVerticalPolicy() == sdl::core::SizePolicy::Fixed) {
-            fixedWidgetsAlongDirection.insert(index);
-          }
-        }
-        else {
-          throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
-        }
-
-        // Increse the `incompressibleSize` with the provided `size` (which may be
-        // 0 if the widget does not have a valid size hint) and performs a comparison
-        // of the size of the widget in the other direction (i.e. not in the direction
-        // of the flow) against the current maximum and update it if needed.
-        flowingSize += increment;
-        if (perpendicularSize < size) {
-          perpendicularSize = size;
-        }
-      }
-
-      // Create a valid size based on this layout's direction.
-      if (getDirection() == Direction::Horizontal) {
-        return sdl::utils::Sizef(flowingSize, perpendicularSize);
-      }
-      else if (getDirection() == Direction::Vertical) {
-        return sdl::utils::Sizef(perpendicularSize, flowingSize);
-      }
-      else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
-      }
     }
 
     inline

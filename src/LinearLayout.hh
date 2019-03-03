@@ -13,11 +13,6 @@ namespace sdl {
     class LinearLayout: public sdl::core::Layout {
       public:
 
-        enum class Direction {
-          Horizontal,
-          Vertical
-        };
-
         LinearLayout(const Direction& direction,
                      const float& margin = 1.0f,
                      const float& interMargin = 0.0f,
@@ -47,10 +42,6 @@ namespace sdl {
         sdl::utils::Sizef
         computeDefaultWidgetBox(const sdl::utils::Sizef& area,
                                 const unsigned& widgetsCount) const;
-
-        sdl::utils::Sizef
-        computeIncompressibleSize(std::unordered_set<unsigned>& fixedWidgetsAlongDirection,
-                                  const std::vector<WidgetInfo>& widgets) const;
 
         sdl::utils::Sizef
         computeWorkingSize(const sdl::utils::Sizef& size,
