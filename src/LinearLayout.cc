@@ -5,7 +5,7 @@
 namespace sdl {
   namespace graphic {
 
-    LinearLayout::LinearLayout(const Direction& direction,
+    LinearLayout::LinearLayout(const sdl::core::Layout::Direction& direction,
                                const float& margin,
                                const float& interMargin,
                                sdl::core::SdlWidget* widget):

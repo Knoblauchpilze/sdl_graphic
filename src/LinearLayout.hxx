@@ -136,7 +136,7 @@ namespace sdl {
         outputBox.setHeight(info.max.h());
       }
 
-      // The last thing to check concerns the size policy. FOr example if the `desiredSize`
+      // The last thing to check concerns the size policy. For example if the `desiredSize`
       // is larger than the provided hint, even though the `desiredSize` is smaller than the
       // `maxSize`, if the policy is not set to `Grow`, we should still use the `hint` size.
       // Same goes for the case where the `desiredSize` lies in the interval [`minSize`; `hint`]
