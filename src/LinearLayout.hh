@@ -44,10 +44,6 @@ namespace sdl {
                                 const unsigned& widgetsCount) const;
 
         sdl::utils::Sizef
-        computeWorkingSize(const sdl::utils::Sizef& size,
-                           const sdl::utils::Sizef& unavailable) const;
-
-        sdl::utils::Sizef
         computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
                               const sdl::utils::Boxf& currentSize,
                               const WidgetInfo& info) const;

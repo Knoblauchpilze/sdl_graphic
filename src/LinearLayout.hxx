@@ -66,22 +66,6 @@ namespace sdl {
 
     inline
     sdl::utils::Sizef
-    LinearLayout::computeWorkingSize(const sdl::utils::Sizef& size,
-                                     const sdl::utils::Sizef& unavailable) const
-    {
-      if (getDirection() == Direction::Horizontal) {
-        return sdl::utils::Sizef(size.w() - unavailable.w(), size.h());
-      }
-      else if (getDirection() == Direction::Vertical) {
-        return sdl::utils::Sizef(size.w(), size.h() - unavailable.h());
-      }
-      else {
-        throw sdl::core::SdlException(std::string("Unknown direction when updating linear layout"));
-      }
-    }
-
-    inline
-    sdl::utils::Sizef
     LinearLayout::computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
                                         const sdl::utils::Boxf& currentSize,
                                         const WidgetInfo& info) const

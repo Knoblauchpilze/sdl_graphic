@@ -2,6 +2,7 @@
 # define   GRIDLAYOUT_HXX
 
 # include "GridLayout.hh"
+# include <limits>
 # include <sdl_core/SdlException.hh>
 
 namespace sdl {
@@ -28,10 +29,10 @@ namespace sdl {
     inline
     void
     GridLayout::setColumnMinimumWidth(const unsigned& column, const float& width) {
-      if (column > m_columnsStretches.size()) {
+      if (column > m_columnsMinimumWidth.size()) {
         throw sdl::core::SdlException(
           std::string("Cannot set minimum width for column ") + std::to_string(column) +
-          " in " + std::to_string(m_columnsStretches.size()) + " column(s) wide layout"
+          " in " + std::to_string(m_columnsMinimumWidth.size()) + " column(s) wide layout"
         );
       }
 
@@ -41,14 +42,40 @@ namespace sdl {
     inline
     void
     GridLayout::setRowMinimumHeight(const unsigned& row, const float& height) {
-      if (row > m_rowsStretches.size()) {
+      if (row > m_rowsMinimumHeight.size()) {
         throw sdl::core::SdlException(
           std::string("Cannot set minimum height for row ") + std::to_string(row) +
-          " in " + std::to_string(m_rowsStretches.size()) + " row(s) wide layout"
+          " in " + std::to_string(m_rowsMinimumHeight.size()) + " row(s) wide layout"
         );
       }
 
       m_rowsMinimumHeight[row] = height;
+    }
+
+    inline
+    void
+    GridLayout::setColumnMaximumWidth(const unsigned& column, const float& width) {
+      if (column > m_columnsMaximumWidth.size()) {
+        throw sdl::core::SdlException(
+          std::string("Cannot set maximum width for column ") + std::to_string(column) +
+          " in " + std::to_string(m_columnsMaximumWidth.size()) + " column(s) wide layout"
+        );
+      }
+
+      m_columnsMaximumWidth[column] = width;
+    }
+
+    inline
+    void
+    GridLayout::setRowMaximumHeight(const unsigned& row, const float& height) {
+      if (row > m_rowsMaximumHeight.size()) {
+        throw sdl::core::SdlException(
+          std::string("Cannot set maximum height for row ") + std::to_string(row) +
+          " in " + std::to_string(m_rowsMaximumHeight.size()) + " column(s) wide layout"
+        );
+      }
+
+      m_rowsMaximumHeight[row] = height;
     }
 
     inline
@@ -103,13 +130,41 @@ namespace sdl {
       m_rows = rows;
 
       // Resize cells stretches with default values.
-      m_columnsStretches.resize(columns, 1.0f);
-      m_rowsStretches.resize(columns, 1.0f);
+      m_columnsStretches.resize(columns, 0.0f);
+      m_rowsStretches.resize(columns, 0.0f);
 
       // Resize cells minimum dimensions with default values.
       m_columnsMinimumWidth.resize(columns, 0.0f);
+      m_columnsMaximumWidth.resize(columns, std::numeric_limits<float>::max());
       m_rowsMinimumHeight.resize(columns, 0.0f);
+      m_rowsMaximumHeight.resize(columns, std::numeric_limits<float>::max());
     }
+
+    inline
+    sdl::utils::Sizef
+    GridLayout::computeAvailableSize(const sdl::utils::Boxf& totalArea) const noexcept {
+      return sdl::utils::Sizef(
+        totalArea.w() - 2.0f * m_margin,
+        totalArea.h() - 2.0f * m_margin
+      );
+    }
+
+    inline
+    sdl::utils::Sizef
+    GridLayout::computeDefaultWidgetBox(const sdl::utils::Sizef& area,
+                                        const unsigned& columnsCount,
+                                        const unsigned& rowsCount) const noexcept
+    {
+      return sdl::utils::Sizef(
+        area.w() / columnsCount,
+        area.h() / rowsCount
+      );
+    }
+
+
+    // ====================
+    // To be removed
+    // ====================
 
     inline
     void

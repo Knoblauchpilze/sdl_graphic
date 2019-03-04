@@ -34,6 +34,12 @@ namespace sdl {
         setRowMinimumHeight(const unsigned& row, const float& height);
 
         void
+        setColumnMaximumWidth(const unsigned& column, const float& width);
+
+        void
+        setRowMaximumHeight(const unsigned& row, const float& height);
+
+        void
         setColumnHorizontalStretch(const unsigned& column, const float& stretch);
 
         void
@@ -55,6 +61,14 @@ namespace sdl {
         updatePrivate(const sdl::utils::Boxf& area) override;
 
       private:
+
+        sdl::utils::Sizef
+        computeAvailableSize(const sdl::utils::Boxf& totalArea) const noexcept;
+
+        sdl::utils::Sizef
+        computeDefaultWidgetBox(const sdl::utils::Sizef& area,
+                                const unsigned& columnsCount,
+                                const unsigned& rowsCount) const noexcept;
 
         // Convenience record to hold the position of items in the layout.
         struct ItemInfo {
@@ -86,7 +100,9 @@ namespace sdl {
         unsigned m_rows;
 
         std::vector<float> m_columnsMinimumWidth;
+        std::vector<float> m_columnsMaximumWidth;
         std::vector<float> m_rowsMinimumHeight;
+        std::vector<float> m_rowsMaximumHeight;
 
         std::vector<float> m_columnsStretches;
         std::vector<float> m_rowsStretches;

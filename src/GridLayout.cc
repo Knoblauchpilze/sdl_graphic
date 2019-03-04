@@ -14,10 +14,12 @@ namespace sdl {
       m_rows(rows),
 
       m_columnsMinimumWidth(columns, 0.0f),
+      m_columnsMaximumWidth(columns, std::numeric_limits<float>::max()),
       m_rowsMinimumHeight(rows, 0.0f),
+      m_rowsMaximumHeight(rows, std::numeric_limits<float>::max()),
 
-      m_columnsStretches(columns, 1.0f),
-      m_rowsStretches(rows, 1.0f),
+      m_columnsStretches(columns, 0.0f),
+      m_rowsStretches(rows, 0.0f),
 
       m_margin(margin),
       m_itemsLocation()
