@@ -1,5 +1,6 @@
 
 # include "GridLayout.hh"
+# include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
 namespace sdl {
@@ -13,68 +14,103 @@ namespace sdl {
       m_columns(columns),
       m_rows(rows),
 
-      m_columnsMinimumWidth(columns, 0.0f),
-      m_columnsMaximumWidth(columns, std::numeric_limits<float>::max()),
-      m_rowsMinimumHeight(rows, 0.0f),
-      m_rowsMaximumHeight(rows, std::numeric_limits<float>::max()),
-
-      m_columnsStretches(columns, 0.0f),
-      m_rowsStretches(rows, 0.0f),
+      m_columnsInfo(),
+      m_rowsInfo(),
 
       m_margin(margin),
       m_itemsLocation()
     {
-      // Nothing to do.
+      // Build default information for columns/rows.
+      resetGridInfo();
     }
 
     GridLayout::~GridLayout() {}
 
     void
     GridLayout::updatePrivate(const sdl::utils::Boxf& window) {
-      // Compute the dimensions available for each logical _cell_
-      // defines for columns and rows.
-      float cw;
-      computeColumnsWidth(window.w(), cw);
+      // The `GridLayout` allows to arrange widgets using across a virtual
+      // grid composed of `m_columns` columns and `m_rows` rows. The default
+      // behavior is to provide an equal allocation of the available space
+      // to all the widgets, but also to take into account the provided
+      // information about widgets' preferred size and bounds.
+      //
+      // The process includes adjusting rows and columns by validating that
+      // the final dimensions do correspond to the criteria applied to all
+      // the widgets registered for a single column/row.
 
-      float rh;
-      computeRowsHeight(window.h(), rh);
+      // First, we need to compute the available size for this layout. We need
+      // to take into account margins.
+      const sdl::utils::Sizef internalSize = computeAvailableSize(window);
 
-      // The `cw` and `rh` variables now hold the available width and height
-      // for each logical _cell_ in this layout. We now can apply these values
-      // to each column/row based on its stretch.
+      // Copy the current size of widgets so that we can work with it without
+      // requesting constantly information or setting information multiple times.
+      std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
 
-      // Compute the origins for each column/row.
-      std::vector<float> co = computeColumnsOrigin(cw);
-      std::vector<float> ro = computeRowsOrigin(rh);
+      std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
+      std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
-      // We now need to process each column/row based on the computed dimensions.
-      for (std::unordered_map<int, ItemInfo>::const_iterator item = m_itemsLocation.cbegin() ;
-           item != m_itemsLocation.cend() ;
-           ++item)
-      {
-        // Retrieve the properties of the widget.
-        const int widgetId = item->first;
-        const ItemInfo info = item->second;
+      std::vector<sdl::utils::Boxf> outputBoxes(m_items.size());
 
-        // This widget spans across the columns `info.x` through `info.x + info.w`.
-        // It also spans across the rows `info.y` through `info.y + info.h`.
-        // We can compute the total width and height for this widget based on the
-        // dimensions a single logical _cell_ and the stretch for all the spanning
-        // column.
-        float w;
-        float h;
-        computeWidgetSpan(info, cw, rh, w, h);
+      // We now have a working set of dimensions which we can begin to apply to widgets
+      // in order to build the layout.
+      // Basically we will try to assign a `ðefaultBox` to all widgets, corresponding to
+      // the ideal value to use to allocate fairly the space between all widgets. Widgets
+      // will handle internally this assignment by checking it against internal
+      // constraints (min and max size for example) and use the best size considering the
+      // input request.
+      // Once we're done, we can compute the space left (or missing) and start the
+      // process again with the remaining size.
+      // We stop the process when the space has been entirely allocated to widgets or
+      // when there's no widget left to expand/shrink without violating the provided
+      // size constraints.
+      
+      // Compute the amount of space we will try to allocate to each widget still
+      // available for adjustment.
+      // The `defaultBox` is computed by dividing equally the remaining `workingSize`
+      // among all the available widgets.
+      const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(internalSize, m_columns, m_rows);
 
-        // Update the position and dimensions for this widget.
-        m_items[widgetId]->setRenderingArea(
-          sdl::utils::Boxf(
-            co[info.x] + w / 2.0f,
-            ro[info.y] + h / 2.0f,
-            w,
-            h
-          )
-        );
+      std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
+
+      for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
+        // Retrieve the `ItemInfo` struct for this widget.
+        const std::unordered_map<int, ItemInfo>::const_iterator itemInfo = m_itemsLocation.find(index);
+        if (itemInfo == m_itemsLocation.cend()) {
+          throw sdl::core::SdlException(
+            std::string("Could not retrieve information for widget \"") +
+            m_items[index]->getName() + "\" while updating grid layout"
+          );
+        }
+
+        // Try to assign the `defaultBox` to this widget: we use a dedicated handler
+        // to handle the case where the provided space is too large/small/not suited
+        // to the widget for some reasons, in which case the handler will provide a
+        // size which can be applied to the widget.
+        // The process is not completely straightforward though as we need to account
+        // for widgets spanning multiple columns/rows. The `defaultBox` should thus
+        // be scaled to account for this.
+
+        // Scale the `defaultBox`.
+        const sdl::utils::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
+
+        // Apply the policy for this widget.
+        sdl::utils::Sizef area = computeSizeFromPolicy(widgetBox, outputBoxes[index], widgetsInfo[index]);
+        outputBoxes[index].w() = area.w();
+        outputBoxes[index].h() = area.h();
+
+        std::cout << "[LAY] Widget \"" << m_items[index]->getName() << "\": "
+                  << outputBoxes[index].x() << ", " << outputBoxes[index].y()
+                  << ", dims: "
+                  << outputBoxes[index].w() << ", " << outputBoxes[index].h()
+                  << std::endl;
       }
+
+      // TODO: Handle some kind of columns/rows dimensions so that we can compute the position of each widget.
+      // To do so we can at each end of the loop line `75` performs a computation which fetches for each column
+      // or row the dimensions and store it into a dedicated vector.
+
+      // Assign the rendering area to widgets.
+      assignRenderingAreas(outputBoxes);
     }
 
   }

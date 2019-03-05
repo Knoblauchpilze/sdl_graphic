@@ -28,22 +28,22 @@ namespace sdl {
         getMargin() const noexcept;
 
         void
+        setColumnHorizontalStretch(const unsigned& column, const float& stretch);
+
+        void
         setColumnMinimumWidth(const unsigned& column, const float& width);
+
+        void
+        setColumnsMinimumWidth(const float& width);
+
+        void
+        setRowVerticalStretch(const unsigned& row, const float& stretch);
 
         void
         setRowMinimumHeight(const unsigned& row, const float& height);
 
         void
-        setColumnMaximumWidth(const unsigned& column, const float& width);
-
-        void
-        setRowMaximumHeight(const unsigned& row, const float& height);
-
-        void
-        setColumnHorizontalStretch(const unsigned& column, const float& stretch);
-
-        void
-        setRowVerticalStretch(const unsigned& row, const float& stretch);
+        setRowsMinimumHeight(const float& height);
 
         int
         addItem(sdl::core::SdlWidget* container,
@@ -62,6 +62,20 @@ namespace sdl {
 
       private:
 
+        // Convenience record to hold the position of items in the layout.
+        struct ItemInfo {
+          unsigned x, y, w, h;
+        };
+
+        // Convenience record holding the information for a single column/row.
+        struct LineInfo {
+          unsigned stretch;
+          float min;
+        };
+
+        void
+        resetGridInfo();
+
         sdl::utils::Sizef
         computeAvailableSize(const sdl::utils::Boxf& totalArea) const noexcept;
 
@@ -70,42 +84,21 @@ namespace sdl {
                                 const unsigned& columnsCount,
                                 const unsigned& rowsCount) const noexcept;
 
-        // Convenience record to hold the position of items in the layout.
-        struct ItemInfo {
-          unsigned x, y, w, h;
-        };
+        bool
+        locationSpanColumn(const unsigned& column,
+                           const ItemInfo& info) const noexcept;
 
-        void
-        computeColumnsWidth(const float& totalWidth, float& cw) const noexcept;
-
-        void
-        computeRowsHeight(const float& totalHeight, float& rh) const noexcept;
-
-        std::vector<float>
-        computeColumnsOrigin(const float& cw) const noexcept;
-
-        std::vector<float>
-        computeRowsOrigin(const float& rh) const noexcept;
-
-        void
-        computeWidgetSpan(const ItemInfo& info,
-                          const float& cw,
-                          const float& rh,
-                          float& w,
-                          float& h) const noexcept;
+        bool
+        locationSpanRow(const unsigned& row,
+                        const ItemInfo& info) const noexcept;
 
       private:
 
         unsigned m_columns;
         unsigned m_rows;
 
-        std::vector<float> m_columnsMinimumWidth;
-        std::vector<float> m_columnsMaximumWidth;
-        std::vector<float> m_rowsMinimumHeight;
-        std::vector<float> m_rowsMaximumHeight;
-
-        std::vector<float> m_columnsStretches;
-        std::vector<float> m_rowsStretches;
+        std::vector<LineInfo> m_columnsInfo;
+        std::vector<LineInfo> m_rowsInfo;
 
         float m_margin;
         std::unordered_map<int, ItemInfo> m_itemsLocation;

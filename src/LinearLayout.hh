@@ -2,7 +2,6 @@
 # define   LINEARLAYOUT_HH
 
 # include <memory>
-# include <unordered_set>
 # include <sdl_core/Layout.hh>
 # include <sdl_core/Size.hh>
 # include <sdl_core/SizePolicy.hh>
@@ -42,11 +41,6 @@ namespace sdl {
         sdl::utils::Sizef
         computeDefaultWidgetBox(const sdl::utils::Sizef& area,
                                 const unsigned& widgetsCount) const;
-
-        sdl::utils::Sizef
-        computeSizeFromPolicy(const sdl::utils::Sizef& desiredSize,
-                              const sdl::utils::Boxf& currentSize,
-                              const WidgetInfo& info) const;
 
       private:
 

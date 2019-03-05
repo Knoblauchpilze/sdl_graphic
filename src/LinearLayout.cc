@@ -1,5 +1,6 @@
 
 # include "LinearLayout.hh"
+# include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
 namespace sdl {
@@ -22,7 +23,7 @@ namespace sdl {
     void
     LinearLayout::updatePrivate(const sdl::utils::Boxf& window) {
       // The `LinearLayout` allows to arrange widgets using a flow along a
-      // specified axis. THe default behavior is to provide an equal allocation
+      // specified axis. The default behavior is to provide an equal allocation
       // of the available space to all widgets, but also to take into account
       // the provided stretch factors in order to obtain a nice growing/shrinking
       // behavior if needed.
@@ -92,7 +93,7 @@ namespace sdl {
       // for example in case the minimum/maximum size of a widget prevent it from being
       // set to the `defaultBox`.
       // After updating all widgets, we need to loop again to apply the space we have
-      // not used uup before. This process continues until we run out of space to allocate
+      // not used up before. This process continues until we run out of space to allocate
       // (usually meaning that we could expand some widgets to take the space not used
       // by others) or if no more container can be expanded or shrinked without bypassing
       // the sizes provided to bound the widgets.
@@ -111,6 +112,7 @@ namespace sdl {
       // available space has been used up.
       // TODO: Handle cases where the space cannot be reached because no more widgets
       // can be used ?
+      // TODO: Handle cases where the widgets are too large to fit into the widget ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each widget still
@@ -129,7 +131,7 @@ namespace sdl {
         {
           // Try to assign the `defaultBox` to this widget: we use a dedicated handler
           // to handle the case where the provided space is too large/small/not suited
-          // to the widget for some reasons, in which case the handelr will provide a
+          // to the widget for some reasons, in which case the handler will provide a
           // size which can be applied to the widget.
           sdl::utils::Sizef area = computeSizeFromPolicy(defaultBox, outputBoxes[*widget], widgetsInfo[*widget]);
           outputBoxes[*widget].w() = area.w();
@@ -143,7 +145,7 @@ namespace sdl {
         }
 
         // We have tried to apply the `defaultBox` to all the widgets. This might have fail
-        // in some cases (for example due to a `FIxed` size policy for a widget) and thus
+        // in some cases (for example due to a `Fixed` size policy for a widget) and thus
         // we might end up with a total size for all the widget different from the one desired
         // and expected when the `defaultBox` has been computed.
         // In order to fix things, we must compute the deviation from the expected size and
@@ -242,9 +244,7 @@ namespace sdl {
       }
 
       // Assign the rendering area to widgets.
-      for (unsigned index = 0u; index < outputBoxes.size() ; ++index) {
-        m_items[index]->setRenderingArea(outputBoxes[index]);
-      }
+      assignRenderingAreas(outputBoxes);
     }
 
   }
