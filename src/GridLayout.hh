@@ -92,6 +92,12 @@ namespace sdl {
         locationSpanRow(const unsigned& row,
                         const ItemInfo& info) const noexcept;
 
+        std::vector<float>
+        computeColumnsDimensions() const noexcept;
+
+        std::vector<float>
+        computeRowsDimensions() const noexcept;
+
       private:
 
         unsigned m_columns;

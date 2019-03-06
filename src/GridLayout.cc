@@ -42,6 +42,10 @@ namespace sdl {
       // to take into account margins.
       const sdl::utils::Sizef internalSize = computeAvailableSize(window);
 
+      // Compute default columns and rows dimensions.
+      std::vector<float> columnsWidth = computeColumnsDimensions();
+      std::vector<float> rowsWidth = computeRowsDimensions();
+
       // Copy the current size of widgets so that we can work with it without
       // requesting constantly information or setting information multiple times.
       std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
@@ -105,9 +109,78 @@ namespace sdl {
                   << std::endl;
       }
 
-      // TODO: Handle some kind of columns/rows dimensions so that we can compute the position of each widget.
-      // To do so we can at each end of the loop line `75` performs a computation which fetches for each column
-      // or row the dimensions and store it into a dedicated vector.
+      // All widgets have suited dimensions, we can now handle the position of each
+      // widget. We basically just move each widget based on the dimensions of the
+      // rows and columns to reach the position of each widget.
+      // dimensions and adding margins.
+      float x = m_margin;
+      float y = m_margin;
+
+      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+        // Position the widget based on the dimensions of the rows and columns
+        // until the position of the widget.
+        // We maintained a vector to keep track of the dimensions of each row
+        // and column during the adjustment process so that we can use it now
+        // to assign a position to the boxes.
+        // In addition to this mechanism, we should handle some kind of
+        // centering to allow widgets with sizes smaller than the provided
+        // layout's dimensions to still be nicely displayed in the center
+        // of the layout.
+        // To handle this case we check whether the dimensions of the size
+        // of the widget is smaller than the dimension stored in `internalSize`
+        // in which case we can center it.
+        // The centering takes place according to both the dimensions of the
+        // rows and columns spanned by the widget.
+
+        // Retrieve the item's location.
+        const std::unordered_map<int, ItemInfo>::const_iterator loc = m_itemsLocation.find(index);
+        if (loc == m_itemsLocation.end()) {
+          throw sdl::core::SdlException(
+            std::string("Could not retrieve information for widget \"") +
+            m_items[index]->getName() + "\" while updating grid layout"
+          );
+        }
+
+        float xWidget = m_margin;
+        float yWidget = m_margin;
+
+        // Compute the offset to apply to reach the desired column based on the
+        // item's location.
+        for (unsigned column = 0u ; column < loc->second.x ; ++column) {
+          xWidget += columnsWidth[column];
+        }
+        for (unsigned row = 0u ; row < loc->second.y ; ++row) {
+          yWidget += rowsWidth[row];
+        }
+
+        // Center the position (because `Boxf` are centered).
+        xWidget += (outputBoxes[index].w() / 2.0f);
+        yWidget += (outputBoxes[index].h() / 2.0f);
+
+        // Handle the centering of the widget in case it is smaller than the
+        // desired width or height.
+        // To do so, compute the size the widget _should_ have based on its
+        // columns/rows span.
+        float expectedWidth = 0.0f;
+        float expectedHeight = 0.0f;
+
+        for (unsigned column = loc->second.x ; column <= loc->second.x + loc->second.w ; ++column) {
+          expectedWidth += columnsWidth[column];
+        }
+        for (unsigned row = loc->second.y ; row <= loc->second.y + loc->second.h ; ++row) {
+          expectedHeight += rowsWidth[row];
+        }
+
+        if (outputBoxes[index].w() < expectedWidth) {
+          xWidget += ((expectedWidth - outputBoxes[index].w()) / 2.0f);
+        }
+        if (outputBoxes[index].h() < expectedHeight) {
+          yWidget += ((expectedHeight - outputBoxes[index].h()) / 2.0f);
+        }
+
+        outputBoxes[index].x() = xWidget;
+        outputBoxes[index].y() = yWidget;
+      }
 
       // Assign the rendering area to widgets.
       assignRenderingAreas(outputBoxes);

@@ -179,6 +179,30 @@ namespace sdl {
       return info.y <= row && info.y + info.h >= row;
     }
 
+    inline
+    std::vector<float>
+    GridLayout::computeColumnsDimensions() const noexcept {
+      std::vector<float> dimensions(m_columns, 0.0f);
+
+      for (unsigned index = 0u ; index < m_columns ; ++index) {
+        dimensions[index] = m_columnsInfo[index].min;
+      }
+
+      return dimensions;
+    }
+
+    inline
+    std::vector<float>
+    GridLayout::computeRowsDimensions() const noexcept {
+      std::vector<float> dimensions(m_rows, 0.0f);
+
+      for (unsigned index = 0u ; index < m_rows ; ++index) {
+        dimensions[index] = m_rowsInfo[index].min;
+      }
+
+      return dimensions;
+    }
+
   }
 }
 
