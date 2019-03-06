@@ -219,7 +219,7 @@ namespace sdl {
           xWidget += ((internalSize.w() - outputBoxes[index].w()) / 2.0f);
         }
 
-        outputBoxes[index].x() = xWidget;;
+        outputBoxes[index].x() = xWidget;
         outputBoxes[index].y() = yWidget;
 
         // Update the position for the next widget based on the layout's
