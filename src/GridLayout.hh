@@ -73,6 +73,18 @@ namespace sdl {
           float min;
         };
 
+        // Convenience record holding the detailed information for a single cell
+        // of the grid layout. If the `widget` value is negative, it means that
+        // no widget occupy the location. In any other case, the `widget` value
+        // corresponds to the key to reach the widget spanning this cell in the
+        // `m_locations` map.
+        struct CellInfo {
+          unsigned hStretch;
+          unsigned vStretch;
+          sdl::utils::Boxf box;
+          int widget;
+        };
+
         void
         resetGridInfo();
 
@@ -92,13 +104,18 @@ namespace sdl {
         locationSpanRow(const unsigned& row,
                         const ItemInfo& info) const noexcept;
 
-        std::vector<float>
-        computeColumnsDimensions() const noexcept;
+        std::vector<CellInfo>
+        computeCellsInfo() const noexcept;
 
-        std::vector<float>
-        computeRowsDimensions() const noexcept;
+        void
+        consolidateDimensions(std::vector<CellInfo>& cells) const noexcept;
+
+        sdl::utils::Sizef
+        computeSizeOfCells(const std::vector<CellInfo>& cells) const;
 
       private:
+
+        using LocationsMap = std::unordered_map<int, ItemInfo>;
 
         unsigned m_columns;
         unsigned m_rows;
@@ -107,7 +124,7 @@ namespace sdl {
         std::vector<LineInfo> m_rowsInfo;
 
         float m_margin;
-        std::unordered_map<int, ItemInfo> m_itemsLocation;
+        LocationsMap m_locations;
 
     };
 
