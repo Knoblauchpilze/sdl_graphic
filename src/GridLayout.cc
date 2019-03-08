@@ -75,7 +75,7 @@ namespace sdl {
         std::cout << "[LAY] row " << row << ":";
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           const unsigned cellID = row * m_columns + column;
-          std::cout << " " << std::setw(3) << cells[cellID].box.w() << "x" << std::setw(3) << cells[cellID].box.h();
+          std::cout << " " << std::setw(6) << cells[cellID].box.w() << "x" << std::setw(6) << cells[cellID].box.h();
         }
         std::cout << std::endl;
       }
@@ -114,7 +114,7 @@ namespace sdl {
         // available for adjustment.
         // The `defaultBox` is computed by dividing equally the remaining `workingSize`
         // among all the available widgets.
-        const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(internalSize, m_columns, m_rows);
+        const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
 
         std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
 
@@ -161,7 +161,7 @@ namespace sdl {
           std::cout << "[LAY] row " << row << ":";
           for (unsigned column = 0u ; column < m_columns ; ++column) {
             const unsigned cellID = row * m_columns + column;
-            std::cout << " " << std::setw(3) << cells[cellID].box.w() << "x" << std::setw(3) << cells[cellID].box.h();
+            std::cout << " " << std::setw(7) << cells[cellID].box.w() << "x" << std::setw(7) << cells[cellID].box.h();
           }
           std::cout << std::endl;
         }
@@ -226,8 +226,6 @@ namespace sdl {
         // Use the computed list of widgets to perform the next action in order
         // to reach the desired space.
         widgetsToAdjust.swap(widgetsToUse);
-
-        // TODO: Debug infinite loop.
       }
 
       // All widgets have suited dimensions, we can now handle the position of each

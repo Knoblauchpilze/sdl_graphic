@@ -184,7 +184,15 @@ namespace sdl {
     inline
     std::vector<GridLayout::CellInfo>
     GridLayout::computeCellsInfo() const noexcept {
-      std::vector<CellInfo> cells(m_columns * m_rows);
+      std::vector<CellInfo> cells(
+        m_columns * m_rows,
+        CellInfo{
+          0,
+          0,
+          sdl::utils::Boxf(),
+          -1
+        }
+      );
 
       // Complete the information with widgets' data.
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
@@ -197,23 +205,6 @@ namespace sdl {
 
             cells[cellID].widget = item->first;
             cells[cellID].box = sdl::utils::Boxf();
-          }
-        }
-      }
-
-      // Retrieve basic information on columns.
-      for (unsigned row = 0u ; row < m_rows ; ++row) {
-        for (unsigned column = 0u ; column < m_columns ; ++column) {
-          const unsigned cellID = row * m_columns + column;
-
-          cells[cellID].hStretch = m_columnsInfo[column].stretch;
-          cells[cellID].vStretch = m_rowsInfo[row].stretch;
-
-          if (m_columnsInfo[column].min > cells[cellID].box.w()) {
-            cells[cellID].box.w() = m_columnsInfo[column].min;
-          }
-          if (m_rowsInfo[row].min > cells[cellID].box.h()) {
-            cells[cellID].box.h() = m_rowsInfo[row].min;
           }
         }
       }
@@ -237,7 +228,9 @@ namespace sdl {
 
         // Assign this dimension to all the elements in this row.
         for (unsigned column = 0u ; column < m_columns ; ++column) {
-          cells[row * m_columns + column].box.h() = min;
+          if (cells[row * m_columns + column].widget < 0) {
+            cells[row * m_columns + column].box.h() = min;
+          }
         }
       }
 
@@ -253,7 +246,9 @@ namespace sdl {
 
         // Assign this dimension to all the elements in this column.
         for (unsigned row = 0u ; row < m_rows ; ++row) {
-          cells[row * m_columns + column].box.w() = min;
+          if (cells[row * m_columns + column].widget < 0) {
+            cells[row * m_columns + column].box.w() = min;
+          }
         }
       }
     }
@@ -261,17 +256,35 @@ namespace sdl {
     inline
     sdl::utils::Sizef
     GridLayout::computeSizeOfCells(const std::vector<CellInfo>& cells) const {
-      sdl::utils::Sizef cellsSize;
-
+      // Compute the maximum size of any column.
+      float maxColumnSize = 0.0f;
       for (unsigned row = 0u ; row < m_rows ; ++row) {
+        float columnSize = 0.0f;
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           const unsigned cellID = row * m_columns + column;
-          cellsSize.w() += cells[cellID].box.w();
-          cellsSize.h() += cells[cellID].box.h();
+          columnSize += cells[cellID].box.w();
+        }
+        
+        if (maxColumnSize < columnSize) {
+          maxColumnSize = columnSize;
         }
       }
 
-      return cellsSize;
+      // Compute the maximum size of any row.
+      float maxRowSize = 0.0f;
+      for (unsigned column = 0u ; column < m_columns ; ++column) {
+        float rowSize = 0.0f;
+        for (unsigned row = 0u ; row < m_rows ; ++row) {
+          const unsigned cellID = row * m_columns + column;
+          rowSize += cells[cellID].box.h();
+        }
+        
+        if (maxRowSize < rowSize) {
+          maxRowSize = rowSize;
+        }
+      }
+
+      return sdl::utils::Sizef(maxColumnSize, maxRowSize);
     }
 
   }
