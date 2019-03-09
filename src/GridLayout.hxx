@@ -214,7 +214,10 @@ namespace sdl {
 
     inline
     void
-    GridLayout::consolidateDimensions(std::vector<CellInfo>& cells) const noexcept {
+    GridLayout::consolidateDimensions(std::vector<CellInfo>& cells,
+                                      std::vector<float>& columnsDims,
+                                      std::vector<float>& rowsDims) const noexcept
+    {
       // Equalize columns and rows information.
       for (unsigned row = 0u ; row < m_rows ; ++row) {
         // Determine the max value of the minimum height of this row.
@@ -225,6 +228,8 @@ namespace sdl {
             min = cells[cellID].box.h();
           }
         }
+
+        rowsDims[row] = min;
 
         // Assign this dimension to all the elements in this row.
         for (unsigned column = 0u ; column < m_columns ; ++column) {
@@ -243,6 +248,8 @@ namespace sdl {
             min = cells[cellID].box.w();
           }
         }
+
+        columnsDims[column] = min;
 
         // Assign this dimension to all the elements in this column.
         for (unsigned row = 0u ; row < m_rows ; ++row) {

@@ -48,6 +48,8 @@ namespace sdl {
       // TODO: Override the minimum size of each widget with the size of the
       // column/row in which it lies ?
       std::vector<CellInfo> cells = computeCellsInfo();
+      std::vector<float> columnsDims(m_columns);
+      std::vector<float> rowsDims(m_rows);
 
       // Copy the current size of widgets so that we can work with it without
       // requesting constantly information or setting information multiple times.
@@ -155,7 +157,7 @@ namespace sdl {
 
         // Once all widgets have been assigned dimensions based on the `ðefaultBox`, we need to
         // consolidate the dimensions of the cell to determine whether the adjustment is done.
-        consolidateDimensions(cells);
+        consolidateDimensions(cells, columnsDims, rowsDims);
 
         for (unsigned row = 0u ; row < m_rows ; ++row) {
           std::cout << "[LAY] row " << row << ":";
@@ -178,7 +180,7 @@ namespace sdl {
         sdl::utils::Sizef achievedSize = computeSizeOfCells(cells);
 
         // Check whether all the space have been used.
-        if (achievedSize == internalSize) {
+        if (achievedSize.fuzzyEqual(internalSize, 1.0f)) {
           // We used up all the available space, no more adjustments to perform.
           allSpaceUsed = true;
           continue;
@@ -214,11 +216,11 @@ namespace sdl {
 
           // Check whether this widget can be used to grow/shrink.
           if (canBeUsedTo(widgetsInfo[index], cells[cellID].box, action)) {
-            std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
-                      << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
-                      << " and "
-                      << std::to_string(static_cast<int>(action.getVerticalPolicy()))
-                      << std::endl;
+            // std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
+            //           << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
+            //           << " and "
+            //           << std::to_string(static_cast<int>(action.getVerticalPolicy()))
+            //           << std::endl;
             widgetsToUse.insert(index);
           }
         }
@@ -270,10 +272,10 @@ namespace sdl {
         // Compute the offset to apply to reach the desired column based on the
         // item's location.
         for (unsigned column = 0u ; column < loc->second.x ; ++column) {
-          xWidget += cells[loc->second.y * m_columns + column].box.w();
+          xWidget += columnsDims[column];
         }
         for (unsigned row = 0u ; row < loc->second.y ; ++row) {
-          yWidget += cells[row * m_columns + loc->second.x].box.h();
+          yWidget += rowsDims[row];
         }
 
         // Center the position (because `Boxf` are centered).
@@ -284,23 +286,31 @@ namespace sdl {
         // desired width or height.
         // To do so, compute the size the widget _should_ have based on its
         // columns/rows span.
-        // TODO: Handle centerin.
-        // float expectedWidth = 0.0f;
-        // float expectedHeight = 0.0f;
+        // TODO: Handle centering.
+        float expectedWidth = 0.0f;
+        float expectedHeight = 0.0f;
 
-        // for (unsigned column = loc->second.x ; column < loc->second.x + loc->second.w ; ++column) {
-        //   expectedWidth += columnsBoxes[column];
-        // }
-        // for (unsigned row = loc->second.y ; row < loc->second.y + loc->second.h ; ++row) {
-        //   expectedHeight += rowsBoxes[row];
-        // }
+        for (unsigned column = loc->second.x ; column < loc->second.x + loc->second.w ; ++column) {
+          expectedWidth += columnsDims[column];
+        }
+        for (unsigned row = loc->second.y ; row < loc->second.y + loc->second.h ; ++row) {
+          expectedHeight += rowsDims[row];
+        }
 
-        // if (outputBoxes[index].w() < expectedWidth) {
-        //   xWidget += ((expectedWidth - outputBoxes[index].w()) / 2.0f);
-        // }
-        // if (outputBoxes[index].h() < expectedHeight) {
-        //   yWidget += ((expectedHeight - outputBoxes[index].h()) / 2.0f);
-        // }
+        std::cout << "[LAY] " << m_items[index]->getName() << "has expected dims "
+                  << expectedWidth << "x" << expectedHeight
+                  << " but real "
+                  << outputBoxes[index].w() << "x" << outputBoxes[index].h()
+                  << ", need to offset by "
+                  << ((expectedWidth - outputBoxes[index].w()) / 2.0f) << "x" << ((expectedHeight - outputBoxes[index].h()) / 2.0f)
+                  << std::endl;
+
+        if (cells[cellID].box.w() < expectedWidth) {
+          xWidget += ((expectedWidth - cells[cellID].box.w()) / 2.0f);
+        }
+        if (cells[cellID].box.h() < expectedHeight) {
+          yWidget += ((expectedHeight - cells[cellID].box.h()) / 2.0f);
+        }
 
         outputBoxes[index] = sdl::utils::Boxf(
           xWidget, yWidget,

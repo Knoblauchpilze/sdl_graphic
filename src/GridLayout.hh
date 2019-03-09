@@ -108,7 +108,9 @@ namespace sdl {
         computeCellsInfo() const noexcept;
 
         void
-        consolidateDimensions(std::vector<CellInfo>& cells) const noexcept;
+        consolidateDimensions(std::vector<CellInfo>& cells,
+                              std::vector<float>& columnsDims,
+                              std::vector<float>& rowsDims) const noexcept;
 
         sdl::utils::Sizef
         computeSizeOfCells(const std::vector<CellInfo>& cells) const;
