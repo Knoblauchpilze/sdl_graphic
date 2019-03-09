@@ -107,8 +107,6 @@ namespace sdl {
 
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up.
-      // TODO: Handle cases where the space cannot be reached because no more widgets
-      // can be used ?
       // TODO: Handle cases where the widgets are too large to fit into the widget ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
       
@@ -215,7 +213,8 @@ namespace sdl {
           const unsigned cellID = loc.y * m_columns + loc.x;
 
           // Check whether this widget can be used to grow/shrink.
-          if (canBeUsedTo(widgetsInfo[index], cells[cellID].box, action)) {
+          std::pair<bool, bool> usable = canBeUsedTo(m_items[index]->getName(), widgetsInfo[index], cells[cellID].box, action);
+          if (usable.first || usable.second) {
             // std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
             //           << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
             //           << " and "
@@ -286,7 +285,6 @@ namespace sdl {
         // desired width or height.
         // To do so, compute the size the widget _should_ have based on its
         // columns/rows span.
-        // TODO: Handle centering.
         float expectedWidth = 0.0f;
         float expectedHeight = 0.0f;
 
@@ -296,14 +294,6 @@ namespace sdl {
         for (unsigned row = loc->second.y ; row < loc->second.y + loc->second.h ; ++row) {
           expectedHeight += rowsDims[row];
         }
-
-        std::cout << "[LAY] " << m_items[index]->getName() << "has expected dims "
-                  << expectedWidth << "x" << expectedHeight
-                  << " but real "
-                  << outputBoxes[index].w() << "x" << outputBoxes[index].h()
-                  << ", need to offset by "
-                  << ((expectedWidth - outputBoxes[index].w()) / 2.0f) << "x" << ((expectedHeight - outputBoxes[index].h()) / 2.0f)
-                  << std::endl;
 
         if (cells[cellID].box.w() < expectedWidth) {
           xWidget += ((expectedWidth - cells[cellID].box.w()) / 2.0f);
