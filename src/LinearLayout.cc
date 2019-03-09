@@ -41,46 +41,6 @@ namespace sdl {
       // requesting constantly information or setting information multiple times.
       std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
 
-      // Now we need to compute and assign size information to each widget based
-      // on its policy and required min/hint/max dimensions. We also need to
-      // provide a first valid size hint for widgets which still don't have any.
-      // In a first approach, we will try to allocate fairly the available space
-      // among all the widgets.
-      // This approach is likely to fail because some widgets will have specific
-      // constraints, in which case we will modify the default behavior to account
-      // for these modifications.
-
-      // We need to first account for the fixed size widgets which have a defined
-      // size hint: these widgets will be the first to handle we have no margin in
-      // handling their definitive size. Indeed it must stay the size provided by
-      // the size hint.
-      // In order to ease the computations, we can just ignore the space occupied
-      // by these widgets and subtract it from the available size.
-
-      // Compute the incompressible size for this layout. This size simply adds up
-      // all the sizes of widgets which have both a fixed size policy and a valid
-      // size hint.
-      // One should provide the direction into which the sizes are added: for example
-      // in the case of an horizontal layout, incomrpessible size is mostly relevant
-      // in the horizontal direction. The vertical direction can be handled by
-      // finding the maximum size in this direction.
-      sdl::utils::Sizef incompressibleSize = computeIncompressibleSize(
-        getDirection(),
-        widgetsInfo
-      );
-
-      // Check whether we have some margin to perform an adjustment: if even at this
-      // point the incompressible size is larger than the available size we're screwed.
-      if (incompressibleSize.w() > internalSize.w() || incompressibleSize.h() > internalSize.h()) {
-        throw sdl::core::SdlException(
-          std::string("Cannot handle linear layout, ") +
-          "available size is " + std::to_string(internalSize.w()) +
-          "x" + std::to_string(internalSize.h()) +
-          " but widgets occupy at least " + std::to_string(incompressibleSize.w()) +
-          "x" + std::to_string(incompressibleSize.h())
-        );
-      }
-
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
@@ -110,8 +70,6 @@ namespace sdl {
 
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up.
-      // TODO: Handle cases where the space cannot be reached because no more widgets
-      // can be used ?
       // TODO: Handle cases where the widgets are too large to fit into the widget ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
 
@@ -167,11 +125,7 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy fullAction = shrinkOrGrow(internalSize, achievedSize);
-        sdl::core::SizePolicy::Policy action = fullAction.getHorizontalPolicy();
-        if (getDirection() == Direction::Vertical) {
-          action = fullAction.getVerticalPolicy();
-        }
+        const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize);
 
         std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
                   << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
@@ -184,8 +138,15 @@ namespace sdl {
         std::unordered_set<unsigned> widgetsToUse;
         for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
           // Check whether this widget can be used to grow/shrink.
-          if (canBeUsedTo(widgetsInfo[index], outputBoxes[index], action, getDirection())) {
-            std::cout << "[LAY] " << m_items[index]->getName() << " can be used to " << std::to_string(static_cast<int>(action)) << std::endl;
+          std::pair<bool, bool> usable = canBeUsedTo(m_items[index]->getName(), widgetsInfo[index], outputBoxes[index], action);
+          if ((usable.first && getDirection() == Direction::Horizontal) ||
+              (usable.second && getDirection() == Direction::Vertical))
+          {
+            std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
+                      << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
+                      << " and "
+                      << std::to_string(static_cast<int>(action.getVerticalPolicy()))
+                      << std::endl;
             widgetsToUse.insert(index);
           }
         }
@@ -193,6 +154,14 @@ namespace sdl {
         // Use the computed list of widgets to perform the next action in order
         // to reach the desired space.
         widgetsToAdjust.swap(widgetsToUse);
+
+        char c;
+        std::cout << "[ENTER] Key: ";
+        std::cin >> c;
+      }
+
+      if (!allSpaceUsed) {
+        std::cout << "[LAY] Exited because no more widgets can occupy space" << std::endl;
       }
 
       // All widgets have suited dimensions, we can now handle the position of each
