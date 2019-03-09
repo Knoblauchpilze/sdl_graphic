@@ -189,7 +189,7 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize);
+        const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
         std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
                   << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
