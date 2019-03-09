@@ -156,7 +156,7 @@ namespace sdl {
         sdl::utils::Sizef achievedSize = computeSizeOfWidgets(getDirection(), outputBoxes);
 
         // Check whether all the space have been used.
-        if (achievedSize == internalSize) {
+        if (achievedSize.fuzzyEqual(internalSize, 1.0f)) {
           // We used up all the available space, no more adjustments to perform.
           allSpaceUsed = true;
           continue;
@@ -167,7 +167,11 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy::Policy action = shrinkOrGrow(getDirection(), internalSize, achievedSize);
+        const sdl::core::SizePolicy fullAction = shrinkOrGrow(internalSize, achievedSize);
+        sdl::core::SizePolicy::Policy action = fullAction.getHorizontalPolicy();
+        if (getDirection() == Direction::Vertical) {
+          action = fullAction.getVerticalPolicy();
+        }
 
         std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
                   << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
