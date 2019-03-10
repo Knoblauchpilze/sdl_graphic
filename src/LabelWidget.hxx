@@ -1,8 +1,9 @@
 #ifndef    LABELWIDGET_HXX
 # define   LABELWIDGET_HXX
 
-# include <sdl_core/SdlException.hh>
 # include "LabelWidget.hh"
+
+# include "GraphicException.hh"
 
 namespace sdl {
   namespace graphic {
@@ -60,7 +61,7 @@ namespace sdl {
 
         m_label = m_font->render(renderer, m_text);
         if (m_label == nullptr) {
-          throw sdl::core::SdlException(std::string("Unable to create label widget \"") + getName() + "\" using text \"" + m_text + "\"");
+          throw GraphicException(std::string("Unable to create label widget \"") + getName() + "\" using text \"" + m_text + "\"");
         }
       }
     }

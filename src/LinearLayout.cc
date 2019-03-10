@@ -1,5 +1,6 @@
 
 # include "LinearLayout.hh"
+
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
@@ -200,7 +201,7 @@ namespace sdl {
           y += (outputBoxes[index].h() + m_componentMargin);
         }
         else {
-          throw sdl::core::SdlException(std::string("Unknown direciton when updating linear layout"));
+          throw GraphicException(std::string("Unknown direciton when updating linear layout"));
         }
       }
 

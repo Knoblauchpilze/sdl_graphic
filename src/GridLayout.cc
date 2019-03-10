@@ -1,7 +1,9 @@
 
 # include "GridLayout.hh"
+
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
+# include "GraphicException.hh"
 
 # include <iomanip>
 
@@ -107,7 +109,7 @@ namespace sdl {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw sdl::core::SdlException(
+            throw GraphicException(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -189,7 +191,7 @@ namespace sdl {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw sdl::core::SdlException(
+            throw GraphicException(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -242,7 +244,7 @@ namespace sdl {
         // Retrieve the item's location.
         const LocationsMap::const_iterator loc = m_locations.find(index);
         if (loc == m_locations.end()) {
-          throw sdl::core::SdlException(
+          throw GraphicException(
             std::string("Could not retrieve information for widget \"") +
             m_items[index]->getName() + "\" while updating grid layout"
           );
