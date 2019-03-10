@@ -28,6 +28,7 @@ target_link_libraries(sdl_graphic
   ${SDL2_LIBRARY}
   ${SDL2_TTF_LIBRARIES}
   sdl_core
+  core_utils
   )
 
 target_include_directories (sdl_graphic PUBLIC

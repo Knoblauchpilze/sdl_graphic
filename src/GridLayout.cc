@@ -58,21 +58,6 @@ namespace sdl {
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
-      // ====
-      // Debug
-      // for (unsigned row = 0u ; row < m_rows ; ++row) {
-      //   for (unsigned column = 0u ; column < m_columns ; ++column) {
-      //     const unsigned cellID = row * m_columns + column;
-      //     std::cout << "[LAY] Cell " << column << "x" << row
-      //               << ": stretch=" << cells[cellID].hStretch << "x" << cells[cellID].vStretch
-      //               << ", min: " << cells[cellID].box.w() << "x" << cells[cellID].box.h()
-      //               << ", wid: " << (cells[cellID].widget < 0 ? "no widget" : std::to_string(cells[cellID].widget))
-      //               << std::endl;
-      //   }
-      // }
-      // Debug
-      // ====
-
       for (unsigned row = 0u ; row < m_rows ; ++row) {
         std::cout << "[LAY] row " << row << ":";
         for (unsigned column = 0u ; column < m_columns ; ++column) {

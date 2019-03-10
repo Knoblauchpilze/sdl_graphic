@@ -45,6 +45,16 @@ namespace sdl {
         void
         setRowsMinimumHeight(const float& height);
 
+        // TODO: Allow widgets to span multiple cells.
+        // Right now we only provide support for widget
+        // spanning a single cell, which could be enough
+        // for our needs.
+        // Note that from this link:
+        // https://github.com/openwebos/qt/blob/master/src/gui/kernel/qgridlayout.cpp
+        // And more precisely in this function: `distributeMultiBox`
+        // It seems that Qt does proceed in several passes:
+        // one to place and layout single cell widgets and
+        // then a second pass to layout multi-cell widgets.
         int
         addItem(sdl::core::SdlWidget* container,
                 const unsigned& x,
