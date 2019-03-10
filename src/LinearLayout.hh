@@ -31,15 +31,15 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const sdl::utils::Boxf& window) override;
+        updatePrivate(const utils::maths::Boxf& window) override;
 
       private:
 
-        sdl::utils::Sizef
-        computeAvailableSize(const sdl::utils::Boxf& totalArea) const;
+        utils::maths::Sizef
+        computeAvailableSize(const utils::maths::Boxf& totalArea) const;
 
-        sdl::utils::Sizef
-        computeDefaultWidgetBox(const sdl::utils::Sizef& area,
+        utils::maths::Sizef
+        computeDefaultWidgetBox(const utils::maths::Sizef& area,
                                 const unsigned& widgetsCount) const;
 
       private:

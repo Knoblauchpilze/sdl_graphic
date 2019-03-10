@@ -145,21 +145,21 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
-    GridLayout::computeAvailableSize(const sdl::utils::Boxf& totalArea) const noexcept {
-      return sdl::utils::Sizef(
+    utils::maths::Sizef
+    GridLayout::computeAvailableSize(const utils::maths::Boxf& totalArea) const noexcept {
+      return utils::maths::Sizef(
         totalArea.w() - 2.0f * m_margin,
         totalArea.h() - 2.0f * m_margin
       );
     }
 
     inline
-    sdl::utils::Sizef
-    GridLayout::computeDefaultWidgetBox(const sdl::utils::Sizef& area,
+    utils::maths::Sizef
+    GridLayout::computeDefaultWidgetBox(const utils::maths::Sizef& area,
                                         const unsigned& columnsCount,
                                         const unsigned& rowsCount) const noexcept
     {
-      return sdl::utils::Sizef(
+      return utils::maths::Sizef(
         area.w() / columnsCount,
         area.h() / rowsCount
       );
@@ -189,7 +189,7 @@ namespace sdl {
         CellInfo{
           0,
           0,
-          sdl::utils::Boxf(),
+          utils::maths::Boxf(),
           -1
         }
       );
@@ -204,7 +204,7 @@ namespace sdl {
             const unsigned cellID = row * m_columns + column;
 
             cells[cellID].widget = item->first;
-            cells[cellID].box = sdl::utils::Boxf();
+            cells[cellID].box = utils::maths::Boxf();
           }
         }
       }
@@ -261,7 +261,7 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
+    utils::maths::Sizef
     GridLayout::computeSizeOfCells(const std::vector<CellInfo>& cells) const {
       // Compute the maximum size of any column.
       float maxColumnSize = 0.0f;
@@ -291,7 +291,7 @@ namespace sdl {
         }
       }
 
-      return sdl::utils::Sizef(maxColumnSize, maxRowSize);
+      return utils::maths::Sizef(maxColumnSize, maxRowSize);
     }
 
   }

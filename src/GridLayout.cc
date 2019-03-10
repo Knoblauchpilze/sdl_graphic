@@ -29,7 +29,7 @@ namespace sdl {
     GridLayout::~GridLayout() {}
 
     void
-    GridLayout::updatePrivate(const sdl::utils::Boxf& window) {
+    GridLayout::updatePrivate(const utils::maths::Boxf& window) {
       // The `GridLayout` allows to arrange widgets using across a virtual
       // grid composed of `m_columns` columns and `m_rows` rows. The default
       // behavior is to provide an equal allocation of the available space
@@ -42,7 +42,7 @@ namespace sdl {
 
       // First, we need to compute the available size for this layout. We need
       // to take into account margins.
-      const sdl::utils::Sizef internalSize = computeAvailableSize(window);
+      const utils::maths::Sizef internalSize = computeAvailableSize(window);
 
       // Compute default columns and rows dimensions.
       // TODO: Override the minimum size of each widget with the size of the
@@ -87,7 +87,7 @@ namespace sdl {
       }
 
       // Also assume that we didn't use up all the available space.
-      sdl::utils::Sizef spaceToUse = internalSize;
+      utils::maths::Sizef spaceToUse = internalSize;
       bool allSpaceUsed = false;
 
       // Loop until no more widgets can be used to adjust the space needed or all the
@@ -99,7 +99,7 @@ namespace sdl {
         // available for adjustment.
         // The `defaultBox` is computed by dividing equally the remaining `workingSize`
         // among all the available widgets.
-        const sdl::utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
+        const utils::maths::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
 
         std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
 
@@ -124,10 +124,10 @@ namespace sdl {
           // be scaled to account for this.
 
           // Scale the `defaultBox`.
-          const sdl::utils::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
+          const utils::maths::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
 
           // Apply the policy for this widget.
-          sdl::utils::Sizef area = computeSizeFromPolicy(widgetBox, cells[cellID].box, widgetsInfo[index]);
+          utils::maths::Sizef area = computeSizeFromPolicy(widgetBox, cells[cellID].box, widgetsInfo[index]);
           cells[cellID].box.w() = area.w();
           cells[cellID].box.h() = area.h();
 
@@ -160,7 +160,7 @@ namespace sdl {
         // from widgets which can give up some).
 
         // Compute the total size of the bounding boxes.
-        sdl::utils::Sizef achievedSize = computeSizeOfCells(cells);
+        utils::maths::Sizef achievedSize = computeSizeOfCells(cells);
 
         // Check whether all the space have been used.
         if (achievedSize.fuzzyEqual(internalSize, 1.0f)) {
@@ -221,7 +221,7 @@ namespace sdl {
       float x = m_margin;
       float y = m_margin;
 
-      std::vector<sdl::utils::Boxf> outputBoxes(m_items.size());
+      std::vector<utils::maths::Boxf> outputBoxes(m_items.size());
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
         // Position the widget based on the dimensions of the rows and columns
@@ -287,7 +287,7 @@ namespace sdl {
           yWidget += ((expectedHeight - cells[cellID].box.h()) / 2.0f);
         }
 
-        outputBoxes[index] = sdl::utils::Boxf(
+        outputBoxes[index] = utils::maths::Boxf(
           xWidget, yWidget,
           cells[cellID].box.w(), cells[cellID].box.h()
         );

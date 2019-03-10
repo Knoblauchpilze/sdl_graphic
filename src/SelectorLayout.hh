@@ -33,7 +33,7 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const sdl::utils::Boxf& window) override;
+        updatePrivate(const utils::maths::Boxf& window) override;
 
       private:
 

@@ -26,17 +26,17 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
-    LinearLayout::computeAvailableSize(const sdl::utils::Boxf& totalArea) const {
+    utils::maths::Sizef
+    LinearLayout::computeAvailableSize(const utils::maths::Boxf& totalArea) const {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
-        return sdl::utils::Sizef(
+        return utils::maths::Sizef(
           totalArea.w() - 2.0f * m_margin - (m_items.size() - 1) * m_componentMargin,
           totalArea.h() - 2.0f * m_margin
         );
       }
       else if (getDirection() == Direction::Vertical) {
-        return sdl::utils::Sizef(
+        return utils::maths::Sizef(
           totalArea.w() - 2.0f * m_margin,
           totalArea.h() - 2.0f * m_margin - (m_items.size() - 1) * m_componentMargin
         );
@@ -45,18 +45,18 @@ namespace sdl {
     }
 
     inline
-    sdl::utils::Sizef
-    LinearLayout::computeDefaultWidgetBox(const sdl::utils::Sizef& area,
+    utils::maths::Sizef
+    LinearLayout::computeDefaultWidgetBox(const utils::maths::Sizef& area,
                                           const unsigned& widgetsCount) const {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
-        return sdl::utils::Sizef(
+        return utils::maths::Sizef(
           area.w() / widgetsCount,
           area.h()
         );
       }
       else if (getDirection() == Direction::Vertical) {
-        return sdl::utils::Sizef(
+        return utils::maths::Sizef(
           area.w(),
           area.h() / widgetsCount
         );
