@@ -68,7 +68,7 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const utils::maths::Boxf& area) override;
+        updatePrivate(const utils::Boxf& area) override;
 
       private:
 
@@ -91,18 +91,18 @@ namespace sdl {
         struct CellInfo {
           unsigned hStretch;
           unsigned vStretch;
-          utils::maths::Boxf box;
+          utils::Boxf box;
           int widget;
         };
 
         void
         resetGridInfo();
 
-        utils::maths::Sizef
-        computeAvailableSize(const utils::maths::Boxf& totalArea) const noexcept;
+        utils::Sizef
+        computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
 
-        utils::maths::Sizef
-        computeDefaultWidgetBox(const utils::maths::Sizef& area,
+        utils::Sizef
+        computeDefaultWidgetBox(const utils::Sizef& area,
                                 const unsigned& columnsCount,
                                 const unsigned& rowsCount) const noexcept;
 
@@ -122,7 +122,7 @@ namespace sdl {
                               std::vector<float>& columnsDims,
                               std::vector<float>& rowsDims) const noexcept;
 
-        utils::maths::Sizef
+        utils::Sizef
         computeSizeOfCells(const std::vector<CellInfo>& cells) const;
 
       private:

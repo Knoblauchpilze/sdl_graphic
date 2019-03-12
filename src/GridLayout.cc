@@ -3,7 +3,7 @@
 
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
-# include "GraphicException.hh"
+# include <sdl_core/LayoutException.hh>
 
 # include <iomanip>
 
@@ -31,7 +31,7 @@ namespace sdl {
     GridLayout::~GridLayout() {}
 
     void
-    GridLayout::updatePrivate(const utils::maths::Boxf& window) {
+    GridLayout::updatePrivate(const utils::Boxf& window) {
       // The `GridLayout` allows to arrange widgets using across a virtual
       // grid composed of `m_columns` columns and `m_rows` rows. The default
       // behavior is to provide an equal allocation of the available space
@@ -44,7 +44,7 @@ namespace sdl {
 
       // First, we need to compute the available size for this layout. We need
       // to take into account margins.
-      const utils::maths::Sizef internalSize = computeAvailableSize(window);
+      const utils::Sizef internalSize = computeAvailableSize(window);
 
       // Compute default columns and rows dimensions.
       // TODO: Override the minimum size of each widget with the size of the
@@ -89,7 +89,7 @@ namespace sdl {
       }
 
       // Also assume that we didn't use up all the available space.
-      utils::maths::Sizef spaceToUse = internalSize;
+      utils::Sizef spaceToUse = internalSize;
       bool allSpaceUsed = false;
 
       // Loop until no more widgets can be used to adjust the space needed or all the
@@ -101,7 +101,7 @@ namespace sdl {
         // available for adjustment.
         // The `defaultBox` is computed by dividing equally the remaining `workingSize`
         // among all the available widgets.
-        const utils::maths::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
+        const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
 
         std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
 
@@ -109,7 +109,7 @@ namespace sdl {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw GraphicException(
+            throw sdl::core::LayoutException(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -126,10 +126,10 @@ namespace sdl {
           // be scaled to account for this.
 
           // Scale the `defaultBox`.
-          const utils::maths::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
+          const utils::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
 
           // Apply the policy for this widget.
-          utils::maths::Sizef area = computeSizeFromPolicy(widgetBox, cells[cellID].box, widgetsInfo[index]);
+          utils::Sizef area = computeSizeFromPolicy(widgetBox, cells[cellID].box, widgetsInfo[index]);
           cells[cellID].box.w() = area.w();
           cells[cellID].box.h() = area.h();
 
@@ -162,7 +162,7 @@ namespace sdl {
         // from widgets which can give up some).
 
         // Compute the total size of the bounding boxes.
-        utils::maths::Sizef achievedSize = computeSizeOfCells(cells);
+        utils::Sizef achievedSize = computeSizeOfCells(cells);
 
         // Check whether all the space have been used.
         if (achievedSize.fuzzyEqual(internalSize, 1.0f)) {
@@ -191,7 +191,7 @@ namespace sdl {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw GraphicException(
+            throw sdl::core::LayoutException(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -223,7 +223,7 @@ namespace sdl {
       float x = m_margin;
       float y = m_margin;
 
-      std::vector<utils::maths::Boxf> outputBoxes(m_items.size());
+      std::vector<utils::Boxf> outputBoxes(m_items.size());
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
         // Position the widget based on the dimensions of the rows and columns
@@ -244,7 +244,7 @@ namespace sdl {
         // Retrieve the item's location.
         const LocationsMap::const_iterator loc = m_locations.find(index);
         if (loc == m_locations.end()) {
-          throw GraphicException(
+          throw sdl::core::LayoutException(
             std::string("Could not retrieve information for widget \"") +
             m_items[index]->getName() + "\" while updating grid layout"
           );
@@ -289,7 +289,7 @@ namespace sdl {
           yWidget += ((expectedHeight - cells[cellID].box.h()) / 2.0f);
         }
 
-        outputBoxes[index] = utils::maths::Boxf(
+        outputBoxes[index] = utils::Boxf(
           xWidget, yWidget,
           cells[cellID].box.w(), cells[cellID].box.h()
         );

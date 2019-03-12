@@ -6,7 +6,7 @@
 # include <limits>
 # include <algorithm>
 # include <sdl_core/SdlWidget.hh>
-# include "GraphicException.hh"
+# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -33,7 +33,7 @@ namespace sdl {
     void
     GridLayout::setColumnHorizontalStretch(const unsigned& column, const float& stretch) {
       if (column > m_columns) {
-        throw GraphicException(
+        throw sdl::core::LayoutException(
           std::string("Cannot set horizontal stretch for column ") + std::to_string(column) +
           " in " + std::to_string(m_columns) + " column(s) wide layout"
         );
@@ -46,7 +46,7 @@ namespace sdl {
     void
     GridLayout::setColumnMinimumWidth(const unsigned& column, const float& width) {
       if (column > m_columns) {
-        throw GraphicException(
+        throw sdl::core::LayoutException(
           std::string("Cannot set minimum width for column ") + std::to_string(column) +
           " in " + std::to_string(m_columns) + " column(s) wide layout"
         );
@@ -67,7 +67,7 @@ namespace sdl {
     void
     GridLayout::setRowVerticalStretch(const unsigned& row, const float& stretch) {
       if (row > m_rows) {
-        throw GraphicException(
+        throw sdl::core::LayoutException(
           std::string("Cannot set vertical stretch for row ") + std::to_string(row) +
           " in " + std::to_string(m_rows) + " row(s) wide layout"
         );
@@ -80,7 +80,7 @@ namespace sdl {
     void
     GridLayout::setRowMinimumHeight(const unsigned& row, const float& height) {
       if (row > m_rows) {
-        throw GraphicException(
+        throw sdl::core::LayoutException(
           std::string("Cannot set minimum height for row ") + std::to_string(row) +
           " in " + std::to_string(m_rows) + " row(s) wide layout"
         );
@@ -146,21 +146,21 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
-    GridLayout::computeAvailableSize(const utils::maths::Boxf& totalArea) const noexcept {
-      return utils::maths::Sizef(
+    utils::Sizef
+    GridLayout::computeAvailableSize(const utils::Boxf& totalArea) const noexcept {
+      return utils::Sizef(
         totalArea.w() - 2.0f * m_margin,
         totalArea.h() - 2.0f * m_margin
       );
     }
 
     inline
-    utils::maths::Sizef
-    GridLayout::computeDefaultWidgetBox(const utils::maths::Sizef& area,
+    utils::Sizef
+    GridLayout::computeDefaultWidgetBox(const utils::Sizef& area,
                                         const unsigned& columnsCount,
                                         const unsigned& rowsCount) const noexcept
     {
-      return utils::maths::Sizef(
+      return utils::Sizef(
         area.w() / columnsCount,
         area.h() / rowsCount
       );
@@ -190,7 +190,7 @@ namespace sdl {
         CellInfo{
           0,
           0,
-          utils::maths::Boxf(),
+          utils::Boxf(),
           -1
         }
       );
@@ -205,7 +205,7 @@ namespace sdl {
             const unsigned cellID = row * m_columns + column;
 
             cells[cellID].widget = item->first;
-            cells[cellID].box = utils::maths::Boxf();
+            cells[cellID].box = utils::Boxf();
           }
         }
       }
@@ -262,7 +262,7 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
+    utils::Sizef
     GridLayout::computeSizeOfCells(const std::vector<CellInfo>& cells) const {
       // Compute the maximum size of any column.
       float maxColumnSize = 0.0f;
@@ -292,7 +292,7 @@ namespace sdl {
         }
       }
 
-      return utils::maths::Sizef(maxColumnSize, maxRowSize);
+      return utils::Sizef(maxColumnSize, maxRowSize);
     }
 
   }

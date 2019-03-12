@@ -22,7 +22,7 @@ namespace sdl {
     LinearLayout::~LinearLayout() {}
 
     void
-    LinearLayout::updatePrivate(const utils::maths::Boxf& window) {
+    LinearLayout::updatePrivate(const utils::Boxf& window) {
       // The `LinearLayout` allows to arrange widgets using a flow along a
       // specified axis. The default behavior is to provide an equal allocation
       // of the available space to all widgets, but also to take into account
@@ -36,7 +36,7 @@ namespace sdl {
 
       // First, we need to compute the available size for this layout. We need
       // to take into account margins.
-      const utils::maths::Sizef internalSize = computeAvailableSize(window);
+      const utils::Sizef internalSize = computeAvailableSize(window);
 
       // Copy the current size of widgets so that we can work with it without
       // requesting constantly information or setting information multiple times.
@@ -45,7 +45,7 @@ namespace sdl {
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
-      std::vector<utils::maths::Boxf> outputBoxes(m_items.size());
+      std::vector<utils::Boxf> outputBoxes(m_items.size());
 
       // We now have a working set of dimensions which we can begin to apply to widgets
       // in order to build the layout.
@@ -66,7 +66,7 @@ namespace sdl {
       }
 
       // Also assume that we didn't use up all the available space.
-      utils::maths::Sizef spaceToUse = internalSize;
+      utils::Sizef spaceToUse = internalSize;
       bool allSpaceUsed = false;
 
       // Loop until no more widgets can be used to adjust the space needed or all the
@@ -78,7 +78,7 @@ namespace sdl {
         // available for adjustment.
         // The `defaultBox` is computed by dividing equally the remaining `workingSize`
         // among all the available widgets.
-        const utils::maths::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, widgetsToAdjust.size());
+        const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, widgetsToAdjust.size());
 
         std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
 
@@ -92,7 +92,7 @@ namespace sdl {
           // to handle the case where the provided space is too large/small/not suited
           // to the widget for some reasons, in which case the handler will provide a
           // size which can be applied to the widget.
-          utils::maths::Sizef area = computeSizeFromPolicy(defaultBox, outputBoxes[*widget], widgetsInfo[*widget]);
+          utils::Sizef area = computeSizeFromPolicy(defaultBox, outputBoxes[*widget], widgetsInfo[*widget]);
           outputBoxes[*widget].w() = area.w();
           outputBoxes[*widget].h() = area.h();
 
@@ -112,7 +112,7 @@ namespace sdl {
         // from widgets which can give up some).
 
         // Compute the total size of the bounding boxes.
-        utils::maths::Sizef achievedSize = computeSizeOfWidgets(getDirection(), outputBoxes);
+        utils::Sizef achievedSize = computeSizeOfWidgets(getDirection(), outputBoxes);
 
         // Check whether all the space have been used.
         if (achievedSize.fuzzyEqual(internalSize, 0.5f)) {
@@ -201,7 +201,7 @@ namespace sdl {
           y += (outputBoxes[index].h() + m_componentMargin);
         }
         else {
-          throw GraphicException(std::string("Unknown direciton when updating linear layout"));
+          throw sdl::core::LayoutException(std::string("Unknown direciton when updating linear layout"));
         }
       }
 

@@ -24,7 +24,7 @@ namespace sdl {
                          SdlWidget* parent = nullptr,
                          const bool transparent = false,
                          const core::Palette& palette = core::Palette(),
-                         const utils::maths::Sizef& area = utils::maths::Sizef());
+                         const utils::Sizef& area = utils::Sizef());
 
         virtual ~PictureWidget();
 

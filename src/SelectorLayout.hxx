@@ -2,8 +2,7 @@
 # define   SELECTORLAYOUT_HXX
 
 # include "SelectorLayout.hh"
-
-# include "GraphicException.hh"
+# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -29,7 +28,7 @@ namespace sdl {
       }
 
       if (!found) {
-        throw GraphicException(std::string("Cannot activate item ") + name + " in selector layout, item not found");
+        throw sdl::core::LayoutException(std::string("Cannot activate item ") + name + " in selector layout, item not found");
       }
 
       setActiveItem(indexItem);
@@ -39,7 +38,7 @@ namespace sdl {
     void
     SelectorLayout::setActiveItem(const int& index) {
       if (index >= m_items.size()) {
-        throw GraphicException(
+        throw sdl::core::LayoutException(
           std::string("Cannot activate child ") + std::to_string(index) +
           " in selector layout only containing " + std::to_string(m_items.size()) + " child(ren)"
         );
@@ -57,10 +56,10 @@ namespace sdl {
     std::string
     SelectorLayout::getActiveItem() const {
       if (m_activeItem < 0) {
-        throw GraphicException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
+        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
       }
       if (m_items[m_activeItem] == nullptr) {
-        throw GraphicException(std::string("Cannot retrieve name of active child for selector layout, invalid null element"));
+        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, invalid null element"));
       }
 
       return m_items[m_activeItem]->getName();
@@ -70,7 +69,7 @@ namespace sdl {
     int
     SelectorLayout::getActiveItemId() const {
       if (m_activeItem < 0) {
-        throw GraphicException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
+        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
       }
       return m_activeItem;
     }

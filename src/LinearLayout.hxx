@@ -2,8 +2,7 @@
 # define   LINEARLAYOUT_HXX
 
 # include "LinearLayout.hh"
-
-# include "GraphicException.hh"
+# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -27,42 +26,42 @@ namespace sdl {
     }
 
     inline
-    utils::maths::Sizef
-    LinearLayout::computeAvailableSize(const utils::maths::Boxf& totalArea) const {
+    utils::Sizef
+    LinearLayout::computeAvailableSize(const utils::Boxf& totalArea) const {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
-        return utils::maths::Sizef(
+        return utils::Sizef(
           totalArea.w() - 2.0f * m_margin - (m_items.size() - 1) * m_componentMargin,
           totalArea.h() - 2.0f * m_margin
         );
       }
       else if (getDirection() == Direction::Vertical) {
-        return utils::maths::Sizef(
+        return utils::Sizef(
           totalArea.w() - 2.0f * m_margin,
           totalArea.h() - 2.0f * m_margin - (m_items.size() - 1) * m_componentMargin
         );
       }
-      throw GraphicException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+      throw sdl::core::LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
     }
 
     inline
-    utils::maths::Sizef
-    LinearLayout::computeDefaultWidgetBox(const utils::maths::Sizef& area,
+    utils::Sizef
+    LinearLayout::computeDefaultWidgetBox(const utils::Sizef& area,
                                           const unsigned& widgetsCount) const {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
-        return utils::maths::Sizef(
+        return utils::Sizef(
           area.w() / widgetsCount,
           area.h()
         );
       }
       else if (getDirection() == Direction::Vertical) {
-        return utils::maths::Sizef(
+        return utils::Sizef(
           area.w(),
           area.h() / widgetsCount
         );
       }
-      throw GraphicException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+      throw sdl::core::LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
     }
 
   }

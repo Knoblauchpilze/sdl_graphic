@@ -17,7 +17,7 @@ namespace sdl {
     SelectorLayout::~SelectorLayout() {}
 
     void
-    SelectorLayout::updatePrivate(const utils::maths::Boxf& window) {
+    SelectorLayout::updatePrivate(const utils::Boxf& window) {
       // Check whether a child is active.
       if (m_activeItem < 0) {
         return;
@@ -29,7 +29,7 @@ namespace sdl {
 
       // Assign the space for the active child.
       m_items[m_activeItem]->setRenderingArea(
-        utils::maths::Boxf(
+        utils::Boxf(
           m_margin + cw / 2.0f,
           m_margin + ch / 2.0f,
           cw,

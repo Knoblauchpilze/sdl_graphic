@@ -4,7 +4,7 @@
 namespace sdl {
   namespace graphic {
 
-    const char* GraphicException::sk_moduleName = "graphic";
+    const char* GraphicException::sk_serviceName = "graphic";
 
   }
 }
