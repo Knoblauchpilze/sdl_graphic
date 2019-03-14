@@ -2,7 +2,6 @@
 # define   SELECTORLAYOUT_HXX
 
 # include "SelectorLayout.hh"
-# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -16,7 +15,7 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const std::string& name) {
-      int indexItem = 0;
+      std::size_t indexItem = 0;
       bool found = false;
       while (indexItem < m_items.size() && !found) {
         if (m_items[indexItem] != nullptr && m_items[indexItem]->getName() == name) {
@@ -28,7 +27,7 @@ namespace sdl {
       }
 
       if (!found) {
-        throw sdl::core::LayoutException(std::string("Cannot activate item ") + name + " in selector layout, item not found");
+        error(std::string("Cannot activate item ") + name + " in selector layout, item not found");
       }
 
       setActiveItem(indexItem);
@@ -37,8 +36,8 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const int& index) {
-      if (index >= m_items.size()) {
-        throw sdl::core::LayoutException(
+      if (index >= static_cast<int>(m_items.size())) {
+        error(
           std::string("Cannot activate child ") + std::to_string(index) +
           " in selector layout only containing " + std::to_string(m_items.size()) + " child(ren)"
         );
@@ -56,10 +55,10 @@ namespace sdl {
     std::string
     SelectorLayout::getActiveItem() const {
       if (m_activeItem < 0) {
-        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
+        error(std::string("Cannot retrieve name of active child for selector layout, no such element"));
       }
       if (m_items[m_activeItem] == nullptr) {
-        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, invalid null element"));
+        error(std::string("Cannot retrieve name of active child for selector layout, invalid null element"));
       }
 
       return m_items[m_activeItem]->getName();
@@ -69,7 +68,7 @@ namespace sdl {
     int
     SelectorLayout::getActiveItemId() const {
       if (m_activeItem < 0) {
-        throw sdl::core::LayoutException(std::string("Cannot retrieve name of active child for selector layout, no such element"));
+        error(std::string("Cannot retrieve name of active child for selector layout, no such element"));
       }
       return m_activeItem;
     }

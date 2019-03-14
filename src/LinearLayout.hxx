@@ -2,7 +2,6 @@
 # define   LINEARLAYOUT_HXX
 
 # include "LinearLayout.hh"
-# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -41,7 +40,10 @@ namespace sdl {
           totalArea.h() - 2.0f * m_margin - (m_items.size() - 1) * m_componentMargin
         );
       }
-      throw sdl::core::LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+      error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+
+      // Make compiler quiet about reaching end of non void function.
+      return utils::Sizef();
     }
 
     inline
@@ -61,7 +63,10 @@ namespace sdl {
           area.h() / widgetsCount
         );
       }
-      throw sdl::core::LayoutException(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+      error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+
+      // Make compiler quiet about reaching end of non void function.
+      return utils::Sizef();
     }
 
   }

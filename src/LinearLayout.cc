@@ -201,7 +201,7 @@ namespace sdl {
           y += (outputBoxes[index].h() + m_componentMargin);
         }
         else {
-          throw sdl::core::LayoutException(std::string("Unknown direciton when updating linear layout"));
+          error(std::string("Unknown direciton when updating linear layout"));
         }
       }
 

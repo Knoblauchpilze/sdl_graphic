@@ -39,7 +39,7 @@ namespace sdl {
 
       // Disable other items.
       for (unsigned indexItem = 0u ; indexItem < m_items.size() ; ++indexItem) {
-        m_items[indexItem]->setVisible(indexItem == m_activeItem);
+        m_items[indexItem]->setVisible(static_cast<int>(indexItem) == m_activeItem);
       }
     }
 

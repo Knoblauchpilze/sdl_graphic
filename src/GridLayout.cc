@@ -3,7 +3,6 @@
 
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
-# include <sdl_core/LayoutException.hh>
 
 # include <iomanip>
 
@@ -103,13 +102,13 @@ namespace sdl {
         // among all the available widgets.
         const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
 
-        std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
+        std::cout << "[LAY] Default box is " << defaultBox << std::endl;
 
         for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw sdl::core::LayoutException(
+            error(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -178,9 +177,9 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
-        std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
-                  << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
-                  << " space: " << spaceToUse.w() << ", " << spaceToUse.h()
+        std::cout << "[LAY] Desired: " << internalSize
+                  << " achieved: " << achievedSize
+                  << " space: " << spaceToUse
                   << std::endl;
 
         // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
@@ -191,7 +190,7 @@ namespace sdl {
           // Retrieve the `ItemInfo` struct for this widget.
           const LocationsMap::const_iterator itemInfo = m_locations.find(index);
           if (itemInfo == m_locations.cend()) {
-            throw sdl::core::LayoutException(
+            error(
               std::string("Could not retrieve information for widget \"") +
               m_items[index]->getName() + "\" while updating grid layout"
             );
@@ -220,8 +219,6 @@ namespace sdl {
       // widget. We basically just move each widget based on the dimensions of the
       // rows and columns to reach the position of each widget.
       // dimensions and adding margins.
-      float x = m_margin;
-      float y = m_margin;
 
       std::vector<utils::Boxf> outputBoxes(m_items.size());
 
@@ -244,7 +241,7 @@ namespace sdl {
         // Retrieve the item's location.
         const LocationsMap::const_iterator loc = m_locations.find(index);
         if (loc == m_locations.end()) {
-          throw sdl::core::LayoutException(
+          error(
             std::string("Could not retrieve information for widget \"") +
             m_items[index]->getName() + "\" while updating grid layout"
           );

@@ -6,7 +6,6 @@
 # include <limits>
 # include <algorithm>
 # include <sdl_core/SdlWidget.hh>
-# include <sdl_core/LayoutException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -33,7 +32,7 @@ namespace sdl {
     void
     GridLayout::setColumnHorizontalStretch(const unsigned& column, const float& stretch) {
       if (column > m_columns) {
-        throw sdl::core::LayoutException(
+        error(
           std::string("Cannot set horizontal stretch for column ") + std::to_string(column) +
           " in " + std::to_string(m_columns) + " column(s) wide layout"
         );
@@ -46,7 +45,7 @@ namespace sdl {
     void
     GridLayout::setColumnMinimumWidth(const unsigned& column, const float& width) {
       if (column > m_columns) {
-        throw sdl::core::LayoutException(
+        error(
           std::string("Cannot set minimum width for column ") + std::to_string(column) +
           " in " + std::to_string(m_columns) + " column(s) wide layout"
         );
@@ -67,7 +66,7 @@ namespace sdl {
     void
     GridLayout::setRowVerticalStretch(const unsigned& row, const float& stretch) {
       if (row > m_rows) {
-        throw sdl::core::LayoutException(
+        error(
           std::string("Cannot set vertical stretch for row ") + std::to_string(row) +
           " in " + std::to_string(m_rows) + " row(s) wide layout"
         );
@@ -80,7 +79,7 @@ namespace sdl {
     void
     GridLayout::setRowMinimumHeight(const unsigned& row, const float& height) {
       if (row > m_rows) {
-        throw sdl::core::LayoutException(
+        error(
           std::string("Cannot set minimum height for row ") + std::to_string(row) +
           " in " + std::to_string(m_rows) + " row(s) wide layout"
         );
