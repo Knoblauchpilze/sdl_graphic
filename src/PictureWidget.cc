@@ -1,5 +1,4 @@
 
-# include <sdl_core/RendererState.hh>
 # include "PictureWidget.hh"
 
 namespace sdl {
@@ -10,7 +9,7 @@ namespace sdl {
                                        const Mode& mode,
                                        SdlWidget* parent,
                                        const bool transparent,
-                                       const core::Palette& palette,
+                                       const core::engine::Palette& palette,
                                        const utils::Sizef& area):
       sdl::core::SdlWidget(name,
                            area,
@@ -25,48 +24,45 @@ namespace sdl {
 
     PictureWidget::~PictureWidget() {
       if (m_picture != nullptr) {
-        SDL_DestroyTexture(m_picture);
+        core::engine::EngineLocator::getEngine().destroyTexture(*m_picture);
       }
     }
 
     void
-    PictureWidget::drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept {
+    PictureWidget::drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept {
       // Load the picture.
       if (m_pictureDirty) {
-        loadPicture(renderer);
+        loadPicture();
         m_pictureDirty = false;
       }
 
       // Compute the blit position of the picture so that it is centered.
       if (m_picture != nullptr) {
-        // Save the current state of the renderer.
-        sdl::core::RendererState state(renderer);
-        SDL_SetRenderTarget(renderer, texture);
-
-        // Update the alpha channel for the picture based on the global transparency.
-        // SDL_SetTextureAlphaMod(m_picture, m_background.a);
-
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
-          int wt, ht;
-          SDL_QueryTexture(texture, nullptr, nullptr, &wt, &ht);
+          utils::Sizei sizePic = core::engine::EngineLocator::getEngine().queryTexture(*m_picture);
+          utils::Sizei sizeEnv = core::engine::EngineLocator::getEngine().queryTexture(uuid);
 
-          int wp, hp;
-          SDL_QueryTexture(m_picture, nullptr, nullptr, &wp, &hp);
+          utils::Boxf dstRect(
+            (sizeEnv.w() - sizePic.w()) / 2.0f,
+            (sizeEnv.h() - sizePic.h()) / 2.0f,
+            sizePic.w(),
+            sizePic.h()
+          );
 
-
-          SDL_Rect dstRect = {
-            static_cast<Sint16>(wt / 2.0f - wp / 2.0f),
-            static_cast<Sint16>(ht / 2.0f - hp / 2.0f),
-            static_cast<Uint16>(wp),
-            static_cast<Uint16>(hp)
-          };
-
-          SDL_RenderCopy(renderer, m_picture, nullptr, &dstRect);
+          core::engine::EngineLocator::getEngine().drawTexture(
+            *m_picture,
+            uuid,
+            &dstRect
+          );
         }
 
         if (m_mode == Mode::Fit) {
-          SDL_RenderCopy(renderer, m_picture, nullptr, nullptr);
+          core::engine::EngineLocator::getEngine().drawTexture(
+            *m_picture,
+            uuid,
+            nullptr
+          );
         }
       }
     }

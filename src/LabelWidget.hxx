@@ -2,6 +2,7 @@
 # define   LABELWIDGET_HXX
 
 # include "LabelWidget.hh"
+# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace graphic {
@@ -17,7 +18,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::setFont(core::ColoredFontShPtr font) noexcept {
+    LabelWidget::setFont(core::engine::ColoredFontShPtr font) noexcept {
       std::lock_guard<std::mutex> guard(getLocker());
       m_font = font;
       m_textDirty = true;
@@ -44,23 +45,24 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::loadText(SDL_Renderer* renderer) const {
+    LabelWidget::loadText() const {
       // Clear existing label if any.
       if (m_label != nullptr) {
-        SDL_DestroyTexture(m_label);
-        m_label = nullptr;
+        core::engine::EngineLocator::getEngine().destroyTexture(*m_label);
+        m_label.reset();
       }
 
       // Load the text
       if (!m_text.empty()) {
         if (m_font == nullptr) {
-          error(std::string("Cannot create text \"") + m_text + "\" for \"" + getName() + "\", invalid null font");
+          error(
+            std::string("Cannot create text \"") + m_text + "\"",
+            std::string("Invalid null font")
+          );
         }
 
-        m_label = m_font->render(renderer, m_text);
-        if (m_label == nullptr) {
-          error(std::string("Unable to create label widget \"") + getName() + "\" using text \"" + m_text + "\"");
-        }
+        const core::engine::Texture::UUID tex = core::engine::EngineLocator::getEngine().createTextureFromText(m_text, m_font);
+        m_label = std::make_shared<core::engine::Texture::UUID>(tex);
       }
     }
 

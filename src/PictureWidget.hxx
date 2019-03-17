@@ -2,6 +2,7 @@
 # define   PICTUREWIDGET_HXX
 
 # include "PictureWidget.hh"
+# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace graphic {
@@ -29,25 +30,17 @@ namespace sdl {
 
     inline
     void
-    PictureWidget::loadPicture(SDL_Renderer* renderer) const {
+    PictureWidget::loadPicture() const {
       // Clear existing image if any.
       if (m_picture != nullptr) {
-        SDL_DestroyTexture(m_picture);
-        m_picture = nullptr;
+        core::engine::EngineLocator::getEngine().destroyTexture(*m_picture);
+        m_picture.reset();
       }
 
       // Load the image.
       if (!m_file.empty()) {
-        SDL_Surface* imageAsSurface = SDL_LoadBMP(m_file.c_str());
-        if (imageAsSurface == nullptr) {
-          error(std::string("Unable to create picture widget using file \"") + m_file + "\"");
-        }
-
-        m_picture = SDL_CreateTextureFromSurface(renderer, imageAsSurface);
-        SDL_FreeSurface(imageAsSurface);
-        if (m_picture == nullptr) {
-          error(std::string("Unable to create picture widget using file \"") + m_file + "\"");
-        }
+        const core::engine::Texture::UUID tex = core::engine::EngineLocator::getEngine().createTextureFromFile(m_file);
+        m_picture = std::make_shared<core::engine::Texture::UUID>(tex);
       }
     }
 

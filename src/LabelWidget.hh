@@ -3,9 +3,8 @@
 
 # include <memory>
 # include <string>
-# include <sdl_core/Palette.hh>
 # include <sdl_core/SdlWidget.hh>
-# include <sdl_core/ColoredFont.hh>
+# include <sdl_engine/ColoredFont.hh>
 
 namespace sdl {
   namespace graphic {
@@ -29,12 +28,12 @@ namespace sdl {
 
         LabelWidget(const std::string& name,
                     const std::string& text,
-                    core::ColoredFontShPtr font,
+                    core::engine::ColoredFontShPtr font,
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
                     const bool transparent = false,
-                    const core::Palette& palette = core::Palette(),
+                    const core::engine::Palette& palette = core::engine::Palette(),
                     const utils::Sizef& area = utils::Sizef());
 
         virtual ~LabelWidget();
@@ -43,7 +42,7 @@ namespace sdl {
         setText(const std::string& text) noexcept;
 
         void
-        setFont(core::ColoredFontShPtr font) noexcept;
+        setFont(core::engine::ColoredFontShPtr font) noexcept;
 
         void
         setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept;
@@ -57,22 +56,22 @@ namespace sdl {
       protected:
 
         void
-        drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept override;
+        drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept override;
 
       private:
 
         void
-        loadText(SDL_Renderer* renderer) const;
+        loadText() const;
 
       private:
 
         std::string m_text;
-        core::ColoredFontShPtr m_font;
+        core::engine::ColoredFontShPtr m_font;
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textDirty;
 
-        mutable SDL_Texture* m_label;
+        mutable std::shared_ptr<core::engine::Texture::UUID> m_label;
 
     };
 

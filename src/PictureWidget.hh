@@ -23,7 +23,7 @@ namespace sdl {
                          const Mode& mode = Mode::Crop,
                          SdlWidget* parent = nullptr,
                          const bool transparent = false,
-                         const core::Palette& palette = core::Palette(),
+                         const core::engine::Palette& palette = core::engine::Palette(),
                          const utils::Sizef& area = utils::Sizef());
 
         virtual ~PictureWidget();
@@ -40,18 +40,18 @@ namespace sdl {
       protected:
 
         void
-        drawContentPrivate(SDL_Renderer* renderer, SDL_Texture* texture) const noexcept override;
+        drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept override;
 
       private:
 
         void
-        loadPicture(SDL_Renderer* renderer) const;
+        loadPicture() const;
 
       private:
 
         std::string m_file;
         Mode m_mode;
-        mutable SDL_Texture* m_picture;
+        mutable std::shared_ptr<core::engine::Texture::UUID> m_picture;
         mutable bool m_pictureDirty;
 
     };
