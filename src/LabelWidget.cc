@@ -59,34 +59,38 @@ namespace sdl {
 
         utils::Boxf dstRect;
 
+        // Dimension of the dst area are known.
+        dstRect.w() = sizeText.w();
+        dstRect.h() = sizeText.h();
+
+        
+        
+
         switch (m_hAlignment) {
           case HorizontalAlignment::Left:
-            dstRect.x() = 0.0f;
+            dstRect.x() = dstRect.w() / 2.0f;
             break;
           case HorizontalAlignment::Right:
-            dstRect.x() = sizeEnv.w() - sizeText.w();
+            dstRect.x() = sizeEnv.w() - sizeText.w() / 2.0f;
             break;
           case HorizontalAlignment::Center:
           default:
-            dstRect.x() = (sizeEnv.w() - sizeText.w()) / 2.0f;
+            dstRect.x() = sizeEnv.w() / 2.0f;
             break;
         }
 
         switch (m_vAlignment) {
           case VerticalAlignment::Top:
-            dstRect.y() = 0.0f;
+            dstRect.y() = dstRect.h() / 2.0f;
             break;
           case VerticalAlignment::Bottom:
-            dstRect.y() = sizeEnv.h() - sizeText.h();
+            dstRect.y() = sizeEnv.h() - sizeText.h() / 2.0f;
             break;
           case VerticalAlignment::Center:
           default:
-            dstRect.y() = (sizeEnv.h() - sizeText.h()) / 2.0f;
+            dstRect.y() = sizeEnv.h() / 2.0f;
             break;
         }
-
-        dstRect.w() = sizeText.w();
-        dstRect.h() = sizeText.h();
 
         core::engine::EngineLocator::getEngine().drawTexture(
           *m_label,
