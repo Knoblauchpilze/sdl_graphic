@@ -52,7 +52,7 @@ namespace sdl {
 
           core::engine::EngineLocator::getEngine().drawTexture(
             *m_picture,
-            uuid,
+            &uuid,
             &dstRect
           );
         }
@@ -60,7 +60,7 @@ namespace sdl {
         if (m_mode == Mode::Fit) {
           core::engine::EngineLocator::getEngine().drawTexture(
             *m_picture,
-            uuid,
+            &uuid,
             nullptr
           );
         }

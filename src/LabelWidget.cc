@@ -90,7 +90,7 @@ namespace sdl {
 
         core::engine::EngineLocator::getEngine().drawTexture(
           *m_label,
-          uuid,
+          &uuid,
           &dstRect
         );
       }
