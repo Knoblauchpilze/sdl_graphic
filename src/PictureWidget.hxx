@@ -33,13 +33,13 @@ namespace sdl {
     PictureWidget::loadPicture() const {
       // Clear existing image if any.
       if (m_picture != nullptr) {
-        core::engine::EngineLocator::getEngine().destroyTexture(*m_picture);
+        getEngine()->destroyTexture(*m_picture);
         m_picture.reset();
       }
 
       // Load the image.
       if (!m_file.empty()) {
-        const core::engine::Texture::UUID tex = core::engine::EngineLocator::getEngine().createTextureFromFile(m_file);
+        const core::engine::Texture::UUID tex = getEngine()->createTextureFromFile(m_file);
         m_picture = std::make_shared<core::engine::Texture::UUID>(tex);
       }
     }

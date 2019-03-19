@@ -48,7 +48,7 @@ namespace sdl {
     LabelWidget::loadText() const {
       // Clear existing label if any.
       if (m_label != nullptr) {
-        core::engine::EngineLocator::getEngine().destroyTexture(*m_label);
+        getEngine()->destroyTexture(*m_label);
         m_label.reset();
       }
 
@@ -61,7 +61,7 @@ namespace sdl {
           );
         }
 
-        const core::engine::Texture::UUID tex = core::engine::EngineLocator::getEngine().createTextureFromText(m_text, m_font);
+        const core::engine::Texture::UUID tex = getEngine()->createTextureFromText(m_text, m_font);
         m_label = std::make_shared<core::engine::Texture::UUID>(tex);
       }
     }

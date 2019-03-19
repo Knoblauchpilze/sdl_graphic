@@ -28,7 +28,7 @@ namespace sdl {
 
     LabelWidget::~LabelWidget() {
       if (m_label != nullptr) {
-        core::engine::EngineLocator::getEngine().destroyTexture(*m_label);
+        getEngine()->destroyTexture(*m_label);
       }
     }
 
@@ -54,8 +54,8 @@ namespace sdl {
       // Compute the blit position of the text so that it is centered.
       if (m_label != nullptr) {
         // Perform the copy operation according to the alignment.
-        utils::Sizei sizeText = core::engine::EngineLocator::getEngine().queryTexture(*m_label);
-        utils::Sizei sizeEnv = core::engine::EngineLocator::getEngine().queryTexture(uuid);
+        utils::Sizei sizeText = getEngine()->queryTexture(*m_label);
+        utils::Sizei sizeEnv = getEngine()->queryTexture(uuid);
 
         utils::Boxf dstRect;
 
@@ -92,7 +92,7 @@ namespace sdl {
             break;
         }
 
-        core::engine::EngineLocator::getEngine().drawTexture(
+        getEngine()->drawTexture(
           *m_label,
           &uuid,
           &dstRect

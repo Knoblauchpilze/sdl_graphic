@@ -24,7 +24,7 @@ namespace sdl {
 
     PictureWidget::~PictureWidget() {
       if (m_picture != nullptr) {
-        core::engine::EngineLocator::getEngine().destroyTexture(*m_picture);
+        getEngine()->destroyTexture(*m_picture);
       }
     }
 
@@ -40,8 +40,8 @@ namespace sdl {
       if (m_picture != nullptr) {
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
-          utils::Sizei sizePic = core::engine::EngineLocator::getEngine().queryTexture(*m_picture);
-          utils::Sizei sizeEnv = core::engine::EngineLocator::getEngine().queryTexture(uuid);
+          utils::Sizei sizePic = getEngine()->queryTexture(*m_picture);
+          utils::Sizei sizeEnv = getEngine()->queryTexture(uuid);
 
           utils::Boxf dstRect(
             (sizeEnv.w() - sizePic.w()) / 2.0f,
@@ -50,7 +50,7 @@ namespace sdl {
             sizePic.h()
           );
 
-          core::engine::EngineLocator::getEngine().drawTexture(
+          getEngine()->drawTexture(
             *m_picture,
             &uuid,
             &dstRect
@@ -58,7 +58,7 @@ namespace sdl {
         }
 
         if (m_mode == Mode::Fit) {
-          core::engine::EngineLocator::getEngine().drawTexture(
+          getEngine()->drawTexture(
             *m_picture,
             &uuid,
             nullptr
