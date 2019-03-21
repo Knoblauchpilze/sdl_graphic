@@ -2,7 +2,6 @@
 # define   LABELWIDGET_HXX
 
 # include "LabelWidget.hh"
-# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace graphic {

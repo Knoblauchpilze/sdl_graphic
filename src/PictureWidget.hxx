@@ -2,7 +2,6 @@
 # define   PICTUREWIDGET_HXX
 
 # include "PictureWidget.hh"
-# include <sdl_engine/EngineLocator.hh>
 
 namespace sdl {
   namespace graphic {
