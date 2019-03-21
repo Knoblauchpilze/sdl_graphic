@@ -40,7 +40,7 @@ namespace sdl {
       protected:
 
         void
-        drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept override;
+        drawContentPrivate(const utils::Uuid& uuid) const noexcept override;
 
       private:
 
@@ -51,7 +51,7 @@ namespace sdl {
 
         std::string m_file;
         Mode m_mode;
-        mutable std::shared_ptr<core::engine::Texture::UUID> m_picture;
+        mutable utils::Uuid m_picture;
         mutable bool m_pictureDirty;
 
     };

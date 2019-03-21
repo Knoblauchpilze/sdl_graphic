@@ -46,9 +46,9 @@ namespace sdl {
     void
     LabelWidget::loadText() const {
       // Clear existing label if any.
-      if (m_label != nullptr) {
-        getEngine()->destroyTexture(*m_label);
-        m_label.reset();
+      if (m_label.valid()) {
+        getEngine()->destroyTexture(m_label);
+        m_label.invalidate();
       }
 
       // Load the text
@@ -60,8 +60,7 @@ namespace sdl {
           );
         }
 
-        const core::engine::Texture::UUID tex = getEngine()->createTextureFromText(m_text, m_font);
-        m_label = std::make_shared<core::engine::Texture::UUID>(tex);
+        m_label = getEngine()->createTextureFromText(m_text, m_font);
       }
     }
 

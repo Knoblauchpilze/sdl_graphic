@@ -18,18 +18,18 @@ namespace sdl {
                            palette),
       m_file(picture),
       m_mode(mode),
-      m_picture(nullptr),
+      m_picture(),
       m_pictureDirty(true)
     {}
 
     PictureWidget::~PictureWidget() {
-      if (m_picture != nullptr) {
-        getEngine()->destroyTexture(*m_picture);
+      if (m_picture.valid()) {
+        getEngine()->destroyTexture(m_picture);
       }
     }
 
     void
-    PictureWidget::drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept {
+    PictureWidget::drawContentPrivate(const utils::Uuid& uuid) const noexcept {
       // Load the picture.
       if (m_pictureDirty) {
         loadPicture();
@@ -37,10 +37,10 @@ namespace sdl {
       }
 
       // Compute the blit position of the picture so that it is centered.
-      if (m_picture != nullptr) {
+      if (m_picture.valid()) {
         // Perform the copy operation according to the display mode.
         if (m_mode == Mode::Crop) {
-          utils::Sizei sizePic = getEngine()->queryTexture(*m_picture);
+          utils::Sizei sizePic = getEngine()->queryTexture(m_picture);
           utils::Sizei sizeEnv = getEngine()->queryTexture(uuid);
 
           utils::Boxf dstRect(
@@ -51,7 +51,7 @@ namespace sdl {
           );
 
           getEngine()->drawTexture(
-            *m_picture,
+            m_picture,
             &uuid,
             &dstRect
           );
@@ -59,7 +59,7 @@ namespace sdl {
 
         if (m_mode == Mode::Fit) {
           getEngine()->drawTexture(
-            *m_picture,
+            m_picture,
             &uuid,
             nullptr
           );

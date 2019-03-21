@@ -31,15 +31,14 @@ namespace sdl {
     void
     PictureWidget::loadPicture() const {
       // Clear existing image if any.
-      if (m_picture != nullptr) {
-        getEngine()->destroyTexture(*m_picture);
-        m_picture.reset();
+      if (m_picture.valid()) {
+        getEngine()->destroyTexture(m_picture);
+        m_picture.invalidate();
       }
 
       // Load the image.
       if (!m_file.empty()) {
-        const core::engine::Texture::UUID tex = getEngine()->createTextureFromFile(m_file);
-        m_picture = std::make_shared<core::engine::Texture::UUID>(tex);
+        m_picture = getEngine()->createTextureFromFile(m_file);
       }
     }
 

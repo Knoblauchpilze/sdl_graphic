@@ -56,7 +56,7 @@ namespace sdl {
       protected:
 
         void
-        drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept override;
+        drawContentPrivate(const utils::Uuid& uuid) const noexcept override;
 
       private:
 
@@ -71,7 +71,7 @@ namespace sdl {
         VerticalAlignment m_vAlignment;
         mutable bool m_textDirty;
 
-        mutable std::shared_ptr<core::engine::Texture::UUID> m_label;
+        mutable utils::Uuid m_label;
 
     };
 

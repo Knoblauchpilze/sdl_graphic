@@ -23,12 +23,12 @@ namespace sdl {
       m_hAlignment(hAlignment),
       m_vAlignment(vAlignment),
       m_textDirty(true),
-      m_label(nullptr)
+      m_label()
     {}
 
     LabelWidget::~LabelWidget() {
-      if (m_label != nullptr) {
-        getEngine()->destroyTexture(*m_label);
+      if (m_label.valid()) {
+        getEngine()->destroyTexture(m_label);
       }
     }
 
@@ -44,7 +44,7 @@ namespace sdl {
     }
 
     void
-    LabelWidget::drawContentPrivate(const core::engine::Texture::UUID& uuid) const noexcept {
+    LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const noexcept {
       // Load the text.
       if (m_textDirty) {
         loadText();
@@ -52,9 +52,9 @@ namespace sdl {
       }
 
       // Compute the blit position of the text so that it is centered.
-      if (m_label != nullptr) {
+      if (m_label.valid()) {
         // Perform the copy operation according to the alignment.
-        utils::Sizei sizeText = getEngine()->queryTexture(*m_label);
+        utils::Sizei sizeText = getEngine()->queryTexture(m_label);
         utils::Sizei sizeEnv = getEngine()->queryTexture(uuid);
 
         utils::Boxf dstRect;
@@ -93,7 +93,7 @@ namespace sdl {
         }
 
         getEngine()->drawTexture(
-          *m_label,
+          m_label,
           &uuid,
           &dstRect
         );
