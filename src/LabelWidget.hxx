@@ -47,7 +47,7 @@ namespace sdl {
     LabelWidget::loadText() const {
       // Clear existing label if any.
       if (m_label.valid()) {
-        getEngine()->destroyTexture(m_label);
+        getEngine().destroyTexture(m_label);
         m_label.invalidate();
       }
 
@@ -60,7 +60,7 @@ namespace sdl {
           );
         }
 
-        m_label = getEngine()->createTextureFromText(m_text, m_font);
+        m_label = getEngine().createTextureFromText(m_text, m_font);
       }
     }
 

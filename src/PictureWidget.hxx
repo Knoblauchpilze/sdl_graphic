@@ -32,13 +32,13 @@ namespace sdl {
     PictureWidget::loadPicture() const {
       // Clear existing image if any.
       if (m_picture.valid()) {
-        getEngine()->destroyTexture(m_picture);
+        getEngine().destroyTexture(m_picture);
         m_picture.invalidate();
       }
 
       // Load the image.
       if (!m_file.empty()) {
-        m_picture = getEngine()->createTextureFromFile(m_file);
+        m_picture = getEngine().createTextureFromFile(m_file);
       }
     }
 

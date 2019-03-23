@@ -28,7 +28,7 @@ namespace sdl {
 
     LabelWidget::~LabelWidget() {
       if (m_label.valid()) {
-        getEngine()->destroyTexture(m_label);
+        getEngine().destroyTexture(m_label);
       }
     }
 
@@ -54,8 +54,8 @@ namespace sdl {
       // Compute the blit position of the text so that it is centered.
       if (m_label.valid()) {
         // Perform the copy operation according to the alignment.
-        utils::Sizei sizeText = getEngine()->queryTexture(m_label);
-        utils::Sizei sizeEnv = getEngine()->queryTexture(uuid);
+        utils::Sizei sizeText = getEngine().queryTexture(m_label);
+        utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
 
         utils::Boxf dstRect;
 
@@ -92,7 +92,7 @@ namespace sdl {
             break;
         }
 
-        getEngine()->drawTexture(
+        getEngine().drawTexture(
           m_label,
           &uuid,
           &dstRect
