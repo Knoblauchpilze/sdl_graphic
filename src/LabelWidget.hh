@@ -50,9 +50,6 @@ namespace sdl {
         void
         setVerticalAlignment(const VerticalAlignment& alignment) noexcept;
 
-        void
-        onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) override;
-
       protected:
 
         void

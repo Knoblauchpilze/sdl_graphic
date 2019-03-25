@@ -33,17 +33,6 @@ namespace sdl {
     }
 
     void
-    LabelWidget::onKeyReleasedEvent(const SDL_KeyboardEvent& keyEvent) {
-      std::lock_guard<std::mutex> guard(m_drawingLocker);
-      for (WidgetMap::const_iterator widget = m_children.cbegin() ;
-           widget != m_children.cend() ;
-           ++widget)
-      {
-        widget->second->onKeyReleasedEvent(keyEvent);
-      }
-    }
-
-    void
     LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const noexcept {
       // Load the text.
       if (m_textDirty) {

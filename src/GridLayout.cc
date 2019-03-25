@@ -56,17 +56,17 @@ namespace sdl {
       // requesting constantly information or setting information multiple times.
       std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
 
-      std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
-      std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
+      // std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
+      // std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
-      for (unsigned row = 0u ; row < m_rows ; ++row) {
-        std::cout << "[LAY] row " << row << ":";
-        for (unsigned column = 0u ; column < m_columns ; ++column) {
-          const unsigned cellID = row * m_columns + column;
-          std::cout << " " << std::setw(6) << cells[cellID].box.w() << "x" << std::setw(6) << cells[cellID].box.h();
-        }
-        std::cout << std::endl;
-      }
+      // for (unsigned row = 0u ; row < m_rows ; ++row) {
+      //   std::cout << "[LAY] row " << row << ":";
+      //   for (unsigned column = 0u ; column < m_columns ; ++column) {
+      //     const unsigned cellID = row * m_columns + column;
+      //     std::cout << " " << std::setw(6) << cells[cellID].box.w() << "x" << std::setw(6) << cells[cellID].box.h();
+      //   }
+      //   std::cout << std::endl;
+      // }
 
       // We now have a working set of dimensions which we can begin to apply to widgets
       // in order to build the layout.
@@ -102,7 +102,7 @@ namespace sdl {
         // among all the available widgets.
         const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
 
-        std::cout << "[LAY] Default box is " << defaultBox << std::endl;
+        // std::cout << "[LAY] Default box is " << defaultBox << std::endl;
 
         for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
           // Retrieve the `ItemInfo` struct for this widget.
@@ -132,25 +132,25 @@ namespace sdl {
           cells[cellID].box.w() = area.w();
           cells[cellID].box.h() = area.h();
 
-          std::cout << "[LAY] Widget \"" << m_items[index]->getName() << "\": "
-                    << cells[cellID].box.x() << ", " << cells[cellID].box.y()
-                    << ", dims: "
-                    << cells[cellID].box.w() << ", " << cells[cellID].box.h()
-                    << std::endl;
+          // std::cout << "[LAY] Widget \"" << m_items[index]->getName() << "\": "
+          //           << cells[cellID].box.x() << ", " << cells[cellID].box.y()
+          //           << ", dims: "
+          //           << cells[cellID].box.w() << ", " << cells[cellID].box.h()
+          //           << std::endl;
         }
 
         // Once all widgets have been assigned dimensions based on the `ðefaultBox`, we need to
         // consolidate the dimensions of the cell to determine whether the adjustment is done.
         consolidateDimensions(cells, columnsDims, rowsDims);
 
-        for (unsigned row = 0u ; row < m_rows ; ++row) {
-          std::cout << "[LAY] row " << row << ":";
-          for (unsigned column = 0u ; column < m_columns ; ++column) {
-            const unsigned cellID = row * m_columns + column;
-            std::cout << " " << std::setw(7) << cells[cellID].box.w() << "x" << std::setw(7) << cells[cellID].box.h();
-          }
-          std::cout << std::endl;
-        }
+        // for (unsigned row = 0u ; row < m_rows ; ++row) {
+        //   std::cout << "[LAY] row " << row << ":";
+        //   for (unsigned column = 0u ; column < m_columns ; ++column) {
+        //     const unsigned cellID = row * m_columns + column;
+        //     std::cout << " " << std::setw(7) << cells[cellID].box.w() << "x" << std::setw(7) << cells[cellID].box.h();
+        //   }
+        //   std::cout << std::endl;
+        // }
 
         // We have tried to apply the `defaultBox` to all the widgets. This might have fail
         // in some cases (for example due to a `Fixed` size policy for a widget) and thus
@@ -177,10 +177,10 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
-        std::cout << "[LAY] Desired: " << internalSize
-                  << " achieved: " << achievedSize
-                  << " space: " << spaceToUse
-                  << std::endl;
+        // std::cout << "[LAY] Desired: " << internalSize
+        //           << " achieved: " << achievedSize
+        //           << " space: " << spaceToUse
+        //           << std::endl;
 
         // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
         // Based on the `policy` provided by the base class method, we can now determine which
