@@ -3,8 +3,8 @@
 
 # include <memory>
 # include <string>
+# include <core_utils/Uuid.hh>
 # include <sdl_core/SdlWidget.hh>
-# include <sdl_engine/ColoredFont.hh>
 
 namespace sdl {
   namespace graphic {
@@ -28,7 +28,7 @@ namespace sdl {
 
         LabelWidget(const std::string& name,
                     const std::string& text,
-                    core::engine::ColoredFontShPtr font,
+                    const utils::Uuid& font,
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
@@ -42,7 +42,7 @@ namespace sdl {
         setText(const std::string& text) noexcept;
 
         void
-        setFont(core::engine::ColoredFontShPtr font) noexcept;
+        setFont(const utils::Uuid& font) noexcept;
 
         void
         setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept;
@@ -63,7 +63,7 @@ namespace sdl {
       private:
 
         std::string m_text;
-        core::engine::ColoredFontShPtr m_font;
+        utils::Uuid m_font;
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textDirty;

@@ -6,7 +6,7 @@ namespace sdl {
 
     LabelWidget::LabelWidget(const std::string& name,
                              const std::string& text,
-                             core::engine::ColoredFontShPtr font,
+                             const utils::Uuid& font,
                              const HorizontalAlignment& hAlignment,
                              const VerticalAlignment& vAlignment,
                              SdlWidget* parent,
@@ -30,6 +30,9 @@ namespace sdl {
       if (m_label.valid()) {
         getEngine().destroyTexture(m_label);
       }
+      if (m_font.valid()) {
+        getEngine().destroyColoredFont(m_font);
+      }
     }
 
     void
@@ -51,9 +54,6 @@ namespace sdl {
         // Dimension of the dst area are known.
         dstRect.w() = sizeText.w();
         dstRect.h() = sizeText.h();
-
-        
-        
 
         switch (m_hAlignment) {
           case HorizontalAlignment::Left:
