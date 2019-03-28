@@ -152,6 +152,45 @@ namespace sdl {
           }
         }
 
+        // There's one more thing to determine: the `Expanding` flag on any widget's policy should
+        // mark it as priority over other widgets. For example if two widgets can grow, one having
+        // the flag `Grow` and the other the `Expand` flag, we should make priority for the one
+        // with `Expanding` flag.
+        // Widgets with `Grow` flag will only grow when all `Expanding` widgets have been maxed out.
+        // Of course this does not apply in case widgets should be shrunk: all widgets are treated
+        // equally in this case and there's not preferred widgets to shrink.
+        if ((getDirection() == Direction::Horizontal && action.canExtendHorizontally()) ||
+            (getDirection() == Direction::Vertical && action.canExtendVertically()))
+        {
+          // Select only `Expanding` widget if any.
+          std::unordered_set<unsigned> widgetsToExpand;
+
+          for (std::unordered_set<unsigned>::const_iterator widget = widgetsToUse.cbegin() ;
+               widget != widgetsToUse.cend() ;
+               ++widget)
+          {
+            // Check whether this widget can expand.
+            if (getDirection() == Direction::Horizontal && widgetsInfo[*widget].policy.canExpandHorizontally()) {
+              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded horizontally" << std::endl;
+              widgetsToExpand.insert(*widget);
+            }
+            if (getDirection() == Direction::Vertical && widgetsInfo[*widget].policy.canExpandVertically()) {
+              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded vertically" << std::endl;
+              widgetsToExpand.insert(*widget);
+            }
+          }
+
+          std::cout << "[LAY] Saved " << widgetsToExpand.size() << " which can expand compared to "
+                    << widgetsToUse.size() << " which can extend"
+                    << std::endl;
+          // Check whether we could select at least one widget to expand: if this is not the
+          // case we can proceed to extend the widget with only a `Grow` flag.
+          if (!widgetsToExpand.empty()) {
+            widgetsToUse.swap(widgetsToExpand);
+          }
+        }
+
+
         // Use the computed list of widgets to perform the next action in order
         // to reach the desired space.
         widgetsToAdjust.swap(widgetsToUse);
