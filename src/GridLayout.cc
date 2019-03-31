@@ -45,11 +45,7 @@ namespace sdl {
       const utils::Sizef internalSize = computeAvailableSize(window);
 
       // Compute default columns and rows dimensions.
-      // TODO: Override the minimum size of each widget with the size of the
-      // column/row in which it lies ?
       std::vector<CellInfo> cells = computeCellsInfo();
-      std::vector<float> columnsDims(m_columns);
-      std::vector<float> rowsDims(m_rows);
 
       // Copy the current size of widgets so that we can work with it without
       // requesting constantly information or setting information multiple times.
@@ -69,203 +65,33 @@ namespace sdl {
 
       // We now have a working set of dimensions which we can begin to apply to widgets
       // in order to build the layout.
-      // Basically we will try to assign a `ðefaultBox` to all widgets, corresponding to
-      // the ideal value to use to allocate fairly the space between all widgets. Widgets
-      // will handle internally this assignment by checking it against internal
-      // constraints (min and max size for example) and use the best size considering the
-      // input request.
-      // Once we're done, we can compute the space left (or missing) and start the
-      // process again with the remaining size.
-      // We stop the process when the space has been entirely allocated to widgets or
-      // when there's no widget left to expand/shrink without violating the provided
-      // size constraints.
-      std::unordered_set<unsigned> widgetsToAdjust;
+      // The specification of the dimensions is divided into two main phases: first the
+      // determination of a base dimension for each column and row based on single-cell
+      // widget, and then an adjustment phase where multi-cells widgets are placed.
+      // In the first phase, the process is divided into two parts: the adjustment of
+      // rows and columns is indeed completely independent and can be processed with no
+      // particular ordering.
+      // This allows for simpler algorithms.
+      // In each case, the process is similar: we start by assuming an ideal size of the
+      // widget for each column/row and try to work with this. In case some widget cannot
+      // take full advantage of this size (because their constraints forbid it) we
+      // allocate the remaining space between remaining widgets until the achieved size
+      // is close enough from the target size.
+      // If the widgets' constraints do not allow for a perfect repartition, we stop the
+      // process and produce the best possible solution given the constraints.
 
-      // TODO: We should probably proceed by dimensions: first adjusting the width of
-      // widgets and then height.
-      // This would probably better to handle expanding policy and could also make
-      // things converge faster.
+      // Proceed to adjust the columns' width.
+      std::vector<float> columnsDims = adjustColumnsWidth(internalSize, widgetsInfo);
 
-      // In a first approach all the widgets can be adjusted.
-      for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
-        widgetsToAdjust.insert(index);
-      }
+      // Adjust rows' height.
+      std::vector<float> rowsDims = adjustRowHeight(internalSize, widgetsInfo);
 
-      // Also assume that we didn't use up all the available space.
-      utils::Sizef spaceToUse = internalSize;
-      bool allSpaceUsed = false;
-
-      // Loop until no more widgets can be used to adjust the space needed or all the
-      // available space has been used up.
-      // TODO: Handle cases where the widgets are too large to fit into the widget ?
-      while (!widgetsToAdjust.empty() && !allSpaceUsed) {
-      
-        // Compute the amount of space we will try to allocate to each widget still
-        // available for adjustment.
-        // The `defaultBox` is computed by dividing equally the remaining `workingSize`
-        // among all the available widgets.
-        const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, m_columns, m_rows);
-
-        std::cout << "[LAY] Default box is " << defaultBox << std::endl;
-
-        for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
-          // Check whether this widget need adjustment.
-          if (widgetsToAdjust.find(index) == widgetsToAdjust.cend()) {
-            // Move on to the next widget.
-            continue;
-          }
-
-          // Retrieve the `ItemInfo` struct for this widget.
-          const LocationsMap::const_iterator itemInfo = m_locations.find(index);
-          if (itemInfo == m_locations.cend()) {
-            error(
-              std::string("Could not retrieve information for widget \"") +
-              m_items[index]->getName() + "\" while updating grid layout"
-            );
-          }
-          const ItemInfo& loc = itemInfo->second;
-          const unsigned cellID = loc.y * m_columns + loc.x;
-
-          // Try to assign the `defaultBox` to this widget: we use a dedicated handler
-          // to handle the case where the provided space is too large/small/not suited
-          // to the widget for some reasons, in which case the handler will provide a
-          // size which can be applied to the widget.
-          // The process is not completely straightforward though as we need to account
-          // for widgets spanning multiple columns/rows. The `defaultBox` should thus
-          // be scaled to account for this.
-
-          // Scale the `defaultBox`.
-          const utils::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
-
-          // Apply the policy for this widget.
-          utils::Sizef area = computeSizeFromPolicy(cells[cellID].box, widgetBox, widgetsInfo[index]);
-          cells[cellID].box.w() = area.w();
-          cells[cellID].box.h() = area.h();
-
-          std::cout << "[LAY] Widget \"" << m_items[index]->getName() << "\": "
-                    << cells[cellID].box.x() << ", " << cells[cellID].box.y()
-                    << ", dims: "
-                    << cells[cellID].box.w() << ", " << cells[cellID].box.h()
-                    << std::endl;
-        }
-
-        // Once all widgets have been assigned dimensions based on the `ðefaultBox`, we need to
-        // consolidate the dimensions of the cell to determine whether the adjustment is done.
-        consolidateDimensions(cells, columnsDims, rowsDims);
-
-        for (unsigned row = 0u ; row < m_rows ; ++row) {
-          std::cout << "[LAY] row " << row << ":";
-          for (unsigned column = 0u ; column < m_columns ; ++column) {
-            const unsigned cellID = row * m_columns + column;
-            std::cout << " " << std::setw(7) << cells[cellID].box.w() << "x" << std::setw(7) << cells[cellID].box.h();
-          }
-          std::cout << std::endl;
-        }
-
-        // We have tried to apply the `defaultBox` to all the widgets. This might have fail
-        // in some cases (for example due to a `Fixed` size policy for a widget) and thus
-        // we might end up with a total size for all the widget different from the one desired
-        // and expected when the `defaultBox` has been computed.
-        // In order to fix things, we must compute the deviation from the expected size and
-        // try to allocate the remaining space to other widgets (or remove the missing space
-        // from widgets which can give up some).
-
-        // Compute the total size of the bounding boxes.
-        utils::Sizef achievedSize = computeSizeOfCells(cells);
-
-        // Check whether all the space have been used.
-        if (achievedSize.fuzzyEqual(internalSize, 1.0f)) {
-          // We used up all the available space, no more adjustments to perform.
-          allSpaceUsed = true;
-          continue;
-        }
-
-        // All space has not been used. Update the relevant `spaceToUse` in order to perform
-        // the next iteration.
-        spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
-
-        // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
-
-        std::cout << "[LAY] Desired: " << internalSize
-                  << " achieved: " << achievedSize
-                  << " space: " << spaceToUse
-                  << std::endl;
-
-        // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
-        // Based on the `policy` provided by the base class method, we can now determine which
-        // widget should be used to perform the needed adjustments.
-        std::unordered_set<unsigned> widgetsToUse;
-        for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
-          // Retrieve the `ItemInfo` struct for this widget.
-          const LocationsMap::const_iterator itemInfo = m_locations.find(index);
-          if (itemInfo == m_locations.cend()) {
-            error(
-              std::string("Could not retrieve information for widget \"") +
-              m_items[index]->getName() + "\" while updating grid layout"
-            );
-          }
-          const ItemInfo& loc = itemInfo->second;
-          const unsigned cellID = loc.y * m_columns + loc.x;
-
-          // Check whether this widget can be used to grow/shrink.
-          std::pair<bool, bool> usable = canBeUsedTo(m_items[index]->getName(), widgetsInfo[index], cells[cellID].box, action);
-          if (usable.first || usable.second) {
-            // std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
-            //           << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
-            //           << " and "
-            //           << std::to_string(static_cast<int>(action.getVerticalPolicy()))
-            //           << std::endl;
-            widgetsToUse.insert(index);
-          }
-        }
-
-        // There's one more thing to determine: the `Expanding` flag on any widget's policy should
-        // mark it as priority over other widgets. For example if two widgets can grow, one having
-        // the flag `Grow` and the other the `Expand` flag, we should make priority for the one
-        // with `Expanding` flag.
-        // Widgets with `Grow` flag will only grow when all `Expanding` widgets have been maxed out.
-        // Of course this does not apply in case widgets should be shrunk: all widgets are treated
-        // equally in this case and there's not preferred widgets to shrink.
-        if (action.canExtendHorizontally() || action.canExtendVertically()) {
-          // Select only `Expanding` widget if any.
-          std::unordered_set<unsigned> widgetsToExpand;
-
-          for (std::unordered_set<unsigned>::const_iterator widget = widgetsToUse.cbegin() ;
-               widget != widgetsToUse.cend() ;
-               ++widget)
-          {
-            // Check whether this widget can expand.
-            if (action.canExtendHorizontally() && widgetsInfo[*widget].policy.canExpandHorizontally()) {
-              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded horizontally" << std::endl;
-              widgetsToExpand.insert(*widget);
-            }
-            if (action.canExtendVertically() && widgetsInfo[*widget].policy.canExpandVertically()) {
-              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded vertically" << std::endl;
-              widgetsToExpand.insert(*widget);
-            }
-          }
-
-          std::cout << "[LAY] Saved " << widgetsToExpand.size() << " which can expand compared to "
-                    << widgetsToUse.size() << " which can extend"
-                    << std::endl;
-          // Check whether we could select at least one widget to expand: if this is not the
-          // case we can proceed to extend the widget with only a `Grow` flag.
-          if (!widgetsToExpand.empty()) {
-            widgetsToUse.swap(widgetsToExpand);
-          }
-        }
-
-        // Use the computed list of widgets to perform the next action in order
-        // to reach the desired space.
-        widgetsToAdjust.swap(widgetsToUse);
-      }
+      // Try to adjust the computed dimensions to include multi-cells widgets.
+      // TODO: Actually handle multi-cells widgets.
 
       // All widgets have suited dimensions, we can now handle the position of each
       // widget. We basically just move each widget based on the dimensions of the
-      // rows and columns to reach the position of each widget.
-      // dimensions and adding margins.
-
+      // rows and columns to reach the position of a specified widget.
       std::vector<utils::Boxf> outputBoxes(m_items.size());
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
@@ -341,6 +167,10 @@ namespace sdl {
       // Assign the rendering area to widgets.
       assignRenderingAreas(outputBoxes);
     }
+
+    /////////
+    // Old //
+    /////////
 
     std::vector<GridLayout::CellInfo>
     GridLayout::computeCellsInfo() const noexcept {
@@ -450,6 +280,24 @@ namespace sdl {
       }
 
       return utils::Sizef(maxColumnSize, maxRowSize);
+    }
+
+    /////////
+    // Old //
+    /////////
+
+    std::vector<float>
+    GridLayout::adjustColumnsWidth(const utils::Sizef& window,
+                                   const std::vector<WidgetInfo>& widgets) const
+    {
+      return std::vector<float>(widgets.size(), window.w() / widgets.size());
+    }
+
+    std::vector<float>
+    GridLayout::adjustRowHeight(const utils::Sizef& window,
+                                const std::vector<WidgetInfo>& widgets) const
+    {
+      return std::vector<float>(widgets.size(), window.h() / widgets.size());
     }
 
   }

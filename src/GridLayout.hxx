@@ -138,6 +138,10 @@ namespace sdl {
       );
     }
 
+    /////////
+    // Old //
+    /////////
+
     inline
     utils::Sizef
     GridLayout::computeDefaultWidgetBox(const utils::Sizef& area,
@@ -150,21 +154,9 @@ namespace sdl {
       );
     }
 
-    inline
-    bool
-    GridLayout::locationSpanColumn(const unsigned& column,
-                                   const ItemInfo& info) const noexcept
-    {
-      return info.x <= column && info.x + info.w > column;
-    }
-
-    inline
-    bool
-    GridLayout::locationSpanRow(const unsigned& row,
-                                const ItemInfo& info) const noexcept
-    {
-      return info.y <= row && info.y + info.h > row;
-    }
+    /////////
+    // Old //
+    /////////
 
   }
 }

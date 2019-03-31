@@ -95,18 +95,14 @@ namespace sdl {
         void
         resetGridInfo();
 
+        /////////
+        // Old //
+        /////////
+
         utils::Sizef
         computeDefaultWidgetBox(const utils::Sizef& area,
                                 const unsigned& columnsCount,
                                 const unsigned& rowsCount) const noexcept;
-
-        bool
-        locationSpanColumn(const unsigned& column,
-                           const ItemInfo& info) const noexcept;
-
-        bool
-        locationSpanRow(const unsigned& row,
-                        const ItemInfo& info) const noexcept;
 
         std::vector<CellInfo>
         computeCellsInfo() const noexcept;
@@ -118,6 +114,18 @@ namespace sdl {
 
         utils::Sizef
         computeSizeOfCells(const std::vector<CellInfo>& cells) const;
+
+        /////////
+        // Old //
+        /////////
+
+        std::vector<float>
+        adjustColumnsWidth(const utils::Sizef& window,
+                           const std::vector<WidgetInfo>& widgets) const;
+
+        std::vector<float>
+        adjustRowHeight(const utils::Sizef& window,
+                        const std::vector<WidgetInfo>& widgets) const;
 
       private:
 
