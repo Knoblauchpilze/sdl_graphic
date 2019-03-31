@@ -11,7 +11,7 @@ namespace sdl {
     SelectorLayout::setActiveItem(const std::string& name) {
       std::size_t indexItem = 0;
       bool found = false;
-      while (indexItem < m_items.size() && !found) {
+      while (indexItem < getItemsCount() && !found) {
         if (m_items[indexItem] != nullptr && m_items[indexItem]->getName() == name) {
           found = true;
         }
@@ -30,10 +30,10 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const int& index) {
-      if (index >= static_cast<int>(m_items.size())) {
+      if (index >= static_cast<int>(getItemsCount())) {
         error(
           std::string("Cannot activate child ") + std::to_string(index) +
-          " in selector layout only containing " + std::to_string(m_items.size()) + " child(ren)"
+          " in selector layout only containing " + std::to_string(getItemsCount()) + " child(ren)"
         );
       }
 

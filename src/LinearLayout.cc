@@ -44,7 +44,7 @@ namespace sdl {
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
 
-      std::vector<utils::Boxf> outputBoxes(m_items.size());
+      std::vector<utils::Boxf> outputBoxes(getItemsCount());
 
       // We now have a working set of dimensions which we can begin to apply to widgets
       // in order to build the layout.
@@ -55,7 +55,7 @@ namespace sdl {
       // After updating all widgets, we need to loop again to apply the space we have
       // not used up before. This process continues until we run out of space to allocate
       // (usually meaning that we could expand some widgets to take the space not used
-      // by others) or if no more container can be expanded or shrinked without bypassing
+      // by others) or if no more container can be expanded or shrunk without bypassing
       // the sizes provided to bound the widgets.
       std::unordered_set<unsigned> widgetsToAdjust;
 
@@ -75,7 +75,7 @@ namespace sdl {
 
         // Compute the amount of space we will try to allocate to each widget still
         // available for adjustment.
-        // The `defaultBox` is computed by dividing equally the remaining `workingSize`
+        // The `defaultBox` is computed by dividing equally the remaining `spaceToUse`
         // among all the available widgets.
         const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, widgetsToAdjust.size());
 
@@ -205,7 +205,7 @@ namespace sdl {
       float x = getMargin().w();
       float y = getMargin().h();
 
-      for (unsigned index = 0u ; index < m_items.size() ; ++index) {
+      for (unsigned index = 0u ; index < getItemsCount() ; ++index) {
         // Position the widget based on the position of the previous ones.
         // In addition to this mechanism, we should handle some kind of
         // centering to allow widgets with sizes smaller than the provided
