@@ -24,9 +24,6 @@ namespace sdl {
         const unsigned&
         getRowCount() const noexcept;
 
-        const float&
-        getMargin() const noexcept;
-
         void
         setColumnHorizontalStretch(const unsigned& column, const float& stretch);
 
@@ -99,9 +96,6 @@ namespace sdl {
         resetGridInfo();
 
         utils::Sizef
-        computeAvailableSize(const utils::Boxf& totalArea) const noexcept;
-
-        utils::Sizef
         computeDefaultWidgetBox(const utils::Sizef& area,
                                 const unsigned& columnsCount,
                                 const unsigned& rowsCount) const noexcept;
@@ -135,7 +129,6 @@ namespace sdl {
         std::vector<LineInfo> m_columnsInfo;
         std::vector<LineInfo> m_rowsInfo;
 
-        float m_margin;
         LocationsMap m_locations;
 
     };

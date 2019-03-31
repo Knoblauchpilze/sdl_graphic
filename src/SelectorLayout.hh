@@ -15,9 +15,6 @@ namespace sdl {
 
         virtual ~SelectorLayout();
 
-        const float&
-        getMargin() const noexcept;
-
         void
         setActiveItem(const std::string& name);
 
@@ -37,7 +34,6 @@ namespace sdl {
 
       private:
 
-        float m_margin;
         int m_activeItem;
 
     };

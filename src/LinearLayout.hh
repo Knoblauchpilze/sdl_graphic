@@ -23,9 +23,6 @@ namespace sdl {
         getDirection() const noexcept;
 
         const float&
-        getMargin() const noexcept;
-
-        const float&
         getComponentMargin() const noexcept;
 
       protected:
@@ -36,16 +33,18 @@ namespace sdl {
       private:
 
         utils::Sizef
-        computeAvailableSize(const utils::Boxf& totalArea) const;
+        computeAvailableSize(const utils::Boxf& totalArea) const noexcept override;
 
         utils::Sizef
         computeDefaultWidgetBox(const utils::Sizef& area,
                                 const unsigned& widgetsCount) const;
 
+        utils::Sizef
+        computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const;
+
       private:
 
         Direction m_direction;
-        float m_margin;
         float m_componentMargin;
 
     };

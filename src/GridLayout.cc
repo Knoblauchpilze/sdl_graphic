@@ -13,14 +13,13 @@ namespace sdl {
                            const unsigned& rows,
                            const float& margin,
                            sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget),
+      sdl::core::Layout(widget, margin),
       m_columns(columns),
       m_rows(rows),
 
       m_columnsInfo(),
       m_rowsInfo(),
 
-      m_margin(margin),
       m_locations()
     {
       // Build default information for columns/rows.
@@ -139,7 +138,7 @@ namespace sdl {
           const utils::Sizef widgetBox(defaultBox.w() * itemInfo->second.w, defaultBox.h() * itemInfo->second.h);
 
           // Apply the policy for this widget.
-          utils::Sizef area = computeSizeFromPolicy(widgetBox, cells[cellID].box, widgetsInfo[index]);
+          utils::Sizef area = computeSizeFromPolicy(cells[cellID].box, widgetBox, widgetsInfo[index]);
           cells[cellID].box.w() = area.w();
           cells[cellID].box.h() = area.h();
 
@@ -294,8 +293,8 @@ namespace sdl {
           );
         }
 
-        float xWidget = m_margin;
-        float yWidget = m_margin;
+        float xWidget = getMargin().w();
+        float yWidget = getMargin().h();
 
         const unsigned cellID = loc->second.y * m_columns + loc->second.x;
 

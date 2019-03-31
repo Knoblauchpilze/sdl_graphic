@@ -11,9 +11,8 @@ namespace sdl {
                                const float& margin,
                                const float& interMargin,
                                sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget),
+      sdl::core::Layout(widget, margin),
       m_direction(direction),
-      m_margin(margin),
       m_componentMargin(interMargin)
     {
       // Nothing to do.
@@ -92,7 +91,7 @@ namespace sdl {
           // to handle the case where the provided space is too large/small/not suited
           // to the widget for some reasons, in which case the handler will provide a
           // size which can be applied to the widget.
-          utils::Sizef area = computeSizeFromPolicy(defaultBox, outputBoxes[*widget], widgetsInfo[*widget]);
+          utils::Sizef area = computeSizeFromPolicy(outputBoxes[*widget], defaultBox, widgetsInfo[*widget]);
           outputBoxes[*widget].w() = area.w();
           outputBoxes[*widget].h() = area.h();
 
@@ -112,7 +111,7 @@ namespace sdl {
         // from widgets which can give up some).
 
         // Compute the total size of the bounding boxes.
-        utils::Sizef achievedSize = computeSizeOfWidgets(getDirection(), outputBoxes);
+        utils::Sizef achievedSize = computeSizeOfWidgets(outputBoxes);
 
         // Check whether all the space have been used.
         if (achievedSize.fuzzyEqual(internalSize, 0.5f)) {
@@ -203,8 +202,8 @@ namespace sdl {
       // All widgets have suited dimensions, we can now handle the position of each
       // widget. We basically just move each widget side by side based on their
       // dimensions and adding margins.
-      float x = m_margin;
-      float y = m_margin;
+      float x = getMargin().w();
+      float y = getMargin().h();
 
       for (unsigned index = 0u ; index < m_items.size() ; ++index) {
         // Position the widget based on the position of the previous ones.
@@ -254,6 +253,59 @@ namespace sdl {
 
       // Assign the rendering area to widgets.
       assignRenderingAreas(outputBoxes);
+    }
+
+
+
+    utils::Sizef
+    LinearLayout::computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const
+    {
+      float flowingSize = 0.0f;
+      float perpendicularSize = 0.0f;
+
+      for (unsigned index = 0u ; index < boxes.size() ; ++index) {
+        float increment = 0.0f;
+        float size = 0.0f;
+
+        if (getDirection() == Direction::Horizontal) {
+          // The `increment` is given by the width of the box while the
+          // `size` is given by its height.
+          size = boxes[index].h();
+          increment = boxes[index].w();
+        }
+        else if (getDirection() == Direction::Vertical) {
+          // The `increment` is given by the height of the box while the
+          // `size` is given by its width.
+          size = boxes[index].w();
+          increment = boxes[index].h();
+        }
+        else {
+          error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+        }
+
+        // Increase the `flowingSize` with the provided `increment` and
+        // perform a comparison of the size of the widget in the other
+        // direction (i.e. not in the direction of the flow) against the
+        // current maximum and update it if needed.
+        flowingSize += increment;
+        if (perpendicularSize < size) {
+          perpendicularSize = size;
+        }
+      }
+
+      // Create a valid size based on this layout's direction.
+      if (getDirection() == Direction::Horizontal) {
+        return utils::Sizef(flowingSize, perpendicularSize);
+      }
+      else if (getDirection() == Direction::Vertical) {
+        return utils::Sizef(perpendicularSize, flowingSize);
+      }
+      else {
+        error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
+      }
+
+      // Return dummy value because the `error` statement already handles throwing.
+      return utils::Sizef();
     }
 
   }

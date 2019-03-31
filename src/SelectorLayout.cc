@@ -7,8 +7,7 @@ namespace sdl {
 
     SelectorLayout::SelectorLayout(const float& margin,
                                    sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget),
-      m_margin(margin),
+      sdl::core::Layout(widget, margin),
       m_activeItem(-1)
     {
       // Nothing to do.
@@ -24,16 +23,15 @@ namespace sdl {
       }
 
       // Compute the available space for the active child.
-      const float cw = window.w() - 2.0f * m_margin;
-      const float ch = window.h() - 2.0f * m_margin;
+      const utils::Sizef componentSize = computeAvailableSize(window);
 
       // Assign the space for the active child.
       m_items[m_activeItem]->setRenderingArea(
         utils::Boxf(
-          m_margin + cw / 2.0f,
-          m_margin + ch / 2.0f,
-          cw,
-          ch
+          getMargin().w() + componentSize.w() / 2.0f,
+          getMargin().h() + componentSize.h() / 2.0f,
+          componentSize.w(),
+          componentSize.h()
         )
       );
 

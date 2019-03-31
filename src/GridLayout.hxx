@@ -23,12 +23,6 @@ namespace sdl {
     }
 
     inline
-    const float&
-    GridLayout::getMargin() const noexcept {
-      return m_margin;
-    }
-
-    inline
     void
     GridLayout::setColumnHorizontalStretch(const unsigned& column, const float& stretch) {
       if (column > m_columns) {
@@ -141,15 +135,6 @@ namespace sdl {
           0u,
           0.0f
         }
-      );
-    }
-
-    inline
-    utils::Sizef
-    GridLayout::computeAvailableSize(const utils::Boxf& totalArea) const noexcept {
-      return utils::Sizef(
-        totalArea.w() - 2.0f * m_margin,
-        totalArea.h() - 2.0f * m_margin
       );
     }
 

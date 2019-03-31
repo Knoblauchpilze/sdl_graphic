@@ -7,12 +7,6 @@ namespace sdl {
   namespace graphic {
 
     inline
-    const float&
-    SelectorLayout::getMargin() const noexcept {
-      return m_margin;
-    }
-
-    inline
     void
     SelectorLayout::setActiveItem(const std::string& name) {
       std::size_t indexItem = 0;
