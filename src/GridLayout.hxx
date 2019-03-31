@@ -158,6 +158,13 @@ namespace sdl {
     // Old //
     /////////
 
+    float
+    GridLayout::allocateFairly(const float& space,
+                               const unsigned& count) const noexcept
+    {
+      return space / count;
+    }
+
   }
 }
 

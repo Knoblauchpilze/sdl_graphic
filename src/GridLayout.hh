@@ -85,10 +85,13 @@ namespace sdl {
         // no widget occupy the location. In any other case, the `widget` value
         // corresponds to the key to reach the widget spanning this cell in the
         // `m_locations` map.
+        // The `multiCell` value indicates whether the widget is a multi-cell
+        // widget in which case the `hStretch` and `vStretch` should be ignored.
         struct CellInfo {
           unsigned hStretch;
           unsigned vStretch;
           utils::Boxf box;
+          bool multiCell;
           int widget;
         };
 
@@ -104,9 +107,6 @@ namespace sdl {
                                 const unsigned& columnsCount,
                                 const unsigned& rowsCount) const noexcept;
 
-        std::vector<CellInfo>
-        computeCellsInfo() const noexcept;
-
         void
         consolidateDimensions(std::vector<CellInfo>& cells,
                               std::vector<float>& columnsDims,
@@ -119,13 +119,26 @@ namespace sdl {
         // Old //
         /////////
 
+        float
+        allocateFairly(const float& space,
+                       const unsigned& count) const noexcept;
+
+        std::vector<CellInfo>
+        computeCellsInfo() const noexcept;
+
+        utils::Sizef
+        computeAchievedSize(const std::vector<unsigned>& elements,
+                            const std::vector<CellInfo>& cells) const noexcept;
+
         std::vector<float>
         adjustColumnsWidth(const utils::Sizef& window,
-                           const std::vector<WidgetInfo>& widgets) const;
+                           const std::vector<WidgetInfo>& widgets,
+                           std::vector<CellInfo>& cells) const;
 
         std::vector<float>
         adjustRowHeight(const utils::Sizef& window,
-                        const std::vector<WidgetInfo>& widgets) const;
+                        const std::vector<WidgetInfo>& widgets,
+                        std::vector<CellInfo>& cells) const;
 
       private:
 
