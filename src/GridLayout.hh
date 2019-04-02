@@ -126,6 +126,9 @@ namespace sdl {
         std::vector<CellInfo>
         computeCellsInfo() const noexcept;
 
+        void
+        adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept;
+
         utils::Sizef
         computeAchievedSize(const std::vector<unsigned>& elements,
                             const std::vector<CellInfo>& cells) const noexcept;

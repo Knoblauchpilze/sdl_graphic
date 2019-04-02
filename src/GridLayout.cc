@@ -109,7 +109,8 @@ namespace sdl {
       //
       // We handle these considerations before starting the optimization process as it
       // will directly impact it.
-      // TODO: Actually handle minimum column width and minimum row height.
+      adjustWidgetToConstraints(widgetsInfo);
+
 
       std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
       std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
@@ -387,6 +388,120 @@ namespace sdl {
 
       // Return the built-in vector.
       return cells;
+    }
+
+    void
+    GridLayout::adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept {
+      // The aim of this function is to provide for the minimum column width and minimum
+      // row height adjustments needed to override the properties of the widgets.
+      // This is not as simple as it is because we cannot just override the minimum size
+      // of all widgets with the provided size based on their columns and rows: indeed
+      // this might conflict with the size hint or maximum size provided.
+      // We can only grow it as much as possible without overriding other attributes.
+
+      // Traverse each widget and update the relevant constraints.
+      for (unsigned widget = 0u ; widget < widgets.size() ; ++widget) {
+        // Retrieve the location information for this widget.
+        const LocationsMap::const_iterator info = m_locations.find(widget);
+        if (info == m_locations.cend()) {
+          error(
+            std::string("Could not adjust widget ") + std::to_string(widget) + " to minimum constraints",
+            std::string("Inexisting widget")
+          );
+        }
+
+        const ItemInfo& loc = info->second;
+
+        // Compute the minimum dimensions of this widget based on its location.
+        utils::Sizef desiredMin;
+
+        for (unsigned row = loc.y ; row < loc.y + loc.h ; ++row) {
+          for (unsigned column = loc.x ; column < loc.x + loc.w ; ++column) {
+            desiredMin.w() += m_columnsInfo[column].min;
+          }
+          desiredMin.h() += m_rowsInfo[row].min;
+        }
+
+        std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\" "
+                  << "at " << loc.x << "x" << loc.y
+                  << " has min " << desiredMin.toString()
+                  << " while internal are: "
+                  << "min: " << widgets[widget].min.w() << "x" << widgets[widget].min.h() << " "
+                  << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " "
+                  << "max: " << widgets[widget].max.w() << "x" << widgets[widget].max.h()
+                  << std::endl;
+
+        // We computed the minimum size for this widget from the internal constraints. We have to
+        // check whether this conflicts with some property of the widget. The best case scenario
+        // is that this size is already smaller than the provided minimum size in which case there's
+        // nothing to be done.
+        // Otherwise, we want to check whether we can increase the minimum size of the widget
+        // without breaking other constraints (like size hint or maximum size).
+        // Whether we should consider the size hint (if provided) or the maximum size is based on the
+        // policy for this widget: however we cannot really assume anything except to use the size
+        // hint. Modifying this behavior would require to search for other widgets and check whether
+        // some other widgets can expand. This does not even include considering whether the expanding
+        // process would even occur in the first place because we have no idea of the total size of
+        // the widgets. So let's keep this simple right now and just focus on whether the size hint
+        // is provided or not.
+        // As usual we will process separately width and height to keep it simple.
+        utils::Sizef& min = widgets[widget].min;
+        const utils::Sizef& hint = widgets[widget].hint;
+        const utils::Sizef& max = widgets[widget].max;
+
+        // Assume we can assign the desired minimum width for this widget.
+        float adjustedMinWidth = desiredMin.w();
+
+        // Check whether it conflicts with the provided minimum size if any.
+        if (min.isValid() && min.w() < adjustedMinWidth) {
+          // We cannot perform the assignment the provided minimum size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinWidth = min.w();
+        }
+
+        // Check whether the size hint conflicts with the desired minimum width.
+        if (hint.isValid() && hint.w() < adjustedMinWidth) {
+          // We cannot perform the assignment the provided hint size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinWidth = hint.w();
+        }
+
+        // Check whether the maximum size conflicts with the desired minimum width.
+        if (max.isValid() && max.w() < adjustedMinWidth) {
+          // We cannot perform the assignment the provided maximum size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinWidth = max.w();
+        }
+
+        // Assume we can assign the desired minimum height for this widget.
+        float adjustedMinHeight = desiredMin.h();
+
+        // Check whether it conflicts with the provided minimum size if any.
+        if (min.isValid() && min.h() < adjustedMinHeight) {
+          // We cannot perform the assignment the provided minimum size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinHeight = min.h();
+        }
+
+        // Check whether the size hint conflicts with the desired minimum width.
+        if (hint.isValid() && hint.h() < adjustedMinHeight) {
+          // We cannot perform the assignment the provided hint size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinHeight = hint.h();
+        }
+
+        // Check whether the maximum size conflicts with the desired minimum width.
+        if (max.isValid() && max.h() < adjustedMinHeight) {
+          // We cannot perform the assignment the provided maximum size conflicts with it:
+          // let's keep it as it is.
+          adjustedMinHeight = max.h();
+        }
+
+        // Assign the new min size for this widget.
+        min.w() = adjustedMinWidth;
+        min.h() = adjustedMinHeight;
+      }
+
     }
 
     utils::Sizef
