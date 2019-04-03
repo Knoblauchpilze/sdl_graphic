@@ -98,27 +98,6 @@ namespace sdl {
         void
         resetGridInfo();
 
-        /////////
-        // Old //
-        /////////
-
-        utils::Sizef
-        computeDefaultWidgetBox(const utils::Sizef& area,
-                                const unsigned& columnsCount,
-                                const unsigned& rowsCount) const noexcept;
-
-        void
-        consolidateDimensions(std::vector<CellInfo>& cells,
-                              std::vector<float>& columnsDims,
-                              std::vector<float>& rowsDims) const noexcept;
-
-        utils::Sizef
-        computeSizeOfCells(const std::vector<CellInfo>& cells) const;
-
-        /////////
-        // Old //
-        /////////
-
         float
         allocateFairly(const float& space,
                        const unsigned& count) const noexcept;

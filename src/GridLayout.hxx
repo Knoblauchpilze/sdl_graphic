@@ -138,26 +138,6 @@ namespace sdl {
       );
     }
 
-    /////////
-    // Old //
-    /////////
-
-    inline
-    utils::Sizef
-    GridLayout::computeDefaultWidgetBox(const utils::Sizef& area,
-                                        const unsigned& columnsCount,
-                                        const unsigned& rowsCount) const noexcept
-    {
-      return utils::Sizef(
-        area.w() / columnsCount,
-        area.h() / rowsCount
-      );
-    }
-
-    /////////
-    // Old //
-    /////////
-
     float
     GridLayout::allocateFairly(const float& space,
                                const unsigned& count) const noexcept
