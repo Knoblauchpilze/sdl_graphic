@@ -366,7 +366,7 @@ namespace sdl {
                   << " has min " << desiredMin.toString()
                   << " while internal are: "
                   << "min: " << widgets[widget].min.w() << "x" << widgets[widget].min.h() << " "
-                  << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " "
+                  << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " (valid: " << widgets[widget].hint.isValid() << ")"
                   << "max: " << widgets[widget].max.w() << "x" << widgets[widget].max.h()
                   << std::endl;
 
@@ -387,52 +387,92 @@ namespace sdl {
         utils::Sizef& min = widgets[widget].min;
         const utils::Sizef& hint = widgets[widget].hint;
         const utils::Sizef& max = widgets[widget].max;
+        const core::SizePolicy& policy = widgets[widget].policy;
 
         // Assume we can assign the desired minimum width for this widget.
         float adjustedMinWidth = desiredMin.w();
 
         // Check whether it conflicts with the provided minimum size if any.
-        if (min.isValid() && min.w() < adjustedMinWidth) {
-          // We cannot perform the assignment the provided minimum size conflicts with it:
-          // let's keep it as it is.
+        // Basically we have the three following scenario:
+        // 1) The min size is valid and:
+        // 1.a) The min size is smaller than the desired size: keep the min size.
+        // 1.b) The min size is equal to the desired size: keep the min size.
+        // 1.c) The min size is larger than the desired size: keep the min size.
+        // 2) The min size is not valid (no requirements) so we can keep the desired
+        //    size.
+        // We see that the only relevant check is to see whether a minimum size is
+        // provided.
+        if (min.isValid()) {
           adjustedMinWidth = min.w();
         }
 
         // Check whether the size hint conflicts with the desired minimum width.
-        if (hint.isValid() && hint.w() < adjustedMinWidth) {
-          // We cannot perform the assignment the provided hint size conflicts with it:
-          // let's keep it as it is.
-          adjustedMinWidth = hint.w();
+        // These are the possible scenarii:
+        // 1) The size hint is valid and:
+        // 1.a) The size hint is smaller than the desired size: check with the policy to
+        //      determine whether we can grow.
+        // 1.b) The size hint is equal to the desired size: keep the desired size.
+        // 1.c) The size hint is larger than the desired size: keep the size hint.
+        // 2) The size hint is not valid (no requirements) so we can keep the desired
+        //    size.
+        if (hint.isValid()) {
+          // Chewk whether the size hint is larger than the desired width.
+          if (adjustedMinWidth < hint.w()) {
+            // Override with the size hint.
+            adjustedMinWidth = hint.w();
+          }
+
+          // The size hint is smaller than the desired size: check whether the policy allows
+          // to grow.
+          if (hint.w() < adjustedMinWidth && !policy.canExtendHorizontally()) {
+            // Override with the size hint as the policy does not allow to grow.
+            adjustedMinWidth = hint.w();
+          }
         }
 
         // Check whether the maximum size conflicts with the desired minimum width.
+        // At this point we already checked that the minimum size allowed for such a
+        // width (otherwise it would have been clamped already). Same goes for the size
+        // hint (which is right above) so we know that from these two constraints
+        // standpoint the size is valid. The only remaining problem might be a size
+        // too large compared to the maximum size.
+        // Below are listed the possible scenarii:
+        // 1) The max size is valid and:
+        // 1.a) The max size is smaller than the desired size: keep the max size.
+        // 1.b) The max size is equal to the desired size: keep the desired size.
+        // 1.c) The max size is larger than the desired size: keep the desired size.
+        // 2) The max size is not valid (no requirements) so we can keep the desired
+        //    size.
         if (max.isValid() && max.w() < adjustedMinWidth) {
-          // We cannot perform the assignment the provided maximum size conflicts with it:
-          // let's keep it as it is.
+          // Override with the maximum size.
           adjustedMinWidth = max.w();
         }
 
-        // Assume we can assign the desired minimum height for this widget.
+        // Now proceed to adjustment for the height of the widget: similar reasoning can be
+        // applied to width so we will not duplicate information here.
         float adjustedMinHeight = desiredMin.h();
 
-        // Check whether it conflicts with the provided minimum size if any.
-        if (min.isValid() && min.h() < adjustedMinHeight) {
-          // We cannot perform the assignment the provided minimum size conflicts with it:
-          // let's keep it as it is.
+        if (min.isValid()) {
           adjustedMinHeight = min.h();
         }
 
-        // Check whether the size hint conflicts with the desired minimum width.
-        if (hint.isValid() && hint.h() < adjustedMinHeight) {
-          // We cannot perform the assignment the provided hint size conflicts with it:
-          // let's keep it as it is.
-          adjustedMinHeight = hint.h();
+        if (hint.isValid()) {
+          // Chewk whether the size hint is larger than the desired height.
+          if (adjustedMinHeight < hint.h()) {
+            // Override with the size hint.
+            adjustedMinHeight = hint.h();
+          }
+
+          // The size hint is smaller than the desired size: check whether the policy
+          // allows to grow.
+          if (hint.h() < adjustedMinHeight && !policy.canExtendVertically()) {
+            // Override with the size hint as the policy does not allow to grow.
+            adjustedMinHeight = hint.h();
+          }
         }
 
         // Check whether the maximum size conflicts with the desired minimum width.
         if (max.isValid() && max.h() < adjustedMinHeight) {
-          // We cannot perform the assignment the provided maximum size conflicts with it:
-          // let's keep it as it is.
           adjustedMinHeight = max.h();
         }
 
@@ -593,6 +633,8 @@ namespace sdl {
       float spaceToUse = window.w() - widthForEmptyColumns;
       bool allSpaceUsed = false;
 
+      float achievedWidth = widthForEmptyColumns;
+
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a column is available for adjustment: we only avoid another
@@ -687,7 +729,7 @@ namespace sdl {
 
         // Compute the total size of the bounding boxes. By default the size is at least equal
         // to the space used by empty columns.
-        float achievedWidth = widthForEmptyColumns;
+        achievedWidth = widthForEmptyColumns;
 
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           // Compute the achieved size for this column and save it in the output vector. By
@@ -762,7 +804,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForColumn[widget];
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widget]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.first) {
                 // This column can be used to `Grow` thanks to this widget. No need to go
                 // further.
@@ -783,7 +825,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForColumn[widget];
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widget], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.first) {
                 // As this widget cannot shrink, it means that even if other widgets shrink
                 // the width for this column will remain unchanged so we cannot use it.
@@ -863,6 +905,15 @@ namespace sdl {
         // Use the computed list of widgets to perform the next action in order
         // to reach the desired space.
         widgetsToAdjust.swap(widgetsToUse);
+      }
+
+      // Warn the user in case we could not use all the space.
+      if (!allSpaceUsed) {
+        log(
+          std::string("Could only achieve width of ") + std::to_string(achievedWidth) +
+          " but available space is " + std::to_string(window.w()),
+          utils::Level::Warning
+        );
       }
 
       // Return the consolidated columns' dimensions vector.
@@ -994,6 +1045,8 @@ namespace sdl {
       float spaceToUse = window.h() - heightForEmptyRows;
       bool allSpaceUsed = false;
 
+      float achievedHeight = heightForEmptyRows;
+
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a row is available for adjustment: we only avoid another
@@ -1088,7 +1141,7 @@ namespace sdl {
 
         // Compute the total size of the bounding boxes. By default the size is at least equal
         // to the space used by empty rows.
-        float achievedHeight = heightForEmptyRows;
+        achievedHeight = heightForEmptyRows;
 
         for (unsigned row = 0u ; row < m_rows ; ++row) {
           // Compute the achieved size for this row and save it in the output vector. By
@@ -1163,7 +1216,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForRow[widget];
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widget]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.second) {
                 // This row can be used to `Grow` thanks to this widget. No need to go
                 // further.
@@ -1184,7 +1237,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForRow[widget];
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widget], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.second) {
                 // As this widget cannot shrink, it means that even if other widgets shrink
                 // the height for this row will remain unchanged so we cannot use it.
@@ -1266,6 +1319,15 @@ namespace sdl {
         widgetsToAdjust.swap(widgetsToUse);
       }
 
+      // Warn the user in case we could not use all the space.
+      if (!allSpaceUsed) {
+        log(
+          std::string("Could only achieve height of ") + std::to_string(achievedHeight) +
+          " but available space is " + std::to_string(window.h()),
+          utils::Level::Warning
+        );
+      }
+
       // Return the consolidated rows' dimensions vector.
       return rows;
     }
@@ -1337,9 +1399,13 @@ namespace sdl {
       utils::Boxf current;
       utils::Sizef bestFit = computeSizeFromPolicy(current, dims, widgets[multiCell]);
 
-      std::cout << "[LAY] Best firt for \"" << m_items[multiCell]->getName() << "\" is "
+      std::cout << "[LAY] Best fit for \"" << m_items[multiCell]->getName() << "\" is "
                 << bestFit.toString()
                 << ", expected is " << dims.toString()
+                << std::endl;
+      std::cout << "[LAY] Min: " << widgets[multiCell].min.toString()
+                << ", hint: " << widgets[multiCell].hint.toString()
+                << ", max: " << widgets[multiCell].max.toString()
                 << std::endl;
 
       // Distinguish from this best fit.
