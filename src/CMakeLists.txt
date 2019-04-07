@@ -9,6 +9,7 @@ find_package (SDL2_ttf REQUIRED)
 
 set (SOURCES
   LinearLayout.cc
+  GridBox.cc
   GridLayout.cc
   SelectorLayout.cc
   PictureWidget.cc
