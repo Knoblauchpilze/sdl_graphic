@@ -153,11 +153,9 @@ namespace sdl {
                         const std::vector<WidgetInfo>& widgets,
                         std::vector<CellInfo>& cells) const;
 
-        utils::Sizef
-        distributeMultiBox(const std::vector<WidgetData>& elements,
-                           const std::vector<CellInfo>& cells,
-                           std::vector<float>& columns,
-                           std::vector<float>& rows) const;
+        void
+        distributeMultiBoxHeight(const CellInfo& cell,
+                                 std::vector<float>& rows) const;
 
 
       private:

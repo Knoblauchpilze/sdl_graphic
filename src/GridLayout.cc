@@ -982,7 +982,7 @@ namespace sdl {
               info.h > 1,
               row == 0u,
               info.h,
-              row * m_columns + info.x
+              (info.y + row) * m_columns + info.x
             }
           );
         }
@@ -1190,7 +1190,20 @@ namespace sdl {
         }
 
         // Consolidate the achieved size with multi-cell widgets.
-        // TODO: Consolidate.
+        for (std::unordered_set<WidgetData>::const_iterator data = widgetsToAdjust.cbegin() ;
+             data != widgetsToAdjust.cend() ;
+             ++data)
+        {
+          // Check whether the widget is a multi-cell widget. Additionally we only want to
+          // process the master's data.
+          if (!data->shared || !data->master) {
+            // Move on to the next widget.
+            continue;
+          }
+
+          // Distribute the height of this widget over the available rows.
+          distributeMultiBoxHeight(cells[data->widget], rows);
+        }
 
         // Compute the achieved size from consolidated dimensions.
         achievedHeight = heightForEmptyRows;
@@ -1356,10 +1369,6 @@ namespace sdl {
         // Use the computed list of widgets to perform the next action in order
         // to reach the desired space.
         widgetsToAdjust.swap(widgetsToUse);
-
-        char c;
-        std::cout << "[ENTER] Key: ";
-        std::cin >> c;
       }
 
       // Warn the user in case we could not use all the space.
@@ -1375,13 +1384,50 @@ namespace sdl {
       return rows;
     }
 
-    utils::Sizef
-    GridLayout::distributeMultiBox(const std::vector<WidgetData>& /*elements*/,
-                                   const std::vector<CellInfo>& /*cells*/,
-                                   std::vector<float>& /*columns*/,
-                                   std::vector<float>& /*rows*/) const
+    void
+    GridLayout::distributeMultiBoxHeight(const CellInfo& cell,
+                                         std::vector<float>& rows) const
     {
-      return utils::Sizef();
+      // We need to distribute the height of the input `cell` over the concerned
+      // rows. In order to do so, we first compute the height already handled by
+      // the current height of all the rows spanned by the widget, and then distribute
+      // the remaining height (if any) equally between rows.
+
+      // Retrieve the widget's location.
+      LocationsMap::const_iterator locIt = m_locations.find(cell.widget);
+      if (locIt == m_locations.cend()) {
+        error(
+          std::string("Could not retrieve information for widget \"") +
+          m_items[cell.widget]->getName() + "\" while updating grid layout"
+        );
+      }
+      const ItemInfo& loc = locIt->second;
+
+      // First compute the height already covered by the input rows.
+      float existingHeight = 0.0f;
+
+      for (unsigned row = 0u ; row < loc.h ; ++row) {
+        existingHeight += rows[loc.y + row];
+      }
+
+      // Check whether the existing height is enough to absorb the cell's height.
+      if (cell.box.h() < existingHeight) {
+        // All is well: the widget does not span all the height provided by the rows
+        // into which it lies. Let the standard process continue.
+        return;
+      }
+
+      // The height is not enough to absorb the widget's height. We need to redistribute
+      // the additional pixels over all the rows spanned by the widget based on a fair
+      // distribution.
+
+      // Compute the height to add to each row.
+      const float remainingHeight = (cell.box.h() - existingHeight) / loc.h;
+
+      // Distribute the height over each row spanned by the widget.
+      for (unsigned row = 0u ; row < loc.h ; ++row) {
+        rows[loc.y + row] += remainingHeight;
+      }
     }
 
   }
