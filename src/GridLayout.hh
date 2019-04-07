@@ -105,12 +105,21 @@ namespace sdl {
         // occurrence of this widget's data in the array. Indeed most processes
         // want to work on a per-widget basis and don't really care about
         // duplicates.
+        // One can access to the total extent of a widget through the `span`
+        // value which counts how many `WidgetData` element with a similar `widget`
+        // can be found.
         // For any widget there's only one instance of widget data which has its
         // `master` value set to true.
+        // An identifier shall be provided for this data in order to be able to
+        // use it correctly in unordered set. A common value corresponds to the
+        // cell id (which is unique within a grid layout computed as follows:
+        // `y * m_columns + x`.
         struct WidgetData {
-          unsigned widget;
+          int widget;
           bool shared;
           bool master;
+          unsigned span;
+          unsigned id;
         };
 
         void
@@ -127,6 +136,10 @@ namespace sdl {
         adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept;
 
         utils::Sizef
+        computeAchievedSize(const std::vector<WidgetData>& elements,
+                            const std::vector<CellInfo>& cells) const noexcept;
+
+        utils::Sizef
         computeAchievedSize(const std::vector<unsigned>& elements,
                             const std::vector<CellInfo>& cells) const noexcept;
 
@@ -140,15 +153,17 @@ namespace sdl {
                         const std::vector<WidgetInfo>& widgets,
                         std::vector<CellInfo>& cells) const;
 
-        void
-        distributeMultiBox(const unsigned& multiCell,
-                           std::vector<CellInfo>& cells,
-                           const std::vector<WidgetInfo>& widgets,
+        utils::Sizef
+        distributeMultiBox(const std::vector<WidgetData>& elements,
+                           const std::vector<CellInfo>& cells,
                            std::vector<float>& columns,
                            std::vector<float>& rows) const;
 
 
       private:
+
+        friend std::hash<WidgetData>;
+        friend bool operator==(const WidgetData& lhs, const WidgetData& rhs) noexcept;
 
         using LocationsMap = std::unordered_map<int, ItemInfo>;
 
@@ -167,5 +182,6 @@ namespace sdl {
 }
 
 # include "GridLayout.hxx"
+# include "GridLayout_specialization.hxx"
 
 #endif    /* GRIDLAYOUT_HH */
