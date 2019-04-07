@@ -95,6 +95,24 @@ namespace sdl {
           int widget;
         };
 
+        // Convenience record holding the data representing a widget during the
+        // optimiwation process. It allows to represent easily multi-cell widget
+        // by providing a way to link cells' information.
+        // The basic information corresponds to the index of the widget it is
+        // associated in some array.
+        // The `shared` attribute allows to detezrmine whether this widget is
+        // shared and the `master` allows to specify whether it is the first
+        // occurrence of this widget's data in the array. Indeed most processes
+        // want to work on a per-widget basis and don't really care about
+        // duplicates.
+        // For any widget there's only one instance of widget data which has its
+        // `master` value set to true.
+        struct WidgetData {
+          unsigned widget;
+          bool shared;
+          bool master;
+        };
+
         void
         resetGridInfo();
 

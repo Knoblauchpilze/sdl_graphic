@@ -4,6 +4,8 @@
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
+# include "GridBox.hh"
+
 # include <iomanip>
 
 namespace sdl {
@@ -171,31 +173,6 @@ namespace sdl {
       std::vector<float> rowsDims = adjustRowHeight(internalSize, widgetsInfo, cells);
 
       std::cout << "[LAY] Dims before multi-cell:" << std::endl;
-      for (unsigned row = 0u ; row < m_rows ; ++row) {
-        std::cout << "[LAY] Row " << row << ": ";
-        for (unsigned column = 0u ; column < m_columns ; ++column) {
-          std::cout << std::setw(4) << columnsDims[column] << "x" << std::setw(4) << rowsDims[row];
-          if (column < m_columns - 1) {
-            std::cout << " ";
-          }
-        }
-        std::cout << std::endl;
-      }
-
-      // Try to adjust the computed dimensions to include multi-cells widgets. To do so
-      // we distribute the dimensions of each multi-cell widget separately.
-      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
-        // Check whether this widget spans multiple cells.
-        if (!cells[widget].multiCell) {
-          // Single-cell widget: should already have been optimized.
-          continue;
-        }
-
-        // This is a multi-cell widget: adapt the computed dimensions to it.
-        distributeMultiBox(widget, cells, widgetsInfo, columnsDims, rowsDims);
-      }
-
-      std::cout << "[LAY] Final dims:" << std::endl;
       for (unsigned row = 0u ; row < m_rows ; ++row) {
         std::cout << "[LAY] Row " << row << ": ";
         for (unsigned column = 0u ; column < m_columns ; ++column) {
@@ -948,23 +925,26 @@ namespace sdl {
 
       // Now, we need to retrieve for each row the list of widgets related to it:
       // this allows for quick access when iterating to determine rows' dimensions.
+      // We also want to provide easy access to multi-cell widget by inserting each
+      // one of them in all the rows where it appear.
+      // For that to happen we want to first initialize this map with empty vectors
+      // and then dynamically populate it.
+
       std::unordered_map<unsigned, std::vector<unsigned>> widgetsForRows;
-
       for (unsigned row = 0u ; row < m_rows ; ++row) {
-        std::vector<unsigned> widgetsForRow;
+        widgetsForRows[row] = std::vector<unsigned>();
+      }
 
-        for (LocationsMap::const_iterator item = m_locations.cbegin() ;
-             item != m_locations.cend() ;
-             ++item)
-        {
-          // Check whether this widget spans only the current row.
-          if (item->second.y == row && item->second.h == 1u) {
-            widgetsForRow.push_back(item->first);
-          }
+      for (LocationsMap::const_iterator item = m_locations.cbegin() ;
+            item != m_locations.cend() ;
+            ++item)
+      {
+        // Insert the widget in each row spanned by it.
+        const ItemInfo& info = item->second;
+
+        for (unsigned row = 0u ; row < info.h ; ++row) {
+          widgetsForRows[info.y + row].push_back(item->first);
         }
-
-        // Register the widgets we found for this row.
-        widgetsForRows[row] = widgetsForRow;
       }
 
       // There's a first part of the optimization process which should be handled
