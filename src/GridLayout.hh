@@ -122,6 +122,14 @@ namespace sdl {
                         const std::vector<WidgetInfo>& widgets,
                         std::vector<CellInfo>& cells) const;
 
+        void
+        distributeMultiBox(const unsigned& multiCell,
+                           std::vector<CellInfo>& cells,
+                           const std::vector<WidgetInfo>& widgets,
+                           std::vector<float>& columns,
+                           std::vector<float>& rows) const;
+
+
       private:
 
         using LocationsMap = std::unordered_map<int, ItemInfo>;

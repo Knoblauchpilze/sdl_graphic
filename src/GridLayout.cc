@@ -158,12 +158,42 @@ namespace sdl {
       // is close enough from the target size.
       // If the widgets' constraints do not allow for a perfect repartition, we stop the
       // process and produce the best possible solution given the constraints.
+      // Once all single-cell widgets have been laid out, we can try to further adjust
+      // the resulting distribution to multi-cell widgets. At this point, the best case
+      // scenario is that the widgets will take advantage of the computed repartition
+      // and that no other adjustment will occur. This is rarely the case though and
+      // we might have to redo an adjustment for single-cell widgets afterwards.
 
       // Proceed to adjust the columns' width.
       std::vector<float> columnsDims = adjustColumnsWidth(internalSize, widgetsInfo, cells);
 
       // Adjust rows' height.
       std::vector<float> rowsDims = adjustRowHeight(internalSize, widgetsInfo, cells);
+
+      std::cout << "[LAY] Dims before multi-cell:" << std::endl;
+      for (unsigned row = 0u ; row < m_rows ; ++row) {
+        std::cout << "[LAY] Row " << row << ": ";
+        for (unsigned column = 0u ; column < m_columns ; ++column) {
+          std::cout << std::setw(4) << columnsDims[column] << "x" << std::setw(4) << rowsDims[row];
+          if (column < m_columns - 1) {
+            std::cout << " ";
+          }
+        }
+        std::cout << std::endl;
+      }
+
+      // Try to adjust the computed dimensions to include multi-cells widgets. To do so
+      // we distribute the dimensions of each multi-cell widget separately.
+      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
+        // Check whether this widget spans multiple cells.
+        if (!cells[widget].multiCell) {
+          // Single-cell widget: should already have been optimized.
+          continue;
+        }
+
+        // This is a multi-cell widget: adapt the computed dimensions to it.
+        distributeMultiBox(widget, cells, widgetsInfo, columnsDims, rowsDims);
+      }
 
       std::cout << "[LAY] Final dims:" << std::endl;
       for (unsigned row = 0u ; row < m_rows ; ++row) {
@@ -176,9 +206,6 @@ namespace sdl {
         }
         std::cout << std::endl;
       }
-
-      // Try to adjust the computed dimensions to include multi-cells widgets.
-      // TODO: Actually handle multi-cells widgets.
 
       // All widgets have suited dimensions, we can now handle the position of each
       // widget. We basically just move each widget based on the dimensions of the
@@ -558,7 +585,7 @@ namespace sdl {
         }
       }
 
-      std::cout << "[LAY] Total size: " << window.w() << ", used for empty rows: " << widthForEmptyColumns << std::endl;
+      std::cout << "[LAY] Total size: " << window.w() << ", used for empty columns: " << widthForEmptyColumns << std::endl;
 
       // Also assume that we didn't use up all the available space. The remaining space is
       // the difference between the provided space from `window` minus the space used for
@@ -1241,6 +1268,98 @@ namespace sdl {
 
       // Return the consolidated rows' dimensions vector.
       return rows;
+    }
+
+    void
+    GridLayout::distributeMultiBox(const unsigned& multiCell,
+                                   std::vector<CellInfo>& cells,
+                                   const std::vector<WidgetInfo>& widgets,
+                                   std::vector<float>& columns,
+                                   std::vector<float>& rows) const
+    {
+      // We have a working set of dimensions for single-cell widgets registered
+      // in the `columns` and `rows` arguments: this result of the process of
+      // adjustment which took place and succeeded to provide valid dimensions for
+      // all single-cell widget.
+      // We now try to insert the widget at `multiCell` in this layout. To do so,
+      // we have to rely on the provided distribution and try to make it fit the
+      // needs of the widget.
+
+      // Retrieve information for this widget.
+      CellInfo& info = cells[multiCell];
+      const LocationsMap::const_iterator locIt = m_locations.find(multiCell);
+      if (locIt == m_locations.cend()) {
+        error(
+          std::string("Could not adjust multi-cell widget ") + std::to_string(multiCell) + " to distribute multi-box",
+          std::string("Inexisting widget")
+        );
+      }
+      const ItemInfo& loc = locIt->second;
+
+      // The first thing to to is to compute the current size of the widget based
+      // on the input distribution. To do so we need to traverse the area spanned
+      // by the widget and check for the largest dimensions.
+      float width = 0.0f;
+      float height = 0.0f;
+
+      for (unsigned row = loc.y ; row < loc.y + loc.h ; ++row) {
+        // Adsd the height of this row to the total height of the widget.
+        height += rows[row];
+
+        // Compute the width of this row.
+        float columnWidth = 0.0f;
+        for (unsigned column = loc.x ; column < loc.x + loc.w ; ++column) {
+          columnWidth += columns[column];
+        }
+
+        // Save it if this column is larger than the current maximum.
+        if (columnWidth > width) {
+          width = columnWidth;
+        }
+      }
+
+      utils::Sizef dims(width, height);
+
+      // Compare the retrieved size with the widget's specifiactions.
+      // Several cases can arise here:
+      // 1) The current size is smaller than the minimum desired size
+      //    for this widget.
+      // 2) The current size is larger than the maximum desired size
+      //    for this widget.
+      // 3) The current size is different from the desired size hint.
+      //
+      // From all of these cases, only the third can be okay-ish if
+      // the policy allows modifications of the provided hint.
+      // In other cases we have to trigger a recomputation of the
+      // distribution as it does not suit this widget.
+
+      // Compute the best fit we can get from the current size.
+      utils::Boxf current;
+      utils::Sizef bestFit = computeSizeFromPolicy(current, dims, widgets[multiCell]);
+
+      std::cout << "[LAY] Best firt for \"" << m_items[multiCell]->getName() << "\" is "
+                << bestFit.toString()
+                << ", expected is " << dims.toString()
+                << std::endl;
+
+      // Distinguish from this best fit.
+      if (bestFit.fuzzyEqual(dims, 0.5f)) {
+        // The best fit is acceptable by the widget: we can assume the
+        // current distribution is valid in regard of this widget's
+        // constraints and we can declare ourselves happy.
+        info.box.w() = bestFit.w();
+        info.box.h() = bestFit.h();
+
+        return;
+      }
+
+      // The `bestFit` does not match the expected requirements for this
+      // widget: we need to perform a recalc for the distribution while
+      // including the constraints added by the widget.
+      error(
+        std::string("MOUHAHAHA"),
+        std::string("HIHIHI")
+      );
     }
 
   }
