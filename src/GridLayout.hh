@@ -139,10 +139,6 @@ namespace sdl {
         computeAchievedSize(const std::vector<WidgetData>& elements,
                             const std::vector<CellInfo>& cells) const noexcept;
 
-        utils::Sizef
-        computeAchievedSize(const std::vector<unsigned>& elements,
-                            const std::vector<CellInfo>& cells) const noexcept;
-
         std::vector<float>
         adjustColumnsWidth(const utils::Sizef& window,
                            const std::vector<WidgetInfo>& widgets,
@@ -156,6 +152,10 @@ namespace sdl {
         void
         distributeMultiBoxHeight(const CellInfo& cell,
                                  std::vector<float>& rows) const;
+
+        void
+        distributeMultiBoxWidth(const CellInfo& cell,
+                                std::vector<float>& columns) const;
 
 
       private:
