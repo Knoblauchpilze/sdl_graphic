@@ -855,6 +855,8 @@ namespace sdl {
                 // the width for this column will remain unchanged so we cannot use it.
                 // No need to process other widgets.
                 std::cout << "[LAY] Column " << column << " cannot be shrunk horizontally because of " << m_items[widgetID]->getName() << std::endl;
+                // TODO: We might still want to use this column to shrink if its achieved size is larger than the size
+                // required for this fixed-size widget.
                 canShrink = false;
                 break;
               }
