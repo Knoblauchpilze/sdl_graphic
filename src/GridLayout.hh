@@ -157,6 +157,15 @@ namespace sdl {
         distributeMultiBoxWidth(const CellInfo& cell,
                                 std::vector<float>& columns) const;
 
+        void
+        adjustMultiCellWidth(const std::vector<float>& columns,
+                             const std::vector<WidgetInfo>& widgetsInfo,
+                             std::vector<CellInfo>& cells);
+
+        void
+        adjustMultiCellHeight(const std::vector<float>& rows,
+                              const std::vector<WidgetInfo>& widgetsInfo,
+                              std::vector<CellInfo>& cells);
 
       private:
 

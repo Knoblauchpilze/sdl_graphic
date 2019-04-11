@@ -171,6 +171,15 @@ namespace sdl {
       log(std::string("Adjusting rows height"), utils::Level::Notice);
       std::vector<float> rowsDims = adjustRowHeight(internalSize, widgetsInfo, cells);
 
+      // Adjust multi-cell widget to make them span the columns/rows they are spanning.
+      // When shrinking the widget we might indeed shrink too much some widgets which
+      // creates some weird distribution where a multi-cell is smaller than a single cell
+      // just because it was able to get one more shrinking iteration.
+      log(std::string("Adjusting multi-cell width"), utils::Level::Notice);
+      adjustMultiCellWidth(columnsDims, widgetsInfo, cells);
+
+      log(std::string("Adjusting multi-cell height"), utils::Level::Notice);
+      adjustMultiCellHeight(rowsDims, widgetsInfo, cells);
       // TODO: Adjust multi-cell widget to make them match the width/height of the columns/rows
       // they are spanning. This would allow to avoid weird artifacts where a widget could
       // use more space but does not seem to for some reasons.
@@ -1522,6 +1531,126 @@ namespace sdl {
       for (unsigned column = 0u ; column < loc.w ; ++column) {
         log(std::string("Distributing ") + std::to_string(remainingWidth) + " on column " + std::to_string(loc.x + column) + " on behalf of " + m_items[cell.widget]->getName());
         columns[loc.x + column] += remainingWidth;
+      }
+    }
+
+    void
+    GridLayout::adjustMultiCellWidth(const std::vector<float>& columns,
+                                     const std::vector<WidgetInfo>& widgetsInfo,
+                                     std::vector<CellInfo>& cells)
+    {
+      // Here we want to perform the last adjustments to the multi-cell widgets
+      // registered in the input `cells` vector.
+      // Due to the mechanism in place to determine the optimal repartition of
+      // widgets, we might end up during shrinking phases with multi-cell widgets
+      // taking less space than actually available.
+      // In order to fix that, we chose to add an additional phase to account for
+      // an adjustment of the multi-cell widgets so that they take up all the
+      // available space.
+
+      // Traverse the list of widget and process each multi-cell one.
+      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
+        // Check whether the widget is a multi-cell widget.
+        if (!cells[widget].multiCell) {
+          // Move on to the next widget.
+          continue;
+        }
+
+        const unsigned widgetID = cells[widget].widget;
+
+        // Retireve the area spanned by this widget.
+        LocationsMap::const_iterator locIt = m_locations.find(widgetID);
+        if (locIt == m_locations.cend()) {
+          error(
+            std::string("Could not retrieve information for widget \"") +
+            m_items[widgetID]->getName() + "\" while updating grid layout"
+          );
+        }
+        const ItemInfo& loc = locIt->second;
+
+        // Determine the total width of the columns spanned by this widget.
+        float totalWidth = 0.0f;
+        for (unsigned column = 0u ; column < loc.w ; ++column) {
+          totalWidth += columns[loc.x + column];
+        }
+
+        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+                  << " width " << cells[widget].box.w()
+                  << " but could span " << totalWidth
+                  << std::endl;
+
+        // Now try to assign this width to the widget: as the `computeWidthFromPolicy`
+        // method tries to *add* the provided width to the existing size of the widget
+        // we need to account only for the width difference and not the total width.
+        const float widthIncrement = totalWidth - cells[widget].box.w();
+        float width = computeWidthFromPolicy(cells[widget].box, widthIncrement, widgetsInfo[widgetID]);
+        cells[widget].box.w() = width;
+
+        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+                  << cells[widget].box.x() << ", " << cells[widget].box.y()
+                  << ", dims: "
+                  << cells[widget].box.w() << ", " << cells[widget].box.h()
+                  << std::endl;
+      }
+    }
+
+    void
+    GridLayout::adjustMultiCellHeight(const std::vector<float>& rows,
+                                      const std::vector<WidgetInfo>& widgetsInfo,
+                                      std::vector<CellInfo>& cells)
+    {
+      // Here we want to perform the last adjustments to the multi-cell widgets
+      // registered in the input `cells` vector.
+      // Due to the mechanism in place to determine the optimal repartition of
+      // widgets, we might end up during shrinking phases with multi-cell widgets
+      // taking less space than actually available.
+      // In order to fix that, we chose to add an additional phase to account for
+      // an adjustment of the multi-cell widgets so that they take up all the
+      // available space.
+
+      // Traverse the list of widget and process each multi-cell one.
+      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
+        // Check whether the widget is a multi-cell widget.
+        if (!cells[widget].multiCell) {
+          // Move on to the next widget.
+          continue;
+        }
+
+        const unsigned widgetID = cells[widget].widget;
+
+        // Retireve the area spanned by this widget.
+        LocationsMap::const_iterator locIt = m_locations.find(widgetID);
+        if (locIt == m_locations.cend()) {
+          error(
+            std::string("Could not retrieve information for widget \"") +
+            m_items[widgetID]->getName() + "\" while updating grid layout"
+          );
+        }
+        const ItemInfo& loc = locIt->second;
+
+        // Determine the total width of the columns spanned by this widget.
+        float totalHeight = 0.0f;
+        for (unsigned row = 0u ; row < loc.h ; ++row) {
+          totalHeight += rows[loc.y + row];
+        }
+
+        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+                  << " height " << cells[widget].box.h()
+                  << " but could span " << totalHeight
+                  << std::endl;
+
+        // Now try to assign this height to the widget: as the `computeHeightFromPolicy`
+        // method tries to *add* the provided height to the existing size of the widget
+        // we need to account only for the height difference and not the total height.
+        const float heightIncrement = totalHeight - cells[widget].box.h();
+        float height = computeHeightFromPolicy(cells[widget].box, heightIncrement, widgetsInfo[widgetID]);
+        cells[widget].box.h() = height;
+
+        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+                  << cells[widget].box.x() << ", " << cells[widget].box.y()
+                  << ", dims: "
+                  << cells[widget].box.w() << ", " << cells[widget].box.h()
+                  << std::endl;
       }
     }
 
