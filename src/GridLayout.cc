@@ -180,9 +180,6 @@ namespace sdl {
 
       log(std::string("Adjusting multi-cell height"), utils::Level::Notice);
       adjustMultiCellHeight(rowsDims, widgetsInfo, cells);
-      // TODO: Adjust multi-cell widget to make them match the width/height of the columns/rows
-      // they are spanning. This would allow to avoid weird artifacts where a widget could
-      // use more space but does not seem to for some reasons.
 
       // All widgets have suited dimensions, we can now handle the position of each
       // widget. We basically just move each widget based on the dimensions of the
