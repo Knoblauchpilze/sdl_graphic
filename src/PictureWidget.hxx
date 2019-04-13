@@ -38,7 +38,7 @@ namespace sdl {
 
       // Load the image.
       if (!m_file.empty()) {
-        m_picture = getEngine().createTextureFromFile(m_file);
+        m_picture = getEngine().createTextureFromFile(m_file, core::engine::Palette::ColorRole::Base);
       }
     }
 

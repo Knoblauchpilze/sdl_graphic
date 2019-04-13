@@ -28,21 +28,19 @@ namespace sdl {
 
         LabelWidget(const std::string& name,
                     const std::string& text,
-                    const utils::Uuid& font,
+                    const std::string& font,
+                    const unsigned& size = 15,
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
                     const bool transparent = false,
-                    const core::engine::Palette& palette = core::engine::Palette(),
+                    const core::engine::Color& color = core::engine::Color(),
                     const utils::Sizef& area = utils::Sizef());
 
         virtual ~LabelWidget();
 
         void
         setText(const std::string& text) noexcept;
-
-        void
-        setFont(const utils::Uuid& font) noexcept;
 
         void
         setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept;
@@ -63,7 +61,9 @@ namespace sdl {
       private:
 
         std::string m_text;
-        utils::Uuid m_font;
+        std::string m_fontName;
+        unsigned m_fontSize;
+        mutable utils::Uuid m_font;
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textDirty;
