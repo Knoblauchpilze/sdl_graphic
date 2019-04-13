@@ -114,33 +114,6 @@ namespace sdl {
       log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
       log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
 
-      // for (unsigned row = 0u ; row < m_rows ; ++row) {
-      //   std::cout << "[LAY] Row " << row << ": ";
-      //   for (unsigned column = 0u ; column < m_columns ; ++column) {
-      //     float w = 0.0f;
-      //     float h = 0.0f;
-
-      //     for (LocationsMap::const_iterator widget = m_locations.cbegin() ;
-      //           widget != m_locations.cend() ;
-      //           ++widget)
-      //     {
-      //       if (widget->second.y == row &&
-      //           widget->second.x == column)
-      //       {
-      //         w = cells[widget->first].box.w();
-      //         h = cells[widget->first].box.h();
-      //         break;
-      //       }
-      //     }
-
-      //     std::cout << std::setw(7) << w << "x" << std::setw(7) << h;
-      //     if (column < m_columns - 1) {
-      //       std::cout << " ";
-      //     }
-      //   }
-      //   std::cout << std::endl;
-      // }
-
       // We now have a working set of dimensions which we can begin to apply to widgets
       // in order to build the layout.
       // The specification of the dimensions is divided into two main phases: first the
@@ -335,14 +308,14 @@ namespace sdl {
           desiredMin.h() += m_rowsInfo[row].min;
         }
 
-        std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\" "
-                  << "at " << loc.x << "x" << loc.y
-                  << " has min " << desiredMin.toString()
-                  << " while internal are: "
-                  << "min: " << widgets[widget].min.w() << "x" << widgets[widget].min.h() << " "
-                  << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " (valid: " << widgets[widget].hint.isValid() << ")"
-                  << "max: " << widgets[widget].max.w() << "x" << widgets[widget].max.h()
-                  << std::endl;
+        // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\" "
+        //           << "at " << loc.x << "x" << loc.y
+        //           << " has min " << desiredMin.toString()
+        //           << " while internal are: "
+        //           << "min: " << widgets[widget].min.w() << "x" << widgets[widget].min.h() << " "
+        //           << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " (valid: " << widgets[widget].hint.isValid() << ")"
+        //           << "max: " << widgets[widget].max.w() << "x" << widgets[widget].max.h()
+        //           << std::endl;
 
         // We computed the minimum size for this widget from the internal constraints. We have to
         // check whether this conflicts with some property of the widget. The best case scenario
@@ -672,39 +645,12 @@ namespace sdl {
           float width = computeWidthFromPolicy(cells[widget].box, defaultWidth, widgets[widget]);
           cells[widget].box.w() = width;
 
-          std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
-                    << cells[widget].box.x() << ", " << cells[widget].box.y()
-                    << ", dims: "
-                    << cells[widget].box.w() << ", " << cells[widget].box.h()
-                    << std::endl;
+          // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
+          //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+          //           << ", dims: "
+          //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+          //           << std::endl;
         }
-
-        // for (unsigned row = 0u ; row < m_rows ; ++row) {
-        //   std::cout << "[LAY] Row " << row << ": ";
-        //   for (unsigned column = 0u ; column < m_columns ; ++column) {
-        //     float w = 0.0f;
-        //     float h = 0.0f;
-
-        //     for (LocationsMap::const_iterator widget = m_locations.cbegin() ;
-        //          widget != m_locations.cend() ;
-        //          ++widget)
-        //     {
-        //       if (widget->second.y == row &&
-        //           widget->second.x == column)
-        //       {
-        //         w = cells[widget->first].box.w();
-        //         h = cells[widget->first].box.h();
-        //         break;
-        //       }
-        //     }
-
-        //     std::cout << std::setw(7) << w << "x" << std::setw(7) << h;
-        //     if (column < m_columns - 1) {
-        //       std::cout << " ";
-        //     }
-        //   }
-        //   std::cout << std::endl;
-        // }
 
         // We have tried to apply the `defaultWidth` to all the remaining widgets available
         // for adjustments. This might have fail in some cases (for example due to a `Fixed`
@@ -908,7 +854,7 @@ namespace sdl {
               const unsigned widgetID = widgetsForColumn[widget].widget;
 
               if (widgets[widgetID].policy.canExpandHorizontally()) {
-                std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded horizontally" << std::endl;
+                // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded horizontally" << std::endl;
                 columnsToExpand.insert(*column);
                 // No need to continue further, the column can be `Expand`ed.
                 break;
@@ -916,9 +862,9 @@ namespace sdl {
             }
           }
 
-          std::cout << "[LAY] Saved " << columnsToExpand.size() << " columns which can expand compared to "
-                    << columnsToUse.size() << " which can extend"
-                    << std::endl;
+          // std::cout << "[LAY] Saved " << columnsToExpand.size() << " columns which can expand compared to "
+          //           << columnsToUse.size() << " which can extend"
+          //           << std::endl;
           // Check whether we could select at least one widget to expand: if this is not the
           // case we can proceed to extend the widget with only a `Grow` flag.
           if (!columnsToExpand.empty()) {
@@ -1143,39 +1089,12 @@ namespace sdl {
           float height = computeHeightFromPolicy(cells[widget].box, defaultHeight, widgets[widget]);
           cells[widget].box.h() = height;
 
-          std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
-                    << cells[widget].box.x() << ", " << cells[widget].box.y()
-                    << ", dims: "
-                    << cells[widget].box.w() << ", " << cells[widget].box.h()
-                    << std::endl;
+          // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
+          //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+          //           << ", dims: "
+          //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+          //           << std::endl;
         }
-
-        // for (unsigned row = 0u ; row < m_rows ; ++row) {
-        //   std::cout << "[LAY] Row " << row << ": ";
-        //   for (unsigned column = 0u ; column < m_columns ; ++column) {
-        //     float w = 0.0f;
-        //     float h = 0.0f;
-
-        //     for (LocationsMap::const_iterator widget = m_locations.cbegin() ;
-        //          widget != m_locations.cend() ;
-        //          ++widget)
-        //     {
-        //       if (widget->second.y == row &&
-        //           widget->second.x == column)
-        //       {
-        //         w = cells[widget->first].box.w();
-        //         h = cells[widget->first].box.h();
-        //         break;
-        //       }
-        //     }
-
-        //     std::cout << std::setw(7) << w << "x" << std::setw(7) << h;
-        //     if (column < m_columns - 1) {
-        //       std::cout << " ";
-        //     }
-        //   }
-        //   std::cout << std::endl;
-        // }
 
         // We have tried to apply the `defaultHeight` to all the remaining widgets available
         // for adjustments. This might have fail in some cases (for example due to a `Fixed`
@@ -1379,7 +1298,7 @@ namespace sdl {
               const unsigned widgetID = widgetsForRow[widget].widget;
 
               if (widgets[widgetID].policy.canExpandVertically()) {
-                std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded vertically" << std::endl;
+                // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded vertically" << std::endl;
                 rowsToExpand.insert(*row);
                 // No need to continue further, the row can be `Expand`ed.
                 break;
@@ -1387,9 +1306,9 @@ namespace sdl {
             }
           }
 
-          std::cout << "[LAY] Saved " << rowsToExpand.size() << " rows which can expand compared to "
-                    << rowsToUse.size() << " which can extend"
-                    << std::endl;
+          // std::cout << "[LAY] Saved " << rowsToExpand.size() << " rows which can expand compared to "
+          //           << rowsToUse.size() << " which can extend"
+          //           << std::endl;
           // Check whether we could select at least one widget to expand: if this is not the
           // case we can proceed to extend the widget with only a `Grow` flag.
           if (!rowsToExpand.empty()) {
@@ -1409,14 +1328,7 @@ namespace sdl {
              row != rowsToUse.cend() ;
              ++row)
         {
-          for (std::vector<WidgetData>::const_iterator it = widgetsForRows[*row].cbegin() ;
-               it != widgetsForRows[*row].cend() ;
-               it++)
-          {
-            widgetsToUse.insert(*it);
-            std::cout << "[LAY] Inserting widget " << it->widget << " (id: " << it->id << ", name: " << m_items[it->widget]->getName() << ") from row " << *row << " to widgets to use (count: " << widgetsToUse.size() << ")" << std::endl;
-          }
-          // widgetsToUse.insert(widgetsForRows[*row].cbegin(), widgetsForRows[*row].cend());
+          widgetsToUse.insert(widgetsForRows[*row].cbegin(), widgetsForRows[*row].cend());
         }
 
         // Use the computed list of widgets to perform the next action in order
@@ -1571,10 +1483,10 @@ namespace sdl {
           totalWidth += columns[loc.x + column];
         }
 
-        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
-                  << " width " << cells[widget].box.w()
-                  << " but could span " << totalWidth
-                  << std::endl;
+        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+        //           << " width " << cells[widget].box.w()
+        //           << " but could span " << totalWidth
+        //           << std::endl;
 
         // Now try to assign this width to the widget: as the `computeWidthFromPolicy`
         // method tries to *add* the provided width to the existing size of the widget
@@ -1583,11 +1495,11 @@ namespace sdl {
         float width = computeWidthFromPolicy(cells[widget].box, widthIncrement, widgetsInfo[widgetID]);
         cells[widget].box.w() = width;
 
-        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
-                  << cells[widget].box.x() << ", " << cells[widget].box.y()
-                  << ", dims: "
-                  << cells[widget].box.w() << ", " << cells[widget].box.h()
-                  << std::endl;
+        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+        //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+        //           << ", dims: "
+        //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+        //           << std::endl;
       }
     }
 
@@ -1631,10 +1543,10 @@ namespace sdl {
           totalHeight += rows[loc.y + row];
         }
 
-        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
-                  << " height " << cells[widget].box.h()
-                  << " but could span " << totalHeight
-                  << std::endl;
+        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+        //           << " height " << cells[widget].box.h()
+        //           << " but could span " << totalHeight
+        //           << std::endl;
 
         // Now try to assign this height to the widget: as the `computeHeightFromPolicy`
         // method tries to *add* the provided height to the existing size of the widget
@@ -1643,11 +1555,11 @@ namespace sdl {
         float height = computeHeightFromPolicy(cells[widget].box, heightIncrement, widgetsInfo[widgetID]);
         cells[widget].box.h() = height;
 
-        std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
-                  << cells[widget].box.x() << ", " << cells[widget].box.y()
-                  << ", dims: "
-                  << cells[widget].box.w() << ", " << cells[widget].box.h()
-                  << std::endl;
+        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+        //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+        //           << ", dims: "
+        //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+        //           << std::endl;
       }
     }
 
