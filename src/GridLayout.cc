@@ -443,6 +443,11 @@ namespace sdl {
         // in a second phase when all the dimensions have been computed for
         // single-cell widgets. This allows for a better distribution of these
         // widgets over spanned columns/rows.
+        // TODO: A better way would be to actually split the size of each multi-cell
+        // widget into the corresponding `CellInfo` element so that we can precisely
+        // divide the total space of the widget into several cells.
+        // The only missing part is to be able to compute the total size available
+        // for a widget from all its `CellInfo` components.
         if (elements[element].shared) {
           continue;
         }
