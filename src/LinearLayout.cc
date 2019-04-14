@@ -41,8 +41,8 @@ namespace sdl {
       // requesting constantly information or setting information multiple times.
       std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
 
-      std::cout << "[LAY] Available size: " << window.w() << "x" << window.h() << std::endl;
-      std::cout << "[LAY] Internal size: " << internalSize.w() << "x" << internalSize.h() << std::endl;
+      log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
+      log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
 
       std::vector<utils::Boxf> outputBoxes(getItemsCount());
 
@@ -67,6 +67,7 @@ namespace sdl {
       // Also assume that we didn't use up all the available space.
       utils::Sizef spaceToUse = internalSize;
       bool allSpaceUsed = false;
+      utils::Sizef achievedSize;
 
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up.
@@ -79,7 +80,7 @@ namespace sdl {
         // among all the available widgets.
         const utils::Sizef defaultBox = computeDefaultWidgetBox(spaceToUse, widgetsToAdjust.size());
 
-        std::cout << "[LAY] Default box is " << defaultBox.w() << "x" << defaultBox.h() << std::endl;
+        log(std::string("Default box is ") + defaultBox.toString(), utils::Level::Info);
 
         // Loop on all the widgets that can still be used to adjust the space used by
         // this layout and perform the size adjustements.
@@ -95,11 +96,7 @@ namespace sdl {
           outputBoxes[*widget].w() = area.w();
           outputBoxes[*widget].h() = area.h();
 
-          std::cout << "[LAY] Widget \"" << m_items[*widget]->getName() << "\": "
-                    << outputBoxes[*widget].x() << ", " << outputBoxes[*widget].y()
-                    << ", dims: "
-                    << outputBoxes[*widget].w() << ", " << outputBoxes[*widget].h()
-                    << std::endl;
+          log(std::string("Widget \"") + m_items[*widget]->getName() + "\" reach size " + outputBoxes[*widget].toString());
         }
 
         // We have tried to apply the `defaultBox` to all the widgets. This might have fail
@@ -111,7 +108,7 @@ namespace sdl {
         // from widgets which can give up some).
 
         // Compute the total size of the bounding boxes.
-        utils::Sizef achievedSize = computeSizeOfWidgets(outputBoxes);
+        achievedSize = computeSizeOfWidgets(outputBoxes);
 
         // Check whether all the space have been used.
         if (achievedSize.fuzzyEqual(internalSize, 0.5f)) {
@@ -127,10 +124,7 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
-        std::cout << "[LAY] Desired: " << internalSize.w() << ", " << internalSize.h()
-                  << " achieved: " << achievedSize.w() << ", " << achievedSize.h()
-                  << " space: " << spaceToUse.w() << ", " << spaceToUse.h()
-                  << std::endl;
+        log(std::string("Desired ") + window.toString() + ", achieved: " + achievedSize.toString() + ", space: " + spaceToUse.toString(), utils::Level::Info);
 
         // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
         // Based on the `policy` provided by the base class method, we can now determine which
@@ -196,7 +190,11 @@ namespace sdl {
       }
 
       if (!allSpaceUsed) {
-        std::cout << "[LAY] Exited because no more widgets can occupy space" << std::endl;
+        log(
+          std::string("Could only achieve size of ") + achievedSize.toString() +
+          " but available space is " + window.toString(),
+          utils::Level::Error
+        );
       }
 
       // All widgets have suited dimensions, we can now handle the position of each
@@ -239,7 +237,7 @@ namespace sdl {
           y += (outputBoxes[index].h() + m_componentMargin);
         }
         else {
-          error(std::string("Unknown direciton when updating linear layout"));
+          error(std::string("Unknown direction when updating linear layout"));
         }
       }
 
@@ -252,7 +250,7 @@ namespace sdl {
       }
 
       // Assign the rendering area to widgets.
-      assignRenderingAreas(outputBoxes);
+      assignRenderingAreas(outputBoxes, window);
     }
 
 
