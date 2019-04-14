@@ -228,7 +228,7 @@ namespace sdl {
       }
 
       // Assign the rendering area to widgets.
-      assignRenderingAreas(outputBoxes);
+      assignRenderingAreas(outputBoxes, window);
     }
 
     std::vector<GridLayout::CellInfo>
@@ -708,7 +708,7 @@ namespace sdl {
         }
 
         // Compute the achieved size from consolidated dimensions.
-        achievedWidth = widthForEmptyColumns;
+        achievedWidth = 0.0f;
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           log(std::string("Column ") + std::to_string(column) + " has size " + std::to_string(columns[column]));
           achievedWidth += columns[column];
@@ -1118,6 +1118,7 @@ namespace sdl {
           // Only handle non empty rows.
           if (emptyRows.find(row) == emptyRows.cend()) {
             rows[row] = computeAchievedSize(widgetsForRows[row], cells).h();
+            log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(widgetsForRows[row].size()) + " widgets");
           }
         }
 
@@ -1152,7 +1153,7 @@ namespace sdl {
         }
 
         // Compute the achieved size from consolidated dimensions.
-        achievedHeight = heightForEmptyRows;
+        achievedHeight = 0.0f;
         for (unsigned row = 0u ; row < m_rows ; ++row) {
           log(std::string("Row ") + std::to_string(row) + " has size " + std::to_string(rows[row]));
           achievedHeight += rows[row];
