@@ -23,13 +23,16 @@ namespace sdl {
     LinearLayout::computeAvailableSize(const utils::Boxf& totalArea) const noexcept {
       // We assume the layout is not empty.
 
+      // Use the base class method to provide a first rough estimation.
+      utils::Sizef internalSize = Layout::computeAvailableSize(totalArea);
+
       // Handle horizontal layout.
       if (getDirection() == Direction::Horizontal) {
-        return totalArea.toSize() - getMargin() - utils::Sizef((getItemsCount() - 1.0f) * m_componentMargin, 0.0f);
+        return internalSize - utils::Sizef((getItemsCount() - 1.0f) * m_componentMargin, 0.0f);
       }
 
       // Assume the layout is vertical.
-      return totalArea.toSize() - getMargin() - utils::Sizef(0.0f, (getItemsCount() - 1.0f) * m_componentMargin);
+      return internalSize - utils::Sizef(0.0f, (getItemsCount() - 1.0f) * m_componentMargin);
     }
 
     inline
