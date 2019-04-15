@@ -7,9 +7,9 @@
 namespace std {
 
   template<>
-  struct hash<sdl::graphic::GridLayout::WidgetData> {
+  struct hash<sdl::graphic::GridLayout::WidgetDataWrapper> {
     inline
-    std::size_t operator()(const sdl::graphic::GridLayout::WidgetData& resource) const noexcept {
+    std::size_t operator()(const sdl::graphic::GridLayout::WidgetDataWrapper& resource) const noexcept {
       std::size_t val = hash<unsigned>()(resource.id);
       return val;
     }
@@ -21,7 +21,7 @@ namespace sdl {
   namespace graphic {
 
     bool
-    operator==(const sdl::graphic::GridLayout::WidgetData& lhs, const sdl::graphic::GridLayout::WidgetData& rhs) noexcept
+    operator==(const sdl::graphic::GridLayout::WidgetDataWrapper& lhs, const sdl::graphic::GridLayout::WidgetDataWrapper& rhs) noexcept
     {
       return lhs.id == rhs.id;
     }

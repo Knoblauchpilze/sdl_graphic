@@ -104,12 +104,24 @@ namespace sdl {
         // use it correctly in unordered set. A common value corresponds to the
         // cell id (which is unique within a grid layout computed as follows:
         // `y * m_columns + x`.
+        // The `suze` allows to determine which portion of the overall `box`
+        // assigned for this widget belongs to this piece of data. This allows
+        // for a better repartition of size among the cells spanned by a widget.
         struct WidgetData {
           int widget;
           bool shared;
           bool master;
           unsigned span;
           unsigned id;
+          mutable utils::Sizef size;
+        };
+        using WidgetDataShPtr = std::shared_ptr<WidgetData>;
+
+        // Convenience structure which allows to share data of widget but still
+        // keeping the identifier property.
+        struct WidgetDataWrapper {
+          unsigned id;
+          WidgetDataShPtr data;
         };
 
         void
@@ -126,8 +138,7 @@ namespace sdl {
         adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept;
 
         utils::Sizef
-        computeAchievedSize(const std::vector<WidgetData>& elements,
-                            const std::vector<CellInfo>& cells) const noexcept;
+        computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept;
 
         std::vector<float>
         adjustColumnsWidth(const utils::Sizef& window,
@@ -138,14 +149,6 @@ namespace sdl {
         adjustRowHeight(const utils::Sizef& window,
                         const std::vector<WidgetInfo>& widgets,
                         std::vector<CellInfo>& cells) const;
-
-        void
-        distributeMultiBoxHeight(const CellInfo& cell,
-                                 std::vector<float>& rows) const;
-
-        void
-        distributeMultiBoxWidth(const CellInfo& cell,
-                                std::vector<float>& columns) const;
 
         void
         adjustMultiCellWidth(const std::vector<float>& columns,
@@ -159,8 +162,8 @@ namespace sdl {
 
       private:
 
-        friend std::hash<WidgetData>;
-        friend bool operator==(const WidgetData& lhs, const WidgetData& rhs) noexcept;
+        friend std::hash<WidgetDataWrapper>;
+        friend bool operator==(const WidgetDataWrapper& lhs, const WidgetDataWrapper& rhs) noexcept;
 
         using LocationsMap = std::unordered_map<int, ItemInfo>;
 

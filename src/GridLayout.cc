@@ -431,35 +431,40 @@ namespace sdl {
     }
 
     utils::Sizef
-    GridLayout::computeAchievedSize(const std::vector<WidgetData>& elements,
-                                    const std::vector<CellInfo>& cells) const noexcept
+    GridLayout::computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept
     {
       // Assume empty dimensions.
       utils::Sizef achieved;
 
       // Traverse the input set of elements.
       for (unsigned element = 0u ; element < elements.size() ; ++element) {
-        // Handle only single-cell widgets: multi-cell widgets will be handled
-        // in a second phase when all the dimensions have been computed for
-        // single-cell widgets. This allows for a better distribution of these
-        // widgets over spanned columns/rows.
-        // TODO: A better way would be to actually split the size of each multi-cell
-        // widget into the corresponding `CellInfo` element so that we can precisely
-        // divide the total space of the widget into several cells.
-        // The only missing part is to be able to compute the total size available
-        // for a widget from all its `CellInfo` components.
-        if (elements[element].shared) {
-          continue;
-        }
+        // Here, we want to determine the achieved size for the widget based
+        // on the input `elements`. The input vector contains data for each
+        // widget registered in a single column/row. This data may be related
+        // to either a single-cell widget or a multi-cell widget.
+        // In the first scenario, we have all the information about the widget
+        // available right away so there's no real tricks to hide some width
+        // or height of a widget: we can safely add the size of the widget to
+        // the achieved size.
+        // The case o fmulti-cell widget is a bit trickier: even if we can
+        // compute the *total* size of a widget, how can we easily determine
+        // which size goes in which column/row ?
+        // To solve this problem we added an information directly in the
+        // `WidgetData` structure which describes a size for each particular
+        // widget's data element. The optimization process ensures that the
+        // sum of all individual widget's data size is consistent with the
+        // total size of the widget and this allows us to easily distribute
+        // the total size among columns/rows spanned by the widget: it is just
+        // the available value in each widget's data element.
+        // The interest of this system is that it supplants completely the
+        // box system at least for the achieved size purpose as all the needed
+        // information is directly available.
 
-        // We have a single-cell widget, handle its dimensions.
-        const utils::Boxf box = cells[elements[element].widget].box;
-
-        if (box.w() > achieved.w()) {
-          achieved.w() = box.w();
+        if (elements[element].data->size.w() > achieved.w()) {
+          achieved.w() = elements[element].data->size.w();
         }
-        if (box.h() > achieved.h()) {
-          achieved.h() = box.h();
+        if (elements[element].data->size.h() > achieved.h()) {
+          achieved.h() = elements[element].data->size.h();
         }
       }
 
@@ -500,9 +505,9 @@ namespace sdl {
       // For that to happen we want to first initialize this map with empty vectors
       // and then dynamically populate it.
 
-      std::unordered_map<unsigned, std::vector<WidgetData>> widgetsForColumns;
+      std::unordered_map<unsigned, std::vector<WidgetDataWrapper>> widgetsForColumns;
       for (unsigned column = 0u ; column < m_columns ; ++column) {
-        widgetsForColumns[column] = std::vector<WidgetData>();
+        widgetsForColumns[column] = std::vector<WidgetDataWrapper>();
       }
 
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
@@ -513,13 +518,23 @@ namespace sdl {
         const ItemInfo& info = item->second;
 
         for (unsigned column = 0u ; column < info.w ; ++column) {
-          widgetsForColumns[info.x + column].push_back(
+          // Create the widget's data.
+          WidgetDataShPtr data = std::make_shared<WidgetData>(
             WidgetData{
               item->first,
               info.w > 1,
               column == 0u,
               info.w,
-              (info.y) * m_columns + info.x + column
+              (info.y) * m_columns + info.x + column,
+              utils::Sizef()
+            }
+          );
+
+          // Insert a wrapper in the corresponding vector.
+          widgetsForColumns[info.x + column].push_back(
+            WidgetDataWrapper{
+              data->id,
+              data
             }
           );
         }
@@ -540,7 +555,7 @@ namespace sdl {
       float widthForEmptyColumns = 0.0f;
 
       // Traverse the `widgetsForColumns` map and search for columns with no widgets.
-      for (std::unordered_map<unsigned, std::vector<WidgetData>>::const_iterator column = widgetsForColumns.cbegin() ;
+      for (std::unordered_map<unsigned, std::vector<WidgetDataWrapper>>::const_iterator column = widgetsForColumns.cbegin() ;
            column != widgetsForColumns.cend() ;
            ++column)
       {
@@ -585,7 +600,7 @@ namespace sdl {
       // perform adjustment: indeed this is what defines how we will split fairly the
       // remanining space.
 
-      std::unordered_set<WidgetData> widgetsToAdjust;
+      std::unordered_set<WidgetDataWrapper> widgetsToAdjust;
       unsigned columnsRemaining = widgetsForColumns.size();
       std::unordered_set<unsigned> emptyColumns;
 
@@ -628,11 +643,11 @@ namespace sdl {
 
         // Allocate this space on each widget: as all columns are equivalent, this means
         // that we can directly work on individual widgets.
-        for (std::unordered_set<WidgetData>::const_iterator data = widgetsToAdjust.cbegin() ;
-             data != widgetsToAdjust.cend() ;
-             ++data)
+        for (std::unordered_set<WidgetDataWrapper>::const_iterator dataWrapper = widgetsToAdjust.cbegin() ;
+             dataWrapper != widgetsToAdjust.cend() ;
+             ++dataWrapper)
         {
-          const unsigned widget = data->widget;
+          const unsigned widget = dataWrapper->data->widget;
 
           // Try to assign the `defaultWidth` to this widget: we use a dedicated handler
           // to handle the case where the provided space is too large/small/not suited
@@ -647,7 +662,16 @@ namespace sdl {
           // this function as each cell spanned by the widget is handled individually
           // which allows to make the widget grow more on columns which can account for it.
 
+          // Apply the policy for this widget.
           float width = computeWidthFromPolicy(cells[widget].box, defaultWidth, widgets[widget]);
+
+          // We now need to distribute this width to the current `data`: in order to do
+          // so, let's compute the size increase provided for this widget by the current
+          // column: this is the size which belongs to the column.
+          dataWrapper->data->size.w() += (width - cells[widget].box.w());
+          log("Widget " + m_items[widget]->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[widget].box.w()));
+
+          // Now register the new size of the widget.
           cells[widget].box.w() = width;
 
           // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
@@ -668,47 +692,17 @@ namespace sdl {
         // For single-cell widget, it is rather easy: the achieved size only contributes to
         // a single column.
         // For multi-cell widgets it is a bit different though: we need to distribute the
-        // width across several columns: but how ? The approach we chose is to first account
-        // for the width available through single-cell widget and then add the remaining
-        // width equally between all the spanned columns for each multi-cell widget.
+        // width across several columns: this is usually handled by the `size` variable inside
+        // each widget's data instance: the instance located in a each column contains
+        // information for this column which should be okay as we ensure that it always stay
+        // up to date with the total size (i.e. the sum of all individual instances matches
+        // the global size).
         // We perform this operation after each optimization operation in order to guarantee
-        // that the final value of the `columns` vector will be usable as a valid return value.
-
-        // So first, compute achieved size for single-cell widgets.
+        // that the final value of the `rows` vector will be usable as a valid return value.
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           // Only handle non empty columns.
           if (emptyColumns.find(column) == emptyColumns.cend()) {
-            columns[column] = computeAchievedSize(widgetsForColumns[column], cells).w();
-          }
-        }
-
-        // Consolidate the achieved size with multi-cell widgets.
-        std::unordered_set<unsigned> processedMultiCell;
-
-        for (std::unordered_set<WidgetData>::const_iterator data = widgetsToAdjust.cbegin() ;
-             data != widgetsToAdjust.cend() ;
-             ++data)
-        {
-          // Here we only want to process multi-cell widgets once. This does not always mean
-          // only processing the master widget, but rather only one of the instance of the
-          // widget's data to process. We can rely on the `processedMultiCell` values to
-          // determine whether this widget has already been processed.
-          if (data->shared && processedMultiCell.count(data->widget) > 0) {
-            // Move on to the next widget.
-            continue;
-          }
-
-          // Prevent single-cell widget to be processed.
-          if (!data->shared) {
-            continue;
-          }
-
-          // Distribute the height of this widget over the available columns.
-          distributeMultiBoxWidth(cells[data->widget], columns);
-
-          // This widget has been processed.
-          if (data->shared) {
-            processedMultiCell.insert(data->widget);
+            columns[column] = computeAchievedSize(widgetsForColumns[column]).w();
           }
         }
 
@@ -765,7 +759,7 @@ namespace sdl {
         // widgets. More details can be found in the next comment section.
         for (unsigned column = 0u ; column < widgetsForColumns.size() ; ++column) {
           // Retrieve the widgets associated to this column.
-          const std::vector<WidgetData>& widgetsForColumn = widgetsForColumns[column];
+          const std::vector<WidgetDataWrapper>& widgetsForColumn = widgetsForColumns[column];
 
           // Distinguish based on the action. Furhtermore we are processing columns so
           // we only care about horizontal behavior.
@@ -774,14 +768,14 @@ namespace sdl {
             // consider this column usable to perform the required action.
             for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
               // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForColumn[widget].widget;
+              const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
               std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.first) {
                 // This column can be used to `Grow` thanks to this widget. No need to go
                 // further.
                 log(
-                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thqnks to " + m_items[widgetID]->getName(),
+                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + m_items[widgetID]->getName(),
                   utils::Level::Info
                 );
                 columnsToUse.insert(column);
@@ -798,7 +792,7 @@ namespace sdl {
 
             for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
               // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForColumn[widget].widget;
+              const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
               std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.first) {
@@ -825,7 +819,7 @@ namespace sdl {
             // Register this column for shrinking if needed.
             if (canShrink) {
               log(
-                std::string("Column ") + std::to_string(column) + " can be shrunk horizontally",
+                std::string("Column ") + std::to_string(column) + " containing " + std::to_string(widgetsForColumn.size()) + " widget(s) can be shrunk horizontally",
                 utils::Level::Info
               );
               columnsToUse.insert(column);
@@ -852,11 +846,11 @@ namespace sdl {
           {
             // Check whether this column can expand: this is done by checking each registered
             // widget in this column for the appropriate flag.
-            const std::vector<WidgetData>& widgetsForColumn = widgetsForColumns[*column];
+            const std::vector<WidgetDataWrapper>& widgetsForColumn = widgetsForColumns[*column];
 
             for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
               // Only consider horizontal direction as we're processing columns.
-              const unsigned widgetID = widgetsForColumn[widget].widget;
+              const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
               if (widgets[widgetID].policy.canExpandHorizontally()) {
                 // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded horizontally" << std::endl;
@@ -883,7 +877,7 @@ namespace sdl {
         // We now have a working set of columns which can be used to perform the required `action` and we
         // took into consideration precedence of `Expand` flag over `Grow` flag. We now only need for each
         // column to substitute the corresponding widgets.
-        std::unordered_set<WidgetData> widgetsToUse;
+        std::unordered_set<WidgetDataWrapper> widgetsToUse;
 
         for (std::unordered_set<unsigned>::const_iterator column = columnsToUse.cbegin() ;
              column != columnsToUse.cend() ;
@@ -943,9 +937,9 @@ namespace sdl {
       // For that to happen we want to first initialize this map with empty vectors
       // and then dynamically populate it.
 
-      std::unordered_map<unsigned, std::vector<WidgetData>> widgetsForRows;
+      std::unordered_map<unsigned, std::vector<WidgetDataWrapper>> widgetsForRows;
       for (unsigned row = 0u ; row < m_rows ; ++row) {
-        widgetsForRows[row] = std::vector<WidgetData>();
+        widgetsForRows[row] = std::vector<WidgetDataWrapper>();
       }
 
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
@@ -956,13 +950,23 @@ namespace sdl {
         const ItemInfo& info = item->second;
 
         for (unsigned row = 0u ; row < info.h ; ++row) {
-          widgetsForRows[info.y + row].push_back(
+          // Create the widget's data.
+          WidgetDataShPtr data = std::make_shared<WidgetData>(
             WidgetData{
               item->first,
               info.h > 1,
               row == 0u,
               info.h,
-              (info.y + row) * m_columns + info.x
+              (info.y + row) * m_columns + info.x,
+              utils::Sizef()
+            }
+          );
+
+          // Insert a wrapper in the corresponding vector.
+          widgetsForRows[info.y + row].push_back(
+            WidgetDataWrapper{
+              data->id,
+              data
             }
           );
         }
@@ -983,7 +987,7 @@ namespace sdl {
       float heightForEmptyRows = 0.0f;
 
       // Traverse the `widgetsForRows` map and search for rows with no widgets.
-      for (std::unordered_map<unsigned, std::vector<WidgetData>>::const_iterator row = widgetsForRows.cbegin() ;
+      for (std::unordered_map<unsigned, std::vector<WidgetDataWrapper>>::const_iterator row = widgetsForRows.cbegin() ;
            row != widgetsForRows.cend() ;
            ++row)
       {
@@ -1028,7 +1032,7 @@ namespace sdl {
       // perform adjustment: indeed this is what defines how we will split fairly the
       // remanining space.
 
-      std::unordered_set<WidgetData> widgetsToAdjust;
+      std::unordered_set<WidgetDataWrapper> widgetsToAdjust;
       unsigned rowsRemaining = widgetsForRows.size();
       std::unordered_set<unsigned> emptyRows;
 
@@ -1071,11 +1075,11 @@ namespace sdl {
 
         // Allocate this space on each widget: as all rows are equivalent, this means
         // that we can directly work on individual widgets.
-        for (std::unordered_set<WidgetData>::const_iterator data = widgetsToAdjust.cbegin() ;
-             data != widgetsToAdjust.cend() ;
-             ++data)
+        for (std::unordered_set<WidgetDataWrapper>::const_iterator dataWrapper = widgetsToAdjust.cbegin() ;
+             dataWrapper != widgetsToAdjust.cend() ;
+             ++dataWrapper)
         {
-          const unsigned widget = data->widget;
+          const unsigned widget = dataWrapper->data->widget;
 
           // Try to assign the `defaultHeight` to this widget: we use a dedicated handler
           // to handle the case where the provided space is too large/small/not suited
@@ -1092,6 +1096,13 @@ namespace sdl {
 
           // Apply the policy for this widget.
           float height = computeHeightFromPolicy(cells[widget].box, defaultHeight, widgets[widget]);
+
+          // We now need to distribute this height to the current `data`: in order to do
+          // so, let's compute the size increase provided for this widget by the current
+          // row: this is the size which belongs to the row.
+          dataWrapper->data->size.h() += (height - cells[widget].box.h());
+
+          // Now register the new size of the widget.
           cells[widget].box.h() = height;
 
           // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
@@ -1112,48 +1123,17 @@ namespace sdl {
         // For single-cell widget, it is rather easy: the achieved size only contributes to
         // a single row.
         // For multi-cell widgets it is a bit different though: we need to distribute the
-        // height across several rows: but how ? The approach we chose is to first account
-        // for the height available through single-cell widget and then add the remaining
-        // height equally between all the spanned rows for each multi-cell widget.
+        // height across several rows: this is usually handled by the `size` variable inside
+        // each widget's data instance: the instance located in a each row contains information
+        // for this row which should be okay as we ensure that it always stay up to date with
+        // the total size (i.e. the sum of all individual instances matches the global size).
         // We perform this operation after each optimization operation in order to guarantee
         // that the final value of the `rows` vector will be usable as a valid return value.
-
-        // So first, compute achieved size for single-cell widgets.
         for (unsigned row = 0u ; row < m_rows ; ++row) {
           // Only handle non empty rows.
           if (emptyRows.find(row) == emptyRows.cend()) {
-            rows[row] = computeAchievedSize(widgetsForRows[row], cells).h();
+            rows[row] = computeAchievedSize(widgetsForRows[row]).h();
             log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(widgetsForRows[row].size()) + " widgets");
-          }
-        }
-
-        // Consolidate the achieved size with multi-cell widgets.
-        std::unordered_set<unsigned> processedMultiCell;
-
-        for (std::unordered_set<WidgetData>::const_iterator data = widgetsToAdjust.cbegin() ;
-             data != widgetsToAdjust.cend() ;
-             ++data)
-        {
-          // Here we only want to process multi-cell widgets once. This does not always mean
-          // only processing the master widget, but rather only one of the instance of the
-          // widget's data to process. We can rely on the `processedMultiCell` values to
-          // determine whether this widget has already been processed.
-          if (data->shared && processedMultiCell.count(data->widget) > 0) {
-            // Move on to the next widget.
-            continue;
-          }
-
-          // Prevent single-cell widget to be processed.
-          if (!data->shared) {
-            continue;
-          }
-
-          // Distribute the height of this widget over the available rows.
-          distributeMultiBoxHeight(cells[data->widget], rows);
-
-          // This widget has been processed.
-          if (data->shared) {
-            processedMultiCell.insert(data->widget);
           }
         }
 
@@ -1210,7 +1190,7 @@ namespace sdl {
         // widgets. More details can be found in the next comment section.
         for (unsigned row = 0u ; row < widgetsForRows.size() ; ++row) {
           // Retrieve the widgets associated to this row.
-          const std::vector<WidgetData>& widgetsForRow = widgetsForRows[row];
+          const std::vector<WidgetDataWrapper>& widgetsForRow = widgetsForRows[row];
 
           // Distinguish based on the action. Furhtermore we are processing rows so
           // we only care about vertical behavior.
@@ -1219,14 +1199,14 @@ namespace sdl {
             // consider this row usable to perform the required action.
             for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
               // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForRow[widget].widget;
+              const unsigned widgetID = widgetsForRow[widget].data->widget;
 
               std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.second) {
                 // This row can be used to `Grow` thanks to this widget. No need to go
                 // further.
                 log(
-                  std::string("Row ") + std::to_string(row) + " can be extended vertically thqnks to " + m_items[widgetID]->getName(),
+                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + m_items[widgetID]->getName(),
                   utils::Level::Info
                 );
                 rowsToUse.insert(row);
@@ -1243,7 +1223,7 @@ namespace sdl {
 
             for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
               // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForRow[widget].widget;
+              const unsigned widgetID = widgetsForRow[widget].data->widget;
 
               std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.second) {
@@ -1270,7 +1250,7 @@ namespace sdl {
             // Register this row for shrinking if needed.
             if (canShrink) {
               log(
-                std::string("Row ") + std::to_string(row) + " can be shrunk vertically",
+                std::string("Row ") + std::to_string(row) + " containing " + std::to_string(widgetsForRow.size()) + " widget(s) can be shrunk vertically",
                 utils::Level::Info
               );
               rowsToUse.insert(row);
@@ -1297,11 +1277,11 @@ namespace sdl {
           {
             // Check whether this row can expand: this is done by checking each registered
             // widget in this row for the appropriate flag.
-            const std::vector<WidgetData>& widgetsForRow = widgetsForRows[*row];
+            const std::vector<WidgetDataWrapper>& widgetsForRow = widgetsForRows[*row];
 
             for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
-              // Only consider horizontal direction as we're processing rows.
-              const unsigned widgetID = widgetsForRow[widget].widget;
+              // Only consider vertical direction as we're processing rows.
+              const unsigned widgetID = widgetsForRow[widget].data->widget;
 
               if (widgets[widgetID].policy.canExpandVertically()) {
                 // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded vertically" << std::endl;
@@ -1328,7 +1308,7 @@ namespace sdl {
         // We now have a working set of rows which can be used to perform the required `action` and we
         // took into consideration precedence of `Expand` flag over `Grow` flag. We now only need for each
         // row to substitute the corresponding widgets.
-        std::unordered_set<WidgetData> widgetsToUse;
+        std::unordered_set<WidgetDataWrapper> widgetsToUse;
 
         for (std::unordered_set<unsigned>::const_iterator row = rowsToUse.cbegin() ;
              row != rowsToUse.cend() ;
@@ -1353,100 +1333,6 @@ namespace sdl {
 
       // Return the consolidated rows' dimensions vector.
       return rows;
-    }
-
-    void
-    GridLayout::distributeMultiBoxHeight(const CellInfo& cell,
-                                         std::vector<float>& rows) const
-    {
-      // We need to distribute the height of the input `cell` over the concerned
-      // rows. In order to do so, we first compute the height already handled by
-      // the current height of all the rows spanned by the widget, and then distribute
-      // the remaining height (if any) equally between rows.
-
-      // Retrieve the widget's location.
-      LocationsMap::const_iterator locIt = m_locations.find(cell.widget);
-      if (locIt == m_locations.cend()) {
-        error(
-          std::string("Could not retrieve information for widget \"") +
-          m_items[cell.widget]->getName() + "\" while updating grid layout"
-        );
-      }
-      const ItemInfo& loc = locIt->second;
-
-      // First compute the height already covered by the input rows.
-      float existingHeight = 0.0f;
-
-      for (unsigned row = 0u ; row < loc.h ; ++row) {
-        existingHeight += rows[loc.y + row];
-      }
-
-      // Check whether the existing height is enough to absorb the cell's height.
-      if (cell.box.h() <= existingHeight) {
-        // All is well: the widget does not span all the height provided by the rows
-        // into which it lies. Let the standard process continue.
-        return;
-      }
-
-      // The height is not enough to absorb the widget's height. We need to redistribute
-      // the additional pixels over all the rows spanned by the widget based on a fair
-      // distribution.
-
-      // Compute the height to add to each row.
-      const float remainingHeight = (cell.box.h() - existingHeight) / loc.h;
-
-      // Distribute the height over each row spanned by the widget.
-      for (unsigned row = 0u ; row < loc.h ; ++row) {
-        log(std::string("Distributing ") + std::to_string(remainingHeight) + " on row " + std::to_string(loc.y + row) + " on behalf of " + m_items[cell.widget]->getName());
-        rows[loc.y + row] += remainingHeight;
-      }
-    }
-
-    void
-    GridLayout::distributeMultiBoxWidth(const CellInfo& cell,
-                                        std::vector<float>& columns) const
-    {
-      // We need to distribute the width of the input `cell` over the concerned
-      // columns. In order to do so, we first compute the width already handled by
-      // the current width of all the columns spanned by the widget, and then
-      // distribute the remaining width (if any) equally between columns.
-
-      // Retrieve the widget's location.
-      LocationsMap::const_iterator locIt = m_locations.find(cell.widget);
-      if (locIt == m_locations.cend()) {
-        error(
-          std::string("Could not retrieve information for widget \"") +
-          m_items[cell.widget]->getName() + "\" while updating grid layout"
-        );
-      }
-      const ItemInfo& loc = locIt->second;
-
-      // First compute the width already covered by the input columns.
-      float existingWidth = 0.0f;
-
-      for (unsigned column = 0u ; column < loc.w ; ++column) {
-        existingWidth += columns[loc.x + column];
-      }
-
-      // Check whether the existing width is enough to absorb the cell's width.
-      if (cell.box.w() < existingWidth) {
-        // All is well: the widget does not span all the width provided by the
-        // columns into which it lies. Let the standard process continue.
-        return;
-      }
-
-      // The width is not enough to absorb the widget's width. We need to redistribute
-      // the additional pixels over all the columns spanned by the widget based on a fair
-      // distribution.
-
-      // Compute the width to add to each column.
-      const float remainingWidth = (cell.box.w() - existingWidth) / loc.w;
-
-      // Distribute the width over each column spanned by the widget.
-      for (unsigned column = 0u ; column < loc.w ; ++column) {
-        log(std::string("Distributing ") + std::to_string(remainingWidth) + " on column " + std::to_string(loc.x + column) + " on behalf of " + m_items[cell.widget]->getName());
-        columns[loc.x + column] += remainingWidth;
-      }
     }
 
     void
