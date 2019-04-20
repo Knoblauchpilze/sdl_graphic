@@ -51,7 +51,7 @@ namespace sdl {
       protected:
 
         void
-        drawContentPrivate(const utils::Uuid& uuid) const noexcept override;
+        drawContentPrivate(const utils::Uuid& uuid) const override;
 
       private:
 
