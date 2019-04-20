@@ -11,11 +11,17 @@ r: release
 
 d: debug
 
-install: r
+copyRelease:
 	sudo cp build/Release/lib/libsdl_graphic.so /usr/local/lib
+
+copyDebug:
+	sudo cp build/Debug/lib/libsdl_graphic.so /usr/local/lib
+
+copyHeaders:
 	sudo mkdir -p /usr/local/include/sdl_graphic
 	sudo cp src/*.hh /usr/local/include/sdl_graphic
 	sudo cp src/*.hxx /usr/local/include/sdl_graphic
 
+install: r copyRelease copyHeaders
 
-
+installD: d copyDebug copyHeaders
