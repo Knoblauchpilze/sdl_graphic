@@ -25,14 +25,14 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
-      std::lock_guard<std::mutex> guard(getLocker());
+      // TODO: Invalidate.
       getLayoutAs<SelectorLayout>()->setActiveItem(name);
     }
 
     inline
     void
     SelectorWidget::setActiveWidget(const int& index) {
-      std::lock_guard<std::mutex> guard(getLocker());
+      // TODO: Invalidate.
       getLayoutAs<SelectorLayout>()->setActiveItem(index);
     }
 

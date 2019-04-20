@@ -39,12 +39,14 @@ namespace sdl {
     }
 
     void
-    LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const noexcept {
+    LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const {
       // Load the text.
       if (m_textDirty) {
         loadText();
         m_textDirty = false;
       }
+
+      // TODO: Handle with events.
 
       // Compute the blit position of the text so that it is centered.
       if (m_label.valid()) {

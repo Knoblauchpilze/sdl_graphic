@@ -9,7 +9,6 @@ namespace sdl {
     inline
     void
     LabelWidget::setText(const std::string& text) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
       m_text = text;
       m_textDirty = true;
       makeContentDirty();
@@ -18,7 +17,6 @@ namespace sdl {
     inline
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
       m_hAlignment = alignment;
       m_textDirty = true;
       makeContentDirty();
@@ -27,7 +25,6 @@ namespace sdl {
     inline
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
       m_vAlignment = alignment;
       m_textDirty = true;
       makeContentDirty();

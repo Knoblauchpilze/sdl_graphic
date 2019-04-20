@@ -29,12 +29,14 @@ namespace sdl {
     }
 
     void
-    PictureWidget::drawContentPrivate(const utils::Uuid& uuid) const noexcept {
+    PictureWidget::drawContentPrivate(const utils::Uuid& uuid) const {
       // Load the picture.
       if (m_pictureDirty) {
         loadPicture();
         m_pictureDirty = false;
       }
+
+      // TODO: Handle with events.
 
       // Compute the blit position of the picture so that it is centered.
       if (m_picture.valid()) {

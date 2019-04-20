@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setImagePath(const std::string& path) {
-      std::lock_guard<std::mutex> guard(getLocker());
+      // TODO: Invalidate.
       m_file = path;
       m_pictureDirty = true;
     }
@@ -17,7 +17,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setMode(const Mode& mode) {
-      std::lock_guard<std::mutex> guard(getLocker());
+      // TODO: Invalidate.
       m_mode = mode;
     }
 
