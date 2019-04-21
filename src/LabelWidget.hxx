@@ -10,7 +10,9 @@ namespace sdl {
     void
     LabelWidget::setText(const std::string& text) noexcept {
       m_text = text;
-      m_textDirty = true;
+      m_textChanged = true;
+      // TODO: Should probably not trigger a complete recreation of the widget but rather only
+      // a clear and `loadText` operation.
       makeContentDirty();
     }
 
@@ -18,7 +20,6 @@ namespace sdl {
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
       m_hAlignment = alignment;
-      m_textDirty = true;
       makeContentDirty();
     }
 
@@ -26,7 +27,6 @@ namespace sdl {
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
       m_vAlignment = alignment;
-      m_textDirty = true;
       makeContentDirty();
     }
 
@@ -34,10 +34,7 @@ namespace sdl {
     void
     LabelWidget::loadText() const {
       // Clear existing label if any.
-      if (m_label.valid()) {
-        getEngine().destroyTexture(m_label);
-        m_label.invalidate();
-      }
+      clearText();
 
       // Load the text
       if (!m_text.empty()) {
@@ -53,8 +50,24 @@ namespace sdl {
           }
         }
 
-        m_label = getEngine().createTextureFromText(m_text, m_font);
+        // TODO: Should probably be related to the current state of the widget instead of hard coding the role.
+        m_label = getEngine().createTextureFromText(m_text, m_font, core::engine::Palette::ColorRole::WindowText);
       }
+    }
+
+    inline
+    void
+    LabelWidget::clearText() const {
+      if (m_label.valid()) {
+        getEngine().destroyTexture(m_label);
+        m_label.invalidate();
+      }
+    }
+
+    inline
+    bool
+    LabelWidget::textChanged() const noexcept {
+      return m_textChanged;
     }
 
   }

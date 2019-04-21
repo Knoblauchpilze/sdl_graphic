@@ -23,14 +23,15 @@ namespace sdl {
       m_font(),
       m_hAlignment(hAlignment),
       m_vAlignment(vAlignment),
-      m_textDirty(true),
+      m_textChanged(true),
       m_label()
     {}
 
     LabelWidget::~LabelWidget() {
-      if (m_label.valid()) {
-        getEngine().destroyTexture(m_label);
-      }
+      // Clear text.
+      clearText();
+
+      // Clear font.
       if (m_font.valid()) {
         getEngine().destroyColoredFont(m_font);
       }
@@ -39,12 +40,10 @@ namespace sdl {
     void
     LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const {
       // Load the text.
-      if (m_textDirty) {
+      if (textChanged()) {
         loadText();
-        m_textDirty = false;
+        m_textChanged = false;
       }
-
-      // TODO: Handle with events.
 
       // Compute the blit position of the text so that it is centered.
       if (m_label.valid()) {
@@ -84,11 +83,7 @@ namespace sdl {
             break;
         }
 
-        getEngine().drawTexture(
-          m_label,
-          &uuid,
-          &dstRect
-        );
+        getEngine().drawTexture(m_label, &uuid, &dstRect);
       }
     }
 

@@ -57,6 +57,12 @@ namespace sdl {
         void
         loadText() const;
 
+        void
+        clearText() const;
+
+        bool
+        textChanged() const noexcept;
+
       private:
 
         std::string m_text;
@@ -65,7 +71,7 @@ namespace sdl {
         mutable utils::Uuid m_font;
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
-        mutable bool m_textDirty;
+        mutable bool m_textChanged;
 
         mutable utils::Uuid m_label;
 
