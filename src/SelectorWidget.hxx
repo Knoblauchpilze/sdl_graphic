@@ -10,13 +10,11 @@ namespace sdl {
     inline
     SelectorWidget::SelectorWidget(const std::string& name,
                                    sdl::core::SdlWidget* parent,
-                                   const bool transparent,
                                    const core::Palette& palette,
                                    const utils::Sizef& area):
       sdl::core::SdlWidget(name,
                            area,
                            parent,
-                           transparent,
                            palette)
     {
       setLayout(std::make_shared<SelectorLayout>(0.0f, this));

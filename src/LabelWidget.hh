@@ -33,7 +33,6 @@ namespace sdl {
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,
-                    const bool transparent = false,
                     const core::engine::Color& color = core::engine::Color(),
                     const utils::Sizef& area = utils::Sizef());
 

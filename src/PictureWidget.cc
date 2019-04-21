@@ -8,13 +8,11 @@ namespace sdl {
                                        const std::string& picture,
                                        const Mode& mode,
                                        SdlWidget* parent,
-                                       const bool transparent,
                                        const core::engine::Color& color,
                                        const utils::Sizef& area):
       sdl::core::SdlWidget(name,
                            area,
                            parent,
-                           transparent,
                            color),
       m_file(picture),
       m_mode(mode),

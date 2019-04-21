@@ -11,13 +11,11 @@ namespace sdl {
                              const HorizontalAlignment& hAlignment,
                              const VerticalAlignment& vAlignment,
                              SdlWidget* parent,
-                             const bool transparent,
                              const core::engine::Color& color,
                              const utils::Sizef& area):
       sdl::core::SdlWidget(name,
                            area,
                            parent,
-                           transparent,
                            color),
       m_text(text),
       m_fontName(font),

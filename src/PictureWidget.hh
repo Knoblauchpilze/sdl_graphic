@@ -22,7 +22,6 @@ namespace sdl {
                          const std::string& picture,
                          const Mode& mode = Mode::Crop,
                          SdlWidget* parent = nullptr,
-                         const bool transparent = false,
                          const core::engine::Color& color = core::engine::Color(),
                          const utils::Sizef& area = utils::Sizef());
 
