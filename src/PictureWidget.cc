@@ -17,24 +17,20 @@ namespace sdl {
       m_file(picture),
       m_mode(mode),
       m_picture(),
-      m_pictureDirty(true)
+      m_picChanged(true)
     {}
 
     PictureWidget::~PictureWidget() {
-      if (m_picture.valid()) {
-        getEngine().destroyTexture(m_picture);
-      }
+      clearPicture();
     }
 
     void
     PictureWidget::drawContentPrivate(const utils::Uuid& uuid) const {
       // Load the picture.
-      if (m_pictureDirty) {
+      if (pictureChanged()) {
         loadPicture();
-        m_pictureDirty = false;
+        m_picChanged = false;
       }
-
-      // TODO: Handle with events.
 
       // Compute the blit position of the picture so that it is centered.
       if (m_picture.valid()) {
@@ -50,19 +46,11 @@ namespace sdl {
             sizePic.h()
           );
 
-          getEngine().drawTexture(
-            m_picture,
-            &uuid,
-            &dstRect
-          );
+          getEngine().drawTexture(m_picture, &uuid, &dstRect);
         }
 
         if (m_mode == Mode::Fit) {
-          getEngine().drawTexture(
-            m_picture,
-            &uuid,
-            nullptr
-          );
+          getEngine().drawTexture(m_picture, &uuid, nullptr);
         }
       }
     }

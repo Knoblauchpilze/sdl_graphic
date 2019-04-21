@@ -46,12 +46,18 @@ namespace sdl {
         void
         loadPicture() const;
 
+        void
+        clearPicture() const;
+
+        bool
+        pictureChanged() const noexcept;
+
       private:
 
         std::string m_file;
         Mode m_mode;
         mutable utils::Uuid m_picture;
-        mutable bool m_pictureDirty;
+        mutable bool m_picChanged;
 
     };
 
