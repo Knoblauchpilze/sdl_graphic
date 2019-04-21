@@ -629,7 +629,7 @@ namespace sdl {
       // indirection to fetch the widget when performing the adjustments.
       // TODO: Handle cases where the widgets are too large to fit into the columns ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
-      
+
         // Compute the amount of space we will try to allocate to each column still
         // available for adjustment.
         // The `defaultWidth` is computed by dividing equally the remaining `spaceToUse`
@@ -786,7 +786,7 @@ namespace sdl {
           else if (action.canShrinkHorizontally()) {
             // Traverse the widgets for this column: all widgets need to be able to shrink
             // in order for this colum to be marked as shrinkable.
-            
+
             // Assume this column can be shrunk.
             bool canShrink = true;
 
@@ -1061,7 +1061,7 @@ namespace sdl {
       // indirection to fetch the widget when performing the adjustments.
       // TODO: Handle cases where the widgets are too large to fit into the rows ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
-      
+
         // Compute the amount of space we will try to allocate to each row still
         // available for adjustment.
         // The `defaultHeight` is computed by dividing equally the remaining `spaceToUse`
@@ -1217,7 +1217,7 @@ namespace sdl {
           else if (action.canShrinkVertically()) {
             // Traverse the widgets for this row: all widgets need to be able to shrink
             // in order for this colum to be marked as shrinkable.
-            
+
             // Assume this row can be shrunk.
             bool canShrink = true;
 
