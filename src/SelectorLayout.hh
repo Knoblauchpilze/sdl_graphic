@@ -7,11 +7,11 @@
 namespace sdl {
   namespace graphic {
 
-    class SelectorLayout: public sdl::core::Layout {
+    class SelectorLayout: public core::Layout {
       public:
 
         SelectorLayout(const float& margin = 1.0f,
-                       sdl::core::SdlWidget* widget = nullptr);
+                       core::SdlWidget* widget = nullptr);
 
         virtual ~SelectorLayout();
 

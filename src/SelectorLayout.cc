@@ -6,8 +6,8 @@ namespace sdl {
   namespace graphic {
 
     SelectorLayout::SelectorLayout(const float& margin,
-                                   sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget, margin),
+                                   core::SdlWidget* widget):
+      core::Layout(widget, margin),
       m_activeItem(-1)
     {
       // Nothing to do.
