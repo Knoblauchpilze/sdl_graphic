@@ -1,5 +1,5 @@
-#ifndef    SELECTORWIDGET_HXX
-# define   SELECTORWIDGET_HXX
+#ifndef    SELECTOR_WIDGET_HXX
+# define   SELECTOR_WIDGET_HXX
 
 # include "SelectorWidget.hh"
 # include "SelectorLayout.hh"
@@ -9,13 +9,10 @@ namespace sdl {
 
     inline
     SelectorWidget::SelectorWidget(const std::string& name,
-                                   sdl::core::SdlWidget* parent,
-                                   const core::Palette& palette,
+                                   core::SdlWidget* parent,
+                                   const core::engine::Color& color,
                                    const utils::Sizef& area):
-      sdl::core::SdlWidget(name,
-                           area,
-                           parent,
-                           palette)
+      core::SdlWidget(name, area, parent, color)
     {
       setLayout(std::make_shared<SelectorLayout>(0.0f, this));
     }
@@ -23,18 +20,18 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
-      // TODO: Invalidate.
       getLayoutAs<SelectorLayout>()->setActiveItem(name);
+      makeContentDirty();
     }
 
     inline
     void
     SelectorWidget::setActiveWidget(const int& index) {
-      // TODO: Invalidate.
       getLayoutAs<SelectorLayout>()->setActiveItem(index);
+      makeContentDirty();
     }
 
   }
 }
 
-#endif    /* SELECTORWIDGET_HXX */
+#endif    /* SELECTOR_WIDGET_HXX */

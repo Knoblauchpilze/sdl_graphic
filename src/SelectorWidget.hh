@@ -1,5 +1,5 @@
-#ifndef    SELECTORWIDGET_HH
-# define   SELECTORWIDGET_HH
+#ifndef    SELECTOR_WIDGET_HH
+# define   SELECTOR_WIDGET_HH
 
 # include <memory>
 # include <string>
@@ -10,12 +10,12 @@
 namespace sdl {
   namespace graphic {
 
-    class SelectorWidget: public sdl::core::SdlWidget {
+    class SelectorWidget: public core::SdlWidget {
       public:
 
         SelectorWidget(const std::string& name,
-                       sdl::core::SdlWidget* parent = nullptr,
-                       const core::Palette& palette = core::Palette(),
+                       core::SdlWidget* parent = nullptr,
+                       const core::engine::Color& color = core::engine::Color(),
                        const utils::Sizef& area = utils::Sizef());
 
         ~SelectorWidget() = default;
@@ -36,4 +36,4 @@ namespace sdl {
 
 # include "SelectorWidget.hxx"
 
-#endif    /* SELECTORWIDGET_HH */
+#endif    /* SELECTOR_WIDGET_HH */
