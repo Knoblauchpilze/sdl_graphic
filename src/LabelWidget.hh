@@ -9,7 +9,7 @@
 namespace sdl {
   namespace graphic {
 
-    class LabelWidget: public sdl::core::SdlWidget {
+    class LabelWidget: public core::SdlWidget {
       public:
 
         enum class VerticalAlignment {

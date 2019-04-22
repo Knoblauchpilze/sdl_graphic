@@ -8,13 +8,13 @@
 namespace sdl {
   namespace graphic {
 
-    class GridLayout: public sdl::core::Layout {
+    class GridLayout: public core::Layout {
       public:
 
         GridLayout(const unsigned& columns,
                    const unsigned& rows,
                    const float& margin = 0.0f,
-                   sdl::core::SdlWidget* widget = nullptr);
+                   core::SdlWidget* widget = nullptr);
 
         virtual ~GridLayout();
 
@@ -43,7 +43,7 @@ namespace sdl {
         setRowsMinimumHeight(const float& height);
 
         int
-        addItem(sdl::core::SdlWidget* container,
+        addItem(core::SdlWidget* container,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,

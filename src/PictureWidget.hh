@@ -8,7 +8,7 @@
 namespace sdl {
   namespace graphic {
 
-    class PictureWidget: public sdl::core::SdlWidget {
+    class PictureWidget: public core::SdlWidget {
       public:
 
         enum class Mode {

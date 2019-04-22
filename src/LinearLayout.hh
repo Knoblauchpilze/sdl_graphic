@@ -9,13 +9,13 @@
 namespace sdl {
   namespace graphic {
 
-    class LinearLayout: public sdl::core::Layout {
+    class LinearLayout: public core::Layout {
       public:
 
         LinearLayout(const Direction& direction,
                      const float& margin = 1.0f,
                      const float& interMargin = 0.0f,
-                     sdl::core::SdlWidget* widget = nullptr);
+                     core::SdlWidget* widget = nullptr);
 
         virtual ~LinearLayout();
 

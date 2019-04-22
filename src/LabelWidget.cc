@@ -13,10 +13,7 @@ namespace sdl {
                              SdlWidget* parent,
                              const core::engine::Color& color,
                              const utils::Sizef& area):
-      sdl::core::SdlWidget(name,
-                           area,
-                           parent,
-                           color),
+      core::SdlWidget(name, area, parent, color),
       m_text(text),
       m_fontName(font),
       m_fontSize(size),

@@ -92,13 +92,13 @@ namespace sdl {
 
     inline
     int
-    GridLayout::addItem(sdl::core::SdlWidget* container,
+    GridLayout::addItem(core::SdlWidget* container,
                         const unsigned& x,
                         const unsigned& y,
                         const unsigned& w,
                         const unsigned& h)
     {
-      int containerIndex = sdl::core::Layout::addItem(container);
+      int containerIndex = core::Layout::addItem(container);
       m_locations[containerIndex] = {
         std::min(m_columns - 1, x),
         std::min(m_rows - 1, y),

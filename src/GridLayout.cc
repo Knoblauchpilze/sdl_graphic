@@ -12,8 +12,8 @@ namespace sdl {
     GridLayout::GridLayout(const unsigned& columns,
                            const unsigned& rows,
                            const float& margin,
-                           sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget, margin),
+                           core::SdlWidget* widget):
+      core::Layout(widget, margin),
       m_columns(columns),
       m_rows(rows),
 
@@ -727,7 +727,7 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, window).w();
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
+        const core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
 
         log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedWidth) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
 
@@ -1158,7 +1158,7 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, window).h();
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
+        const core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
 
         log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedHeight) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
 

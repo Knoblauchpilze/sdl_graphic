@@ -10,10 +10,7 @@ namespace sdl {
                                        SdlWidget* parent,
                                        const core::engine::Color& color,
                                        const utils::Sizef& area):
-      sdl::core::SdlWidget(name,
-                           area,
-                           parent,
-                           color),
+      core::SdlWidget(name, area, parent, color),
       m_file(picture),
       m_mode(mode),
       m_picture(),

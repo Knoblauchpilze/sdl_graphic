@@ -7,11 +7,11 @@
 namespace sdl {
   namespace graphic {
 
-    LinearLayout::LinearLayout(const sdl::core::Layout::Direction& direction,
+    LinearLayout::LinearLayout(const core::Layout::Direction& direction,
                                const float& margin,
                                const float& interMargin,
-                               sdl::core::SdlWidget* widget):
-      sdl::core::Layout(widget, margin),
+                               core::SdlWidget* widget):
+      core::Layout(widget, margin),
       m_direction(direction),
       m_componentMargin(interMargin)
     {
@@ -122,7 +122,7 @@ namespace sdl {
         spaceToUse = computeSpaceAdjustmentNeeded(achievedSize, internalSize);
 
         // Determine the policy to apply based on the achieved size.
-        const sdl::core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
+        const core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
         log(std::string("Desired ") + window.toString() + ", achieved: " + achievedSize.toString() + ", space: " + spaceToUse.toString(), utils::Level::Info);
 

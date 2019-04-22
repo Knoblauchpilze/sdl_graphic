@@ -7,7 +7,7 @@ namespace sdl {
   namespace graphic {
 
     inline
-    const sdl::core::Layout::Direction&
+    const core::Layout::Direction&
     LinearLayout::getDirection() const noexcept {
       return m_direction;
     }
