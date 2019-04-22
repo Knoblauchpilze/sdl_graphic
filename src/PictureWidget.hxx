@@ -9,20 +9,16 @@ namespace sdl {
     inline
     void
     PictureWidget::setImagePath(const std::string& path) {
+      std::lock_guard<std::mutex> guard(getLocker());
       m_file = path;
-      m_picChanged = true;
-      // TODO: At some point we might want to create an intermediate event preventing from
-      // recreating the whole content even if the only the image has been modified.
-      // It could maybe go with reimplementing the `repaintEvent` method to distinguish between
-      // cases.
-      makeContentDirty();
+      setPictureChanged();
     }
 
     inline
     void
     PictureWidget::setMode(const Mode& mode) {
+      std::lock_guard<std::mutex> guard(getLocker());
       m_mode = mode;
-      makeContentDirty();
     }
 
     inline
@@ -56,6 +52,12 @@ namespace sdl {
     bool
     PictureWidget::pictureChanged() const noexcept {
       return m_picChanged;
+    }
+
+    inline
+    void
+    PictureWidget::setPictureChanged() const noexcept {
+      m_picChanged = true;
     }
 
   }

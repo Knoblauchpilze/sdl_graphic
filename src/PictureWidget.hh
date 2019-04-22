@@ -52,6 +52,9 @@ namespace sdl {
         bool
         pictureChanged() const noexcept;
 
+        void
+        setPictureChanged() const noexcept;
+
       private:
 
         std::string m_file;
