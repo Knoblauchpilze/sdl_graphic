@@ -7,6 +7,43 @@ namespace sdl {
   namespace graphic {
 
     inline
+    int
+    SelectorLayout::addItem(core::SdlWidget* item) {
+      // Use the base method to perform the insertion.
+      int index = core::Layout::addItem(item);
+
+      // If this item is the only one inserted in the widget,
+      // use it as the active widget.
+      if (getItemsCount() == 1u) {
+        m_activeItem = 0u;
+      }
+
+      // Return the produced index.
+      return index;
+    }
+
+    inline
+    int
+    SelectorLayout::addItem(core::SdlWidget* item,
+                            const unsigned& x,
+                            const unsigned& y,
+                            const unsigned& w,
+                            const unsigned& h)
+    {
+      // Use the base method to perform the insertion.
+      int index = core::Layout::addItem(item, x, y, w, h);
+
+      // If this item is the only one inserted in the widget,
+      // use it as the active widget.
+      if (getItemsCount() == 1u) {
+        m_activeItem = 0u;
+      }
+
+      // Return the produced index.
+      return index;
+    }
+
+    inline
     void
     SelectorLayout::setActiveItem(const std::string& name) {
       std::size_t indexItem = 0;

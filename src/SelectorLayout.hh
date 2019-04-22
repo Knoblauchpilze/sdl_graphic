@@ -15,6 +15,16 @@ namespace sdl {
 
         virtual ~SelectorLayout();
 
+        int
+        addItem(core::SdlWidget* item) override;
+
+        int
+        addItem(core::SdlWidget* item,
+                const unsigned& x,
+                const unsigned& y,
+                const unsigned& w,
+                const unsigned& h) override;
+
         void
         setActiveItem(const std::string& name);
 

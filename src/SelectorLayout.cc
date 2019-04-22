@@ -25,15 +25,20 @@ namespace sdl {
       // Compute the available space for the active child.
       const utils::Sizef componentSize = computeAvailableSize(window);
 
-      // Assign the space for the active child.
-      m_items[m_activeItem]->setRenderingArea(
-        utils::Boxf(
-          getMargin().w() + componentSize.w() / 2.0f,
-          getMargin().h() + componentSize.h() / 2.0f,
-          componentSize.w(),
-          componentSize.h()
-        )
+      // Assign the space for the active child: as this is the only
+      // child, use all the available space.
+      std::vector<utils::Boxf> bboxes(getItemsCount(), utils::Boxf());
+      
+      
+      bboxes[m_activeItem] = utils::Boxf(
+        getMargin().w() + componentSize.w() / 2.0f,
+        getMargin().h() + componentSize.h() / 2.0f,
+        componentSize.w(),
+        componentSize.h()
       );
+
+      // Use the base handler to assign bbox.
+      assignRenderingAreas(bboxes, window);
 
       // Disable other items.
       for (unsigned indexItem = 0u ; indexItem < getItemsCount() ; ++indexItem) {
