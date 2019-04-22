@@ -32,7 +32,6 @@ namespace sdl {
     bool
     LabelWidget::enterEvent(const core::engine::EnterEvent& e) {
       // Update the role of the text texture.
-      log("Updating role of text to highlighted " + getPalette().getColorForRole(core::engine::Palette::ColorRole::HighlightedText).toString());
       m_textRole = core::engine::Palette::ColorRole::HighlightedText;
 
       // Mark the text as dirty.
