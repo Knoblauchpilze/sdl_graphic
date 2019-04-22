@@ -24,6 +24,7 @@ namespace sdl {
       m_hAlignment(hAlignment),
       m_vAlignment(vAlignment),
       m_textChanged(true),
+      m_textRole(core::engine::Palette::ColorRole::WindowText),
       m_label()
     {}
 

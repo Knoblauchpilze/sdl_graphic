@@ -9,25 +9,50 @@ namespace sdl {
     inline
     void
     LabelWidget::setText(const std::string& text) noexcept {
+      std::lock_guard<std::mutex> guard(getLocker());
       m_text = text;
-      m_textChanged = true;
-      // TODO: Should probably not trigger a complete recreation of the widget but rather only
-      // a clear and `loadText` operation.
-      makeContentDirty();
+      setTextChanged();
     }
 
     inline
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
+      std::lock_guard<std::mutex> guard(getLocker());
       m_hAlignment = alignment;
-      makeContentDirty();
     }
 
     inline
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
+      std::lock_guard<std::mutex> guard(getLocker());
       m_vAlignment = alignment;
-      makeContentDirty();
+    }
+
+    inline
+    bool
+    LabelWidget::enterEvent(const core::engine::EnterEvent& e) {
+      // Update the role of the text texture.
+      log("Updating role of text to highlighted " + getPalette().getColorForRole(core::engine::Palette::ColorRole::HighlightedText).toString());
+      m_textRole = core::engine::Palette::ColorRole::HighlightedText;
+
+      // Mark the text as dirty.
+      setTextChanged();
+
+      // Apply the base handler and use it to determine the return value.
+      return core::SdlWidget::enterEvent(e);
+    }
+
+    inline
+    bool
+    LabelWidget::leaveEvent(const core::engine::Event& e) {
+      // Update the role of the text texture.
+      m_textRole = core::engine::Palette::ColorRole::WindowText;
+
+      // Mark the text as dirty.
+      setTextChanged();
+
+      // Apply the base handler and use it to determine the return value.
+      return core::SdlWidget::leaveEvent(e);
     }
 
     inline
@@ -50,8 +75,7 @@ namespace sdl {
           }
         }
 
-        // TODO: Should probably be related to the current state of the widget instead of hard coding the role.
-        m_label = getEngine().createTextureFromText(m_text, m_font, core::engine::Palette::ColorRole::WindowText);
+        m_label = getEngine().createTextureFromText(m_text, m_font, m_textRole);
       }
     }
 
@@ -68,6 +92,12 @@ namespace sdl {
     bool
     LabelWidget::textChanged() const noexcept {
       return m_textChanged;
+    }
+
+    inline
+    void
+    LabelWidget::setTextChanged() const noexcept {
+      m_textChanged = true;
     }
 
   }

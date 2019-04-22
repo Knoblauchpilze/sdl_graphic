@@ -49,6 +49,12 @@ namespace sdl {
 
       protected:
 
+        bool
+        enterEvent(const core::engine::EnterEvent& e) override;
+
+        bool
+        leaveEvent(const core::engine::Event& e) override;
+
         void
         drawContentPrivate(const utils::Uuid& uuid) const override;
 
@@ -63,6 +69,9 @@ namespace sdl {
         bool
         textChanged() const noexcept;
 
+        void
+        setTextChanged() const noexcept;
+
       private:
 
         std::string m_text;
@@ -72,6 +81,8 @@ namespace sdl {
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textChanged;
+
+        core::engine::Palette::ColorRole m_textRole;
 
         mutable utils::Uuid m_label;
 
