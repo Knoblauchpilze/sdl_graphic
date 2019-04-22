@@ -22,6 +22,7 @@ namespace sdl {
     SelectorWidget::setActiveWidget(const std::string& name) {
       getLayoutAs<SelectorLayout>()->setActiveItem(name);
       makeContentDirty();
+      makeGeometryDirty();
     }
 
     inline
@@ -29,6 +30,7 @@ namespace sdl {
     SelectorWidget::setActiveWidget(const int& index) {
       getLayoutAs<SelectorLayout>()->setActiveItem(index);
       makeContentDirty();
+      makeGeometryDirty();
     }
 
   }
