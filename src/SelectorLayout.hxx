@@ -12,10 +12,12 @@ namespace sdl {
       // Use the base method to perform the insertion.
       int index = core::Layout::addItem(item);
 
-      // If this item is the only one inserted in the widget,
-      // use it as the active widget.
-      if (getItemsCount() == 1u) {
-        m_activeItem = 0u;
+      // Handle the insertion of this item if it is valid:
+      // we set the visible status of the widget and also
+      // set it as active if it is the only one inserted
+      // in the layout.
+      if (item != nullptr) {
+        handleItemInsertion(item);
       }
 
       // Return the produced index.
@@ -33,10 +35,12 @@ namespace sdl {
       // Use the base method to perform the insertion.
       int index = core::Layout::addItem(item, x, y, w, h);
 
-      // If this item is the only one inserted in the widget,
-      // use it as the active widget.
-      if (getItemsCount() == 1u) {
-        m_activeItem = 0u;
+      // Handle the insertion of this item if it is valid:
+      // we set the visible status of the widget and also
+      // set it as active if it is the only one inserted
+      // in the layout.
+      if (item != nullptr) {
+        handleItemInsertion(item);
       }
 
       // Return the produced index.
@@ -102,6 +106,20 @@ namespace sdl {
         error(std::string("Cannot retrieve name of active child for selector layout, no such element"));
       }
       return m_activeItem;
+    }
+
+    inline
+    void
+    SelectorLayout::handleItemInsertion(core::SdlWidget* item) {
+      // If this item is the only one inserted in the widget,
+      // use it as the active widget.
+      // Otherwise, we should make it not visible.
+      if (getItemsCount() == 1u) {
+        m_activeItem = 0u;
+      }
+      else {
+        item->setVisible(false);
+      }
     }
 
   }

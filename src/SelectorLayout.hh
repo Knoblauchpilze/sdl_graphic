@@ -42,6 +42,9 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
+        void
+        handleItemInsertion(core::SdlWidget* item);
+
       private:
 
         int m_activeItem;
