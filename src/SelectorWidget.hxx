@@ -2,17 +2,18 @@
 # define   SELECTOR_WIDGET_HXX
 
 # include "SelectorWidget.hh"
-# include "SelectorLayout.hh"
 
 namespace sdl {
   namespace graphic {
 
     inline
     SelectorWidget::SelectorWidget(const std::string& name,
+                                   const bool switchOnLeftClick,
                                    core::SdlWidget* parent,
                                    const core::engine::Color& color,
                                    const utils::Sizef& area):
-      core::SdlWidget(name, area, parent, color)
+      core::SdlWidget(name, area, parent, color),
+      m_switchOnLeftClick(switchOnLeftClick)
     {
       setLayout(std::make_shared<SelectorLayout>(0.0f, this));
     }
@@ -20,7 +21,7 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
-      getLayoutAs<SelectorLayout>()->setActiveItem(name);
+      getLayout().setActiveItem(name);
       makeContentDirty();
       makeGeometryDirty();
     }
@@ -28,9 +29,48 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const int& index) {
-      getLayoutAs<SelectorLayout>()->setActiveItem(index);
+      getLayout().setActiveItem(index);
       makeContentDirty();
       makeGeometryDirty();
+    }
+
+    inline
+    bool
+    SelectorWidget::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
+      // We need to switch the active widget if the internal `m_switchOnLeftClick`
+      // property is active. And of course if at least one widget is inserted in
+      // this obejct.
+      if (switchOnClick() && getChildrenCount() > 0u) {
+        // Update the active widget.
+        setActiveWidget((getLayout().getActiveItemId() + 1) % getChildrenCount());
+      }
+
+      // Use base handler to determine whether the event was recognized.
+      return core::SdlWidget::mouseButtonReleaseEvent(e);
+    }
+
+    inline
+    bool
+    SelectorWidget::switchOnClick() const noexcept {
+      return m_switchOnLeftClick;
+    }
+
+    inline
+    SelectorLayout&
+    SelectorWidget::getLayout() {
+      // Try to retrieve the layout as a `SelectorLayout`.
+      SelectorLayout* layout = getLayoutAs<SelectorLayout>();
+
+      // If the conversion failed, this is a problem.
+      if (layout == nullptr) {
+        error(
+          std::string("Cannot retrieve layout for selector widget"),
+          std::string("Invalid layout type")
+        );
+      }
+
+      // Return this layout.
+      return *layout;
     }
 
   }
