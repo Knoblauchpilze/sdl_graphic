@@ -203,7 +203,7 @@ namespace sdl {
       float x = getMargin().w();
       float y = getMargin().h();
 
-      for (unsigned index = 0u ; index < getItemsCount() ; ++index) {
+      for (int index = 0u ; index < getItemsCount() ; ++index) {
         // Position the widget based on the position of the previous ones.
         // In addition to this mechanism, we should handle some kind of
         // centering to allow widgets with sizes smaller than the provided
@@ -252,8 +252,6 @@ namespace sdl {
       // Assign the rendering area to widgets.
       assignRenderingAreas(outputBoxes, window);
     }
-
-
 
     utils::Sizef
     LinearLayout::computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const

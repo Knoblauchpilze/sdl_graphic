@@ -41,7 +41,7 @@ namespace sdl {
       assignRenderingAreas(bboxes, window);
 
       // Disable other items.
-      for (unsigned indexItem = 0u ; indexItem < getItemsCount() ; ++indexItem) {
+      for (int indexItem = 0 ; indexItem < getItemsCount() ; ++indexItem) {
         m_items[indexItem]->setVisible(static_cast<int>(indexItem) == m_activeItem);
       }
     }

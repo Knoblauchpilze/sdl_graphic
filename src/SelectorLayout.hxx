@@ -50,7 +50,7 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const std::string& name) {
-      std::size_t indexItem = 0;
+      int indexItem = 0;
       bool found = false;
       while (indexItem < getItemsCount() && !found) {
         if (m_items[indexItem] != nullptr && m_items[indexItem]->getName() == name) {
@@ -71,7 +71,7 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const int& index) {
-      if (index >= static_cast<int>(getItemsCount())) {
+      if (index >= getItemsCount()) {
         error(
           std::string("Cannot activate child ") + std::to_string(index) +
           " in selector layout only containing " + std::to_string(getItemsCount()) + " child(ren)"
@@ -114,7 +114,7 @@ namespace sdl {
       // If this item is the only one inserted in the widget,
       // use it as the active widget.
       // Otherwise, we should make it not visible.
-      if (getItemsCount() == 1u) {
+      if (getItemsCount() == 1) {
         m_activeItem = 0u;
       }
       else {
