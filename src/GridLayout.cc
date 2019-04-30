@@ -159,7 +159,7 @@ namespace sdl {
       // rows and columns to reach the position of a specified widget.
       std::vector<utils::Boxf> outputBoxes(getItemsCount());
 
-      for (unsigned index = 0u ; index < getItemsCount() ; ++index) {
+      for (int index = 0u ; index < getItemsCount() ; ++index) {
         // Position the widget based on the dimensions of the rows and columns
         // until the position of the widget.
         // We maintained a vector to keep track of the dimensions of each row
@@ -229,6 +229,21 @@ namespace sdl {
 
       // Assign the rendering area to widgets.
       assignRenderingAreas(outputBoxes, window);
+    }
+
+    void
+    GridLayout::invalidate() noexcept {
+      // We need to update the local information about widgets. This means basically updating the
+      // `m_locations` attribute. In order to do so, we need to rely on some invariant properties
+      // of the widget which have been updated. We will use the address in order to maintain some
+      // consistency between widgets.
+
+      // So frist copy the internal locations table so that we can build a new one right away.
+      LocationsMap old;
+      old.swap(m_locations);
+
+      // Traverse the old locations and try to build the new table.
+      // TODO: Implementation.
     }
 
     std::vector<GridLayout::CellInfo>

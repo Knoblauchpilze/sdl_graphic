@@ -57,6 +57,9 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& area) override;
 
+        void
+        invalidate() noexcept override;
+
       private:
 
         // Convenience record to hold the position of items in the layout.

@@ -98,13 +98,20 @@ namespace sdl {
                         const unsigned& w,
                         const unsigned& h)
     {
+      // Use the base handler to add the item and retrieve its index.
       int containerIndex = core::Layout::addItem(container);
-      m_locations[containerIndex] = {
-        std::min(m_columns - 1, x),
-        std::min(m_rows - 1, y),
-        std::min(m_columns - std::min(m_columns - 1, x), w),
-        std::min(m_rows - std::min(m_rows - 1, y), h)
-      };
+
+      // Add the item to the internal array if a valid index was generated.
+      if (containerIndex >= 0) {
+        m_locations[containerIndex] = {
+          std::min(m_columns - 1, x),
+          std::min(m_rows - 1, y),
+          std::min(m_columns - std::min(m_columns - 1, x), w),
+          std::min(m_rows - std::min(m_rows - 1, y), h)
+        };
+      }
+
+      // Return the index computed by the base class.
       return containerIndex;
     }
 
