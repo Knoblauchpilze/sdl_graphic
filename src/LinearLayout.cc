@@ -96,7 +96,7 @@ namespace sdl {
           outputBoxes[*widget].w() = area.w();
           outputBoxes[*widget].h() = area.h();
 
-          log(std::string("Widget \"") + m_items[*widget]->getName() + "\" reach size " + outputBoxes[*widget].toString());
+          log(std::string("Widget \"") + getWidgetAt(*widget)->getName() + "\" reach size " + outputBoxes[*widget].toString());
         }
 
         // We have tried to apply the `defaultBox` to all the widgets. This might have fail
@@ -132,11 +132,11 @@ namespace sdl {
         std::unordered_set<unsigned> widgetsToUse;
         for (unsigned index = 0u ; index < widgetsInfo.size() ; ++index) {
           // Check whether this widget can be used to grow/shrink.
-          std::pair<bool, bool> usable = canBeUsedTo(m_items[index]->getName(), widgetsInfo[index], outputBoxes[index], action);
+          std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(index)->getName(), widgetsInfo[index], outputBoxes[index], action);
           if ((usable.first && getDirection() == Direction::Horizontal) ||
               (usable.second && getDirection() == Direction::Vertical))
           {
-            std::cout << "[LAY] " << m_items[index]->getName() << " can be used to "
+            std::cout << "[LAY] " << getWidgetAt(index)->getName() << " can be used to "
                       << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
                       << " and "
                       << std::to_string(static_cast<int>(action.getVerticalPolicy()))
@@ -164,11 +164,11 @@ namespace sdl {
           {
             // Check whether this widget can expand.
             if (getDirection() == Direction::Horizontal && widgetsInfo[*widget].policy.canExpandHorizontally()) {
-              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded horizontally" << std::endl;
+              std::cout << "[LAY] " << getWidgetAt(*widget)->getName() << " can be expanded horizontally" << std::endl;
               widgetsToExpand.insert(*widget);
             }
             if (getDirection() == Direction::Vertical && widgetsInfo[*widget].policy.canExpandVertically()) {
-              std::cout << "[LAY] " << m_items[*widget]->getName() << " can be expanded vertically" << std::endl;
+              std::cout << "[LAY] " << getWidgetAt(*widget)->getName() << " can be expanded vertically" << std::endl;
               widgetsToExpand.insert(*widget);
             }
           }
@@ -242,7 +242,7 @@ namespace sdl {
       }
 
       for (unsigned index = 0u ; index < outputBoxes.size() ; ++index) {
-        std::cout << "[WIG] Widget \"" << m_items[index]->getName() << "\" has: "
+        std::cout << "[WIG] Widget \"" << getWidgetAt(index)->getName() << "\" has: "
                   << outputBoxes[index].x() << ", " << outputBoxes[index].y()
                   << ", dims: "
                   << outputBoxes[index].w() << ", " << outputBoxes[index].h()

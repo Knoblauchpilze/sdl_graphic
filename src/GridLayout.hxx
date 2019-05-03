@@ -103,11 +103,12 @@ namespace sdl {
 
       // Add the item to the internal array if a valid index was generated.
       if (containerIndex >= 0) {
-        m_locations[containerIndex] = {
+        m_locations[containerIndex] = ItemInfo{
           std::min(m_columns - 1, x),
           std::min(m_rows - 1, y),
           std::min(m_columns - std::min(m_columns - 1, x), w),
-          std::min(m_rows - std::min(m_rows - 1, y), h)
+          std::min(m_rows - std::min(m_rows - 1, y), h),
+          container
         };
       }
 

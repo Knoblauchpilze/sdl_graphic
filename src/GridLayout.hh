@@ -65,6 +65,7 @@ namespace sdl {
         // Convenience record to hold the position of items in the layout.
         struct ItemInfo {
           unsigned x, y, w, h;
+          core::SdlWidget* widget;
         };
 
         // Convenience record holding the information for a single column/row.

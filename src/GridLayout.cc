@@ -180,7 +180,7 @@ namespace sdl {
         if (loc == m_locations.end()) {
           error(
             std::string("Could not retrieve information for widget \"") +
-            m_items[index]->getName() + "\" while updating grid layout"
+            getWidgetAt(index)->getName() + "\" while updating grid layout"
           );
         }
 
@@ -238,12 +238,30 @@ namespace sdl {
       // of the widget which have been updated. We will use the address in order to maintain some
       // consistency between widgets.
 
-      // So frist copy the internal locations table so that we can build a new one right away.
+      // So first copy the internal locations table so that we can build a new one right away.
       LocationsMap old;
       old.swap(m_locations);
 
       // Traverse the old locations and try to build the new table.
-      // TODO: Implementation.
+      for (LocationsMap::const_iterator oldWidget = old.cbegin() ;
+           oldWidget != old.cend() ;
+           ++oldWidget)
+      {
+        // Try to find the index of this widget.
+        const int newID = getIndexOf(oldWidget->second.widget);
+
+        // From there, we have two main cases: either the widget still exists in the layout,
+        // or it doesn't. This is defined by the fact that the `newID` is positive or negative.
+        // If the widget still exists, we need to update the information contained in the
+        // locations map so that further update of the layout yields correct result. If the
+        // widget does not exist anymore in the layout, we have to ignore this widget and not
+        // add it to the new locations map.
+
+        // Insert the widget with its new information only if it still exists in the layout.
+        if (isValidIndex(newID)) {
+          m_locations[newID] = oldWidget->second;
+        }
+      }
     }
 
     std::vector<GridLayout::CellInfo>
@@ -323,7 +341,7 @@ namespace sdl {
           desiredMin.h() += m_rowsInfo[row].min;
         }
 
-        // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\" "
+        // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\" "
         //           << "at " << loc.x << "x" << loc.y
         //           << " has min " << desiredMin.toString()
         //           << " while internal are: "
@@ -446,8 +464,7 @@ namespace sdl {
     }
 
     utils::Sizef
-    GridLayout::computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept
-    {
+    GridLayout::computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept {
       // Assume empty dimensions.
       utils::Sizef achieved;
 
@@ -684,12 +701,12 @@ namespace sdl {
           // so, let's compute the size increase provided for this widget by the current
           // column: this is the size which belongs to the column.
           dataWrapper->data->size.w() += (width - cells[widget].box.w());
-          log("Widget " + m_items[widget]->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[widget].box.w()));
+          log("Widget " + getWidgetAt(widget)->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[widget].box.w()));
 
           // Now register the new size of the widget.
           cells[widget].box.w() = width;
 
-          // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
+          // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\": "
           //           << cells[widget].box.x() << ", " << cells[widget].box.y()
           //           << ", dims: "
           //           << cells[widget].box.w() << ", " << cells[widget].box.h()
@@ -785,12 +802,12 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.first) {
                 // This column can be used to `Grow` thanks to this widget. No need to go
                 // further.
                 log(
-                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + m_items[widgetID]->getName(),
+                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + getWidgetAt(widgetID)->getName(),
                   utils::Level::Info
                 );
                 columnsToUse.insert(column);
@@ -809,7 +826,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.first) {
                 // As this widget cannot shrink, it means that even if other widgets shrink
                 // the width for this column will remain unchanged so we cannot use it. This
@@ -822,7 +839,7 @@ namespace sdl {
                 // whether the width of the column allows to shrink.
                 if (columns[column] <= cells[widgetID].box.w()) {
                   log(
-                    std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + m_items[widgetID]->getName(),
+                    std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + getWidgetAt(widgetID)->getName(),
                     utils::Level::Warning
                   );
                   canShrink = false;
@@ -868,7 +885,7 @@ namespace sdl {
               const unsigned widgetID = widgetsForColumn[widget].data->widget;
 
               if (widgets[widgetID].policy.canExpandHorizontally()) {
-                // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded horizontally" << std::endl;
+                // std::cout << "[LAY] " << getWidgetAt(widgetID)->getName() << " can be expanded horizontally" << std::endl;
                 columnsToExpand.insert(*column);
                 // No need to continue further, the column can be `Expand`ed.
                 break;
@@ -1120,7 +1137,7 @@ namespace sdl {
           // Now register the new size of the widget.
           cells[widget].box.h() = height;
 
-          // std::cout << "[LAY] Widget \"" << m_items[widget]->getName() << "\": "
+          // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\": "
           //           << cells[widget].box.x() << ", " << cells[widget].box.y()
           //           << ", dims: "
           //           << cells[widget].box.w() << ", " << cells[widget].box.h()
@@ -1216,12 +1233,12 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForRow[widget].data->widget;
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (usable.second) {
                 // This row can be used to `Grow` thanks to this widget. No need to go
                 // further.
                 log(
-                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + m_items[widgetID]->getName(),
+                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + getWidgetAt(widgetID)->getName(),
                   utils::Level::Info
                 );
                 rowsToUse.insert(row);
@@ -1240,7 +1257,7 @@ namespace sdl {
               // Compute the status of the widget for this action.
               const unsigned widgetID = widgetsForRow[widget].data->widget;
 
-              std::pair<bool, bool> usable = canBeUsedTo(m_items[widgetID]->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
               if (!usable.second) {
                 // As this widget cannot shrink, it means that even if other widgets shrink
                 // the height for this row will remain unchanged so we cannot use it. This
@@ -1253,7 +1270,7 @@ namespace sdl {
                 // whether the height of the row allows to shrink.
                 if (rows[row] <= cells[widgetID].box.h()) {
                   log(
-                    std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + m_items[widgetID]->getName(),
+                    std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + getWidgetAt(widgetID)->getName(),
                     utils::Level::Warning
                   );
                   canShrink = false;
@@ -1299,7 +1316,7 @@ namespace sdl {
               const unsigned widgetID = widgetsForRow[widget].data->widget;
 
               if (widgets[widgetID].policy.canExpandVertically()) {
-                // std::cout << "[LAY] " << m_items[widgetID]->getName() << " can be expanded vertically" << std::endl;
+                // std::cout << "[LAY] " << getWidgetAt(widgetID)->getName() << " can be expanded vertically" << std::endl;
                 rowsToExpand.insert(*row);
                 // No need to continue further, the row can be `Expand`ed.
                 break;
@@ -1379,7 +1396,7 @@ namespace sdl {
         if (locIt == m_locations.cend()) {
           error(
             std::string("Could not retrieve information for widget \"") +
-            m_items[widgetID]->getName() + "\" while updating grid layout"
+            getWidgetAt(widgetID)->getName() + "\" while updating grid layout"
           );
         }
         const ItemInfo& loc = locIt->second;
@@ -1390,7 +1407,7 @@ namespace sdl {
           totalWidth += columns[loc.x + column];
         }
 
-        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\" has "
         //           << " width " << cells[widget].box.w()
         //           << " but could span " << totalWidth
         //           << std::endl;
@@ -1402,7 +1419,7 @@ namespace sdl {
         float width = computeWidthFromPolicy(cells[widget].box, widthIncrement, widgetsInfo[widgetID]);
         cells[widget].box.w() = width;
 
-        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\": "
         //           << cells[widget].box.x() << ", " << cells[widget].box.y()
         //           << ", dims: "
         //           << cells[widget].box.w() << ", " << cells[widget].box.h()
@@ -1439,7 +1456,7 @@ namespace sdl {
         if (locIt == m_locations.cend()) {
           error(
             std::string("Could not retrieve information for widget \"") +
-            m_items[widgetID]->getName() + "\" while updating grid layout"
+            getWidgetAt(widgetID)->getName() + "\" while updating grid layout"
           );
         }
         const ItemInfo& loc = locIt->second;
@@ -1450,7 +1467,7 @@ namespace sdl {
           totalHeight += rows[loc.y + row];
         }
 
-        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\" has "
+        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\" has "
         //           << " height " << cells[widget].box.h()
         //           << " but could span " << totalHeight
         //           << std::endl;
@@ -1462,7 +1479,7 @@ namespace sdl {
         float height = computeHeightFromPolicy(cells[widget].box, heightIncrement, widgetsInfo[widgetID]);
         cells[widget].box.h() = height;
 
-        // std::cout << "[LAY] Widget \"" << m_items[widgetID]->getName() << "\": "
+        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\": "
         //           << cells[widget].box.x() << ", " << cells[widget].box.y()
         //           << ", dims: "
         //           << cells[widget].box.w() << ", " << cells[widget].box.h()
