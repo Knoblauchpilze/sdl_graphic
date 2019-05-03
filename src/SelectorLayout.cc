@@ -28,8 +28,7 @@ namespace sdl {
       // Assign the space for the active child: as this is the only
       // child, use all the available space.
       std::vector<utils::Boxf> bboxes(getItemsCount(), utils::Boxf());
-      
-      
+
       bboxes[m_activeItem] = utils::Boxf(
         getMargin().w() + componentSize.w() / 2.0f,
         getMargin().h() + componentSize.h() / 2.0f,
@@ -41,9 +40,9 @@ namespace sdl {
       assignRenderingAreas(bboxes, window);
 
       // Disable other items.
-      for (int indexItem = 0 ; indexItem < getItemsCount() ; ++indexItem) {
-        m_items[indexItem]->setVisible(static_cast<int>(indexItem) == m_activeItem);
-      }
+      std::vector<bool> visible(getItemsCount(), false);
+      visible[m_activeItem] = true;
+      assignVisibilityStatus(visible);
     }
 
   }

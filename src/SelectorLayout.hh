@@ -25,6 +25,9 @@ namespace sdl {
                 const unsigned& w,
                 const unsigned& h) override;
 
+        int
+        removeItem(core::SdlWidget* item) override;
+
         void
         setActiveItem(const std::string& name);
 
