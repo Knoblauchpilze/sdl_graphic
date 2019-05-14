@@ -101,7 +101,7 @@ namespace sdl {
 
         // We have tried to apply the `defaultBox` to all the widgets. This might have fail
         // in some cases (for example due to a `Fixed` size policy for a widget) and thus
-        // we might end up with a total size for all the widget different from the one desired
+        // we might end up with a total size for all the widgets different from the one desired
         // and expected when the `defaultBox` has been computed.
         // In order to fix things, we must compute the deviation from the expected size and
         // try to allocate the remaining space to other widgets (or remove the missing space
@@ -177,7 +177,7 @@ namespace sdl {
                     << widgetsToUse.size() << " which can extend"
                     << std::endl;
           // Check whether we could select at least one widget to expand: if this is not the
-          // case we can proceed to extend the widget with only a `Grow` flag.
+          // case we can proceed to extend the widgets with only a `Grow` flag.
           if (!widgetsToExpand.empty()) {
             widgetsToUse.swap(widgetsToExpand);
           }
@@ -254,8 +254,7 @@ namespace sdl {
     }
 
     utils::Sizef
-    LinearLayout::computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const
-    {
+    LinearLayout::computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const {
       float flowingSize = 0.0f;
       float perpendicularSize = 0.0f;
 
