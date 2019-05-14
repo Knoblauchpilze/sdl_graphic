@@ -42,14 +42,14 @@ namespace sdl {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
         return utils::Sizef(
-          area.w() / widgetsCount,
+          allocateFairly(area.w(), widgetsCount),
           area.h()
         );
       }
       else if (getDirection() == Direction::Vertical) {
         return utils::Sizef(
           area.w(),
-          area.h() / widgetsCount
+          allocateFairly(area.h(), widgetsCount)
         );
       }
       error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");
