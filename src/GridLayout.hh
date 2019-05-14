@@ -131,10 +131,6 @@ namespace sdl {
         void
         resetGridInfo();
 
-        float
-        allocateFairly(const float& space,
-                       const unsigned& count) const noexcept;
-
         std::vector<CellInfo>
         computeCellsInfo() const noexcept;
 
