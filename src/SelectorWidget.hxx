@@ -39,9 +39,13 @@ namespace sdl {
     SelectorWidget::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
       // We need to switch the active widget if the internal `m_switchOnLeftClick`
       // property is active. And of course if at least two widgets are inserted in
-      // this obejct: 0 widget not interesting for obvious reasons but even one
+      // this obejct: 0 widget is not interesting for obvious reasons but even one
       // widget is not enough to perform a switch.
-      if (switchOnClick() && getChildrenCount() > 1u) {
+      // In addition to that we have to verify that the location of the click is
+      // inside of this widget.
+
+      // Determine whether the position of the click is inside the widget.
+      if (isInsideWidget(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1u) {
         // Update the active widget.
         setActiveWidget((getLayout().getActiveItemId() + 1) % getChildrenCount());
       }
