@@ -13,7 +13,7 @@ namespace sdl {
                            const unsigned& rows,
                            const float& margin,
                            core::SdlWidget* widget):
-      core::Layout(widget, margin),
+      core::Layout(widget, margin, false),
       m_columns(columns),
       m_rows(rows),
 
@@ -262,6 +262,9 @@ namespace sdl {
           m_locations[newID] = oldWidget->second;
         }
       }
+
+      // Call parent method.
+      core::Layout::invalidate();
     }
 
     std::vector<GridLayout::CellInfo>
