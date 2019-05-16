@@ -71,7 +71,7 @@ namespace sdl {
 
       // Loop until no more widgets can be used to adjust the space needed or all the
       // available space has been used up.
-      // TODO: Handle cases where the widgets are too large to fit into the widget ?
+      // TODO: Handle cases where the widgets are too large to fit into the layout ?
       while (!widgetsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each widget still
