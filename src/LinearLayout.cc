@@ -136,11 +136,7 @@ namespace sdl {
           if ((usable.first && getDirection() == Direction::Horizontal) ||
               (usable.second && getDirection() == Direction::Vertical))
           {
-            std::cout << "[LAY] " << getWidgetAt(index)->getName() << " can be used to "
-                      << std::to_string(static_cast<int>(action.getHorizontalPolicy()))
-                      << " and "
-                      << std::to_string(static_cast<int>(action.getVerticalPolicy()))
-                      << std::endl;
+            log("Widget " + getWidgetAt(index)->getName() + " can be used to " + action.toString());
             widgetsToUse.insert(index);
           }
         }
