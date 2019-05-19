@@ -253,7 +253,7 @@ namespace sdl {
         // From there, we have two main cases: either the widget still exists in the layout,
         // or it doesn't. This is defined by the fact that the `newID` is positive or negative.
         // If the widget still exists, we need to update the information contained in the
-        // locations map so that further update of the layout yields correct result. If the
+        // locations map so that further update of the layout yields correct results. If the
         // widget does not exist anymore in the layout, we have to ignore this widget and not
         // add it to the new locations map.
 
