@@ -60,7 +60,7 @@ namespace sdl {
         void
         invalidate() noexcept override;
 
-      private:
+      protected:
 
         // Convenience record to hold the position of items in the layout.
         struct ItemInfo {
@@ -134,8 +134,9 @@ namespace sdl {
         std::vector<CellInfo>
         computeCellsInfo() const noexcept;
 
-        void
-        adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept;
+        virtual void
+        adjustWidgetToConstraints(const utils::Sizef& window,
+                                  std::vector<WidgetInfo>& widgets) const noexcept;
 
         utils::Sizef
         computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept;

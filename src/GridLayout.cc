@@ -13,7 +13,7 @@ namespace sdl {
                            const unsigned& rows,
                            const float& margin,
                            core::SdlWidget* widget):
-      core::Layout(widget, margin, false),
+      core::Layout(widget, margin, true),
       m_columns(columns),
       m_rows(rows),
 
@@ -109,7 +109,7 @@ namespace sdl {
       //
       // We handle these considerations before starting the optimization process as it
       // will directly impact it.
-      adjustWidgetToConstraints(widgetsInfo);
+      adjustWidgetToConstraints(internalSize, widgetsInfo);
 
       log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
       log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
@@ -313,7 +313,9 @@ namespace sdl {
     }
 
     void
-    GridLayout::adjustWidgetToConstraints(std::vector<WidgetInfo>& widgets) const noexcept {
+    GridLayout::adjustWidgetToConstraints(const utils::Sizef& /*window*/,
+                                          std::vector<WidgetInfo>& widgets) const noexcept
+    {
       // The aim of this function is to provide for the minimum column width and minimum
       // row height adjustments needed to override the properties of the widgets.
       // This is not as simple as it is because we cannot just override the minimum size
