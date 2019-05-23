@@ -20,8 +20,10 @@ namespace std {
 namespace sdl {
   namespace graphic {
 
+    inline
     bool
-    operator==(const sdl::graphic::GridLayout::WidgetDataWrapper& lhs, const sdl::graphic::GridLayout::WidgetDataWrapper& rhs) noexcept
+    operator==(const sdl::graphic::GridLayout::WidgetDataWrapper& lhs,
+               const sdl::graphic::GridLayout::WidgetDataWrapper& rhs) noexcept
     {
       return lhs.id == rhs.id;
     }
