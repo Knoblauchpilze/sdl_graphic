@@ -14,7 +14,8 @@ namespace sdl {
         GridLayout(const unsigned& columns,
                    const unsigned& rows,
                    const float& margin = 0.0f,
-                   core::SdlWidget* widget = nullptr);
+                   core::SdlWidget* widget = nullptr,
+                   const bool rootLayout = false);
 
         virtual ~GridLayout();
 
@@ -55,10 +56,10 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const utils::Boxf& area) override;
+        computeGeometry(const utils::Boxf& area) override;
 
         void
-        invalidate() noexcept override;
+        makeGeometryDirty() override;
 
       protected:
 

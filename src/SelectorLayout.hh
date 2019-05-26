@@ -43,7 +43,7 @@ namespace sdl {
       protected:
 
         void
-        updatePrivate(const utils::Boxf& window) override;
+        computeGeometry(const utils::Boxf& window) override;
 
         void
         handleItemInsertion(core::SdlWidget* item);

@@ -21,7 +21,7 @@ namespace sdl {
     LinearLayout::~LinearLayout() {}
 
     void
-    LinearLayout::updatePrivate(const utils::Boxf& window) {
+    LinearLayout::computeGeometry(const utils::Boxf& window) {
       // The `LinearLayout` allows to arrange widgets using a flow along a
       // specified axis. The default behavior is to provide an equal allocation
       // of the available space to all widgets, but also to take into account

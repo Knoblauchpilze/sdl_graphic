@@ -12,8 +12,9 @@ namespace sdl {
     GridLayout::GridLayout(const unsigned& columns,
                            const unsigned& rows,
                            const float& margin,
-                           core::SdlWidget* widget):
-      core::Layout(widget, margin, true),
+                           core::SdlWidget* widget,
+                           const bool rootLayout):
+      core::Layout(widget, margin, true, std::string("grid_layout"), rootLayout),
       m_columns(columns),
       m_rows(rows),
 
@@ -29,7 +30,7 @@ namespace sdl {
     GridLayout::~GridLayout() {}
 
     void
-    GridLayout::updatePrivate(const utils::Boxf& window) {
+    GridLayout::computeGeometry(const utils::Boxf& window) {
       // The `GridLayout` allows to arrange widgets using across a virtual
       // grid composed of `m_columns` columns and `m_rows` rows. The default
       // behavior is to provide an equal allocation of the available space
@@ -232,7 +233,7 @@ namespace sdl {
     }
 
     void
-    GridLayout::invalidate() noexcept {
+    GridLayout::makeGeometryDirty() {
       // We need to update the local information about widgets. This means basically updating the
       // `m_locations` attribute. In order to do so, we need to rely on some invariant properties
       // of the widget which have been updated. We will use the address in order to maintain some
@@ -264,7 +265,7 @@ namespace sdl {
       }
 
       // Call parent method.
-      core::Layout::invalidate();
+      core::Layout::makeGeometryDirty();
     }
 
     std::vector<GridLayout::CellInfo>
