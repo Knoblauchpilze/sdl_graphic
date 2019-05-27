@@ -1,10 +1,9 @@
 
 # include "GridLayout.hh"
 
+# include <iomanip>
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
-
-# include <iomanip>
 
 namespace sdl {
   namespace graphic {
