@@ -30,15 +30,15 @@ namespace sdl {
 
     void
     GridLayout::computeGeometry(const utils::Boxf& window) {
-      // The `GridLayout` allows to arrange widgets using across a virtual
+      // The `GridLayout` allows to arrange items using across a virtual
       // grid composed of `m_columns` columns and `m_rows` rows. The default
       // behavior is to provide an equal allocation of the available space
-      // to all the widgets, but also to take into account the provided
-      // information about widgets' preferred size and bounds.
+      // to all the items, but also to take into account the provided
+      // information about items' preferred size and bounds.
       //
       // The process includes adjusting rows and columns by validating that
       // the final dimensions do correspond to the criteria applied to all
-      // the widgets registered for a single column/row.
+      // the items registered for a single column/row.
 
       // First, we need to compute the available size for this layout. We need
       // to take into account margins.
@@ -47,162 +47,162 @@ namespace sdl {
       // Compute default columns and rows dimensions.
       std::vector<CellInfo> cells = computeCellsInfo();
 
-      // Copy the current size of widgets so that we can work with it without
+      // Copy the current size of items so that we can work with it without
       // requesting constantly information or setting information multiple times.
-      std::vector<WidgetInfo> widgetsInfo = computeWidgetsInfo();
+      std::vector<WidgetInfo> itemsInfo = computeItemsInfo();
 
       // Once this is done, we can start applying specific behavior to this layout.
       // The first thing we want to do is handling the minimum column width and
       // minimum row height attributes. These are specified on a per column/row
-      // basis and should override the minimum hint provided by the widgets if it
+      // basis and should override the minimum hint provided by the items if it
       // is allowed by the constraints.
-      // Typically let's figure some widgets with the following properties:
+      // Typically let's figure some items with the following properties:
       //
-      // Widget 1:
+      // Item 1:
       //  Min  : [100, 100]
       //  Hint : [150, 150]
       //  Max  : [200, 200]
       //
-      // Widget 2:
+      // Item 2:
       //  Min  : [300, 100]
       //  Hint : [undefined]
       //  Max  : [undefined]
       //
-      // Widget 3:
+      // Item 3:
       //  Min  : [110, 110]
       //  Hint : [120, 120]
       //  Max  : [150, 150]
       //
-      // Widget 4:
+      // Item 4:
       //  Min  : [50, 50]
       //  Hint : [60, 60]
       //  Max  : [90, 90]
       //
-      // All three widgets are supposed to land in a column with a minimum column
+      // All three items are supposed to land in a column with a minimum column
       // width of 130.
-      // Let's also assume that the total size of the widget allows to fit the widgets
+      // Let's also assume that the total size of the item allows to fit the items
       // without problem. We will not details the optimization process and consider that
       // the first assigned size is the final one.
       //
-      // The first widget will see its minimum size raised (please not that it will only
+      // The first item will see its minimum size raised (please not that it will only
       // affect the computations inside this layout and not the actual minimum size of
-      // this widget) to [130, 130] and be assigned its hint anyway (of [150, 150]).
+      // this item) to [130, 130] and be assigned its hint anyway (of [150, 150]).
       //
-      // The second widget already has a minimum size larger than the minimum column
+      // The second item already has a minimum size larger than the minimum column
       // width so nothing will happen and it will be assigned a size based on the layout
       // preferred size (as no hint is provided).
       //
-      // The third widget has a minimum size smaller than the minimum column size so the
+      // The third item has a minimum size smaller than the minimum column size so the
       // layout will try to raise the minimum size to [130, 130]. From there, we see that
       // it conflicts with the provided hint so there's too main case:
-      // 1) The widget's policy does allow to grow in which case the minimum size and the
+      // 1) The item's policy does allow to grow in which case the minimum size and the
       //    hint will be set to [130, 130].
-      // 2) The widget's policy does not allow to grow (which would be weird considered
-      //    that the widget has a maximum size) in which case the minimum size will be
+      // 2) The item's policy does not allow to grow (which would be weird considered
+      //    that the item has a maximum size) in which case the minimum size will be
       //    raised to [120, 120].
-      //    The rest of the widgets though will still try to use [130, 130].
+      //    The rest of the items though will still try to use [130, 130].
       //
-      // The fourth widget has a maximum size smaller than the provided minimum column
-      // width. The logic will be the same as for the third widget, except that the
+      // The fourth item has a maximum size smaller than the provided minimum column
+      // width. The logic will be the same as for the third item, except that the
       // maximum size will constraint the application of the minimum column width and
       // thus the maximum reachable size will be [90, 90] (if the policy allows to grow).
       //
       // We handle these considerations before starting the optimization process as it
       // will directly impact it.
-      adjustWidgetToConstraints(internalSize, widgetsInfo);
+      adjustItemToConstraints(internalSize, itemsInfo);
 
       log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
       log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
 
-      // We now have a working set of dimensions which we can begin to apply to widgets
+      // We now have a working set of dimensions which we can begin to apply to items
       // in order to build the layout.
       // The specification of the dimensions is divided into two main phases: first the
       // determination of a base dimension for each column and row based on single-cell
-      // widget, and then an adjustment phase where multi-cells widgets are placed.
+      // item, and then an adjustment phase where multi-cells items are placed.
       // In the first phase, the process is divided into two parts: the adjustment of
       // rows and columns is indeed completely independent and can be processed with no
       // particular ordering.
       // This allows for simpler algorithms.
       // In each case, the process is similar: we start by assuming an ideal size of the
-      // widget for each column/row and try to work with this. In case some widget cannot
+      // item for each column/row and try to work with this. In case some item cannot
       // take full advantage of this size (because their constraints forbid it) we
-      // allocate the remaining space between remaining widgets until the achieved size
+      // allocate the remaining space between remaining items until the achieved size
       // is close enough from the target size.
-      // If the widgets' constraints do not allow for a perfect repartition, we stop the
+      // If the items' constraints do not allow for a perfect repartition, we stop the
       // process and produce the best possible solution given the constraints.
-      // Once all single-cell widgets have been laid out, we can try to further adjust
-      // the resulting distribution to multi-cell widgets. At this point, the best case
-      // scenario is that the widgets will take advantage of the computed repartition
+      // Once all single-cell items have been laid out, we can try to further adjust
+      // the resulting distribution to multi-cell items. At this point, the best case
+      // scenario is that the items will take advantage of the computed repartition
       // and that no other adjustment will occur. This is rarely the case though and
-      // we might have to redo an adjustment for single-cell widgets afterwards.
+      // we might have to redo an adjustment for single-cell items afterwards.
 
       // Proceed to adjust the columns' width.
       log(std::string("Adjusting columns width"), utils::Level::Notice);
-      std::vector<float> columnsDims = adjustColumnsWidth(internalSize, widgetsInfo, cells);
+      std::vector<float> columnsDims = adjustColumnsWidth(internalSize, itemsInfo, cells);
 
       // Adjust rows' height.
       log(std::string("Adjusting rows height"), utils::Level::Notice);
-      std::vector<float> rowsDims = adjustRowHeight(internalSize, widgetsInfo, cells);
+      std::vector<float> rowsDims = adjustRowHeight(internalSize, itemsInfo, cells);
 
-      // Adjust multi-cell widget to make them span the columns/rows they are spanning.
-      // When shrinking the widget we might indeed shrink too much some widgets which
+      // Adjust multi-cell item to make them span the columns/rows they are spanning.
+      // When shrinking the item we might indeed shrink too much some items which
       // creates some weird distribution where a multi-cell is smaller than a single cell
       // just because it was able to get one more shrinking iteration.
       log(std::string("Adjusting multi-cell width"), utils::Level::Notice);
-      adjustMultiCellWidth(columnsDims, widgetsInfo, cells);
+      adjustMultiCellWidth(columnsDims, itemsInfo, cells);
 
       log(std::string("Adjusting multi-cell height"), utils::Level::Notice);
-      adjustMultiCellHeight(rowsDims, widgetsInfo, cells);
+      adjustMultiCellHeight(rowsDims, itemsInfo, cells);
 
-      // All widgets have suited dimensions, we can now handle the position of each
-      // widget. We basically just move each widget based on the dimensions of the
-      // rows and columns to reach the position of a specified widget.
+      // All items have suited dimensions, we can now handle the position of each
+      // item. We basically just move each item based on the dimensions of the
+      // rows and columns to reach the position of a specified item.
       std::vector<utils::Boxf> outputBoxes(getItemsCount());
 
       for (int index = 0u ; index < getItemsCount() ; ++index) {
-        // Position the widget based on the dimensions of the rows and columns
-        // until the position of the widget.
+        // Position the item based on the dimensions of the rows and columns
+        // until the position of the item.
         // We maintained a vector to keep track of the dimensions of each row
         // and column during the adjustment process so that we can use it now
         // to assign a position to the boxes.
         // In addition to this mechanism, we should handle some kind of
-        // centering to allow widgets with sizes smaller than the provided
+        // centering to allow items with sizes smaller than the provided
         // layout's dimensions to still be nicely displayed in the center
         // of the layout.
         // To handle this case we check whether the dimensions of the size
-        // of the widget is smaller than the dimension stored in `internalSize`
+        // of the item is smaller than the dimension stored in `internalSize`
         // in which case we can center it.
         // The centering takes place according to both the dimensions of the
-        // rows and columns spanned by the widget.
+        // rows and columns spanned by the item.
 
         // Retrieve the item's location.
         const LocationsMap::const_iterator loc = m_locations.find(index);
         if (loc == m_locations.end()) {
           error(
-            std::string("Could not retrieve information for widget \"") +
-            getWidgetAt(index)->getName() + "\" while updating grid layout"
+            std::string("Could not retrieve information for item \"") +
+            getItemAt(index)->getName() + "\" while updating grid layout"
           );
         }
 
-        float xWidget = getMargin().w();
-        float yWidget = getMargin().h();
+        float xItem = getMargin().w();
+        float yItem = getMargin().h();
 
         // Compute the offset to apply to reach the desired column based on the
         // item's location.
         for (unsigned column = 0u ; column < loc->second.x ; ++column) {
-          xWidget += columnsDims[column];
+          xItem += columnsDims[column];
         }
         for (unsigned row = 0u ; row < loc->second.y ; ++row) {
-          yWidget += rowsDims[row];
+          yItem += rowsDims[row];
         }
 
         // Center the position (because `Boxf` are centered).
-        xWidget += (cells[index].box.w() / 2.0f);
-        yWidget += (cells[index].box.h() / 2.0f);
+        xItem += (cells[index].box.w() / 2.0f);
+        yItem += (cells[index].box.h() / 2.0f);
 
-        // Handle the centering of the widget in case it is smaller than the
+        // Handle the centering of the item in case it is smaller than the
         // desired width or height.
-        // To do so, compute the size the widget _should_ have based on its
+        // To do so, compute the size the item _should_ have based on its
         // columns/rows span.
         float expectedWidth = 0.0f;
         float expectedHeight = 0.0f;
@@ -215,51 +215,51 @@ namespace sdl {
         }
 
         if (cells[index].box.w() < expectedWidth) {
-          xWidget += ((expectedWidth - cells[index].box.w()) / 2.0f);
+          xItem += ((expectedWidth - cells[index].box.w()) / 2.0f);
         }
         if (cells[index].box.h() < expectedHeight) {
-          yWidget += ((expectedHeight - cells[index].box.h()) / 2.0f);
+          yItem += ((expectedHeight - cells[index].box.h()) / 2.0f);
         }
 
         outputBoxes[index] = utils::Boxf(
-          xWidget, yWidget,
+          xItem, yItem,
           cells[index].box.w(), cells[index].box.h()
         );
       }
 
-      // Assign the rendering area to widgets.
+      // Assign the rendering area to items.
       assignRenderingAreas(outputBoxes, window);
     }
 
     void
     GridLayout::makeGeometryDirty() {
-      // We need to update the local information about widgets. This means basically updating the
+      // We need to update the local information about items. This means basically updating the
       // `m_locations` attribute. In order to do so, we need to rely on some invariant properties
-      // of the widget which have been updated. We will use the address in order to maintain some
-      // consistency between widgets.
+      // of the item which have been updated. We will use the address in order to maintain some
+      // consistency between items.
 
       // So first copy the internal locations table so that we can build a new one right away.
       LocationsMap old;
       old.swap(m_locations);
 
       // Traverse the old locations and try to build the new table.
-      for (LocationsMap::const_iterator oldWidget = old.cbegin() ;
-           oldWidget != old.cend() ;
-           ++oldWidget)
+      for (LocationsMap::const_iterator oldItem = old.cbegin() ;
+           oldItem != old.cend() ;
+           ++oldItem)
       {
-        // Try to find the index of this widget.
-        const int newID = getIndexOf(oldWidget->second.widget);
+        // Try to find the index of this item.
+        const int newID = getIndexOf(oldItem->second.item);
 
-        // From there, we have two main cases: either the widget still exists in the layout,
+        // From there, we have two main cases: either the item still exists in the layout,
         // or it doesn't. This is defined by the fact that the `newID` is positive or negative.
-        // If the widget still exists, we need to update the information contained in the
+        // If the item still exists, we need to update the information contained in the
         // locations map so that further update of the layout yields correct results. If the
-        // widget does not exist anymore in the layout, we have to ignore this widget and not
+        // item does not exist anymore in the layout, we have to ignore this item and not
         // add it to the new locations map.
 
-        // Insert the widget with its new information only if it still exists in the layout.
+        // Insert the item with its new information only if it still exists in the layout.
         if (isValidIndex(newID)) {
-          m_locations[newID] = oldWidget->second;
+          m_locations[newID] = oldItem->second;
         }
       }
 
@@ -270,12 +270,12 @@ namespace sdl {
     std::vector<GridLayout::CellInfo>
     GridLayout::computeCellsInfo() const noexcept {
       // Allocate vector where all cells are by default empty (no stretch,
-      // no dimensions and no associated widget).
-      // Note that we create as many cells as widgets, and not a single cell
+      // no dimensions and no associated item).
+      // Note that we create as many cells as items, and not a single cell
       // per element of the global `m_columns * m_rows` cells defined by the
       // layout.
       // This does not allow exhaustive traversal of all the cells of the
-      // layout but it allows for efficient mapping between a widget ID and
+      // layout but it allows for efficient mapping between a item ID and
       // the corresponding cell information.
       std::vector<CellInfo> cells(
         getItemsCount(),
@@ -288,14 +288,14 @@ namespace sdl {
         }
       );
 
-      // Complete the information with widgets' data: if a cell contains
-      // a widget, fill in the corresponding stretches and associate it
-      // with the widget's identifier. Note that a cell is said to `contain`
-      // a widget as long as it is in the area used by the widget. This
-      // means that mult-cell widgets will be assigned several entries in
+      // Complete the information with items' data: if a cell contains
+      // a item, fill in the corresponding stretches and associate it
+      // with the item's identifier. Note that a cell is said to `contain`
+      // a item as long as it is in the area used by the item. This
+      // means that mult-cell items will be assigned several entries in
       // the vector produced by this function.
 
-      // Traverse each widget's location information and update the relevant
+      // Traverse each item's location information and update the relevant
       // information.
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
            item != m_locations.cend() ;
@@ -305,7 +305,7 @@ namespace sdl {
         cells[item->first].vStretch = m_rowsInfo[item->second.y].stretch;
         cells[item->first].box = utils::Boxf();
         cells[item->first].multiCell = (item->second.w > 1) || (item->second.h > 1);
-        cells[item->first].widget = item->first;
+        cells[item->first].item = item->first;
       }
 
       // Return the built-in vector.
@@ -313,30 +313,30 @@ namespace sdl {
     }
 
     void
-    GridLayout::adjustWidgetToConstraints(const utils::Sizef& /*window*/,
-                                          std::vector<WidgetInfo>& widgets) const noexcept
+    GridLayout::adjustItemToConstraints(const utils::Sizef& /*window*/,
+                                        std::vector<WidgetInfo>& items) const noexcept
     {
       // The aim of this function is to provide for the minimum column width and minimum
-      // row height adjustments needed to override the properties of the widgets.
+      // row height adjustments needed to override the properties of the items.
       // This is not as simple as it is because we cannot just override the minimum size
-      // of all widgets with the provided size based on their columns and rows: indeed
+      // of all items with the provided size based on their columns and rows: indeed
       // this might conflict with the size hint or maximum size provided.
       // We can only grow it as much as possible without overriding other attributes.
 
-      // Traverse each widget and update the relevant constraints.
-      for (unsigned widget = 0u ; widget < widgets.size() ; ++widget) {
-        // Retrieve the location information for this widget.
-        const LocationsMap::const_iterator info = m_locations.find(widget);
+      // Traverse each item and update the relevant constraints.
+      for (unsigned item = 0u ; item < items.size() ; ++item) {
+        // Retrieve the location information for this item.
+        const LocationsMap::const_iterator info = m_locations.find(item);
         if (info == m_locations.cend()) {
           error(
-            std::string("Could not adjust widget ") + std::to_string(widget) + " to minimum constraints",
-            std::string("Inexisting widget")
+            std::string("Could not adjust item ") + std::to_string(item) + " to minimum constraints",
+            std::string("Inexisting item")
           );
         }
 
         const ItemInfo& loc = info->second;
 
-        // Compute the minimum dimensions of this widget based on its location.
+        // Compute the minimum dimensions of this item based on its location.
         utils::Sizef desiredMin;
 
         for (unsigned row = loc.y ; row < loc.y + loc.h ; ++row) {
@@ -346,35 +346,35 @@ namespace sdl {
           desiredMin.h() += m_rowsInfo[row].min;
         }
 
-        // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\" "
+        // std::cout << "[LAY] Item \"" << getItemAt(item)->getName() << "\" "
         //           << "at " << loc.x << "x" << loc.y
         //           << " has min " << desiredMin.toString()
         //           << " while internal are: "
-        //           << "min: " << widgets[widget].min.w() << "x" << widgets[widget].min.h() << " "
-        //           << "hint: " << widgets[widget].hint.w() << "x" << widgets[widget].hint.h() << " (valid: " << widgets[widget].hint.isValid() << ")"
-        //           << "max: " << widgets[widget].max.w() << "x" << widgets[widget].max.h()
+        //           << "min: " << items[item].min.w() << "x" << items[item].min.h() << " "
+        //           << "hint: " << items[item].hint.w() << "x" << items[item].hint.h() << " (valid: " << items[item].hint.isValid() << ")"
+        //           << "max: " << items[item].max.w() << "x" << items[item].max.h()
         //           << std::endl;
 
-        // We computed the minimum size for this widget from the internal constraints. We have to
-        // check whether this conflicts with some property of the widget. The best case scenario
+        // We computed the minimum size for this item from the internal constraints. We have to
+        // check whether this conflicts with some property of the item. The best case scenario
         // is that this size is already smaller than the provided minimum size in which case there's
         // nothing to be done.
-        // Otherwise, we want to check whether we can increase the minimum size of the widget
+        // Otherwise, we want to check whether we can increase the minimum size of the item
         // without breaking other constraints (like size hint or maximum size).
         // Whether we should consider the size hint (if provided) or the maximum size is based on the
-        // policy for this widget: however we cannot really assume anything except to use the size
-        // hint. Modifying this behavior would require to search for other widgets and check whether
-        // some other widgets can expand. This does not even include considering whether the expanding
+        // policy for this item: however we cannot really assume anything except to use the size
+        // hint. Modifying this behavior would require to search for other items and check whether
+        // some other items can expand. This does not even include considering whether the expanding
         // process would even occur in the first place because we have no idea of the total size of
-        // the widgets. So let's keep this simple right now and just focus on whether the size hint
+        // the items. So let's keep this simple right now and just focus on whether the size hint
         // is provided or not.
         // As usual we will process separately width and height to keep it simple.
-        utils::Sizef& min = widgets[widget].min;
-        const utils::Sizef& hint = widgets[widget].hint;
-        const utils::Sizef& max = widgets[widget].max;
-        const core::SizePolicy& policy = widgets[widget].policy;
+        utils::Sizef& min = items[item].min;
+        const utils::Sizef& hint = items[item].hint;
+        const utils::Sizef& max = items[item].max;
+        const core::SizePolicy& policy = items[item].policy;
 
-        // Assume we can assign the desired minimum width for this widget.
+        // Assume we can assign the desired minimum width for this item.
         float adjustedMinWidth = desiredMin.w();
 
         // Check whether it conflicts with the provided minimum size if any.
@@ -433,7 +433,7 @@ namespace sdl {
           adjustedMinWidth = max.w();
         }
 
-        // Now proceed to adjustment for the height of the widget: similar reasoning can be
+        // Now proceed to adjustment for the height of the item: similar reasoning can be
         // applied to width so we will not duplicate information here.
         float adjustedMinHeight = desiredMin.h();
 
@@ -461,7 +461,7 @@ namespace sdl {
           adjustedMinHeight = max.h();
         }
 
-        // Assign the new min size for this widget.
+        // Assign the new min size for this item.
         min.w() = adjustedMinWidth;
         min.h() = adjustedMinHeight;
       }
@@ -469,30 +469,30 @@ namespace sdl {
     }
 
     utils::Sizef
-    GridLayout::computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept {
+    GridLayout::computeAchievedSize(const std::vector<ItemDataWrapper>& elements) const noexcept {
       // Assume empty dimensions.
       utils::Sizef achieved;
 
       // Traverse the input set of elements.
       for (unsigned element = 0u ; element < elements.size() ; ++element) {
-        // Here, we want to determine the achieved size for the widget based
+        // Here, we want to determine the achieved size for the item based
         // on the input `elements`. The input vector contains data for each
-        // widget registered in a single column/row. This data may be related
-        // to either a single-cell widget or a multi-cell widget.
-        // In the first scenario, we have all the information about the widget
+        // item registered in a single column/row. This data may be related
+        // to either a single-cell item or a multi-cell item.
+        // In the first scenario, we have all the information about the item
         // available right away so there's no real tricks to hide some width
-        // or height of a widget: we can safely add the size of the widget to
+        // or height of a item: we can safely add the size of the item to
         // the achieved size.
-        // The case o fmulti-cell widget is a bit trickier: even if we can
-        // compute the *total* size of a widget, how can we easily determine
+        // The case o fmulti-cell item is a bit trickier: even if we can
+        // compute the *total* size of a item, how can we easily determine
         // which size goes in which column/row ?
         // To solve this problem we added an information directly in the
-        // `WidgetData` structure which describes a size for each particular
-        // widget's data element. The optimization process ensures that the
-        // sum of all individual widget's data size is consistent with the
-        // total size of the widget and this allows us to easily distribute
-        // the total size among columns/rows spanned by the widget: it is just
-        // the available value in each widget's data element.
+        // `ItemData` structure which describes a size for each particular
+        // item's data element. The optimization process ensures that the
+        // sum of all individual item's data size is consistent with the
+        // total size of the item and this allows us to easily distribute
+        // the total size among columns/rows spanned by the item: it is just
+        // the available value in each item's data element.
         // The interest of this system is that it supplants completely the
         // box system at least for the achieved size purpose as all the needed
         // information is directly available.
@@ -511,53 +511,53 @@ namespace sdl {
 
     std::vector<float>
     GridLayout::adjustColumnsWidth(const utils::Sizef& window,
-                                   const std::vector<WidgetInfo>& widgets,
+                                   const std::vector<WidgetInfo>& items,
                                    std::vector<CellInfo>& cells) const
     {
       // This method needs to combine several constraints in order to converge to final
       // columns' dimensions:
       // 1) The user might have specified `minimum column width` through the dedicated
       //    handler.
-      // 2) Widgets might have policies describing minimum or maximum sizes.
-      // 3) Several widgets in a single column might have conflicting expectations.
+      // 2) items might have policies describing minimum or maximum sizes.
+      // 3) Several items in a single column might have conflicting expectations.
       //
       // The aim is thus to combine all these constraints in order to produce the final
       // columns' dimensions vector.
-      // Note that only widget spanning a single column are considered in this function
+      // Note that only item spanning a single column are considered in this function
       // so that we get simpler algorithms.
-      // Multi-cells widgets will be considered in a second time and will only further
+      // Multi-cells items will be considered in a second time and will only further
       // adapt the dimensions produced by this function.
 
       // Start by creating the return value: in addition to the individual width for
-      // each widget this function return a global columns' dimensions vector where
+      // each item this function return a global columns' dimensions vector where
       // the maximum width for each column is registered. This allows to easily
-      // iterate over columns without needing to extract the largest widget in each
+      // iterate over columns without needing to extract the largest item in each
       // one.
-      std::vector<float> columns(widgets.size(), 0.0f);
+      std::vector<float> columns(items.size(), 0.0f);
 
-      // Now, we need to retrieve for each column the list of widgets related to it:
+      // Now, we need to retrieve for each column the list of items related to it:
       // this allows for quick access when iterating to determine columns' dimensions.
-      // We also want to provide easy access to multi-cell widget by inserting each
+      // We also want to provide easy access to multi-cell item by inserting each
       // one of them in all the columns where it appear.
       // For that to happen we want to first initialize this map with empty vectors
       // and then dynamically populate it.
 
-      std::unordered_map<unsigned, std::vector<WidgetDataWrapper>> widgetsForColumns;
+      std::unordered_map<unsigned, std::vector<ItemDataWrapper>> itemsForColumns;
       for (unsigned column = 0u ; column < m_columns ; ++column) {
-        widgetsForColumns[column] = std::vector<WidgetDataWrapper>();
+        itemsForColumns[column] = std::vector<ItemDataWrapper>();
       }
 
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
             item != m_locations.cend() ;
             ++item)
       {
-        // Insert the widget in each column spanned by it.
+        // Insert the item in each column spanned by it.
         const ItemInfo& info = item->second;
 
         for (unsigned column = 0u ; column < info.w ; ++column) {
-          // Create the widget's data.
-          WidgetDataShPtr data = std::make_shared<WidgetData>(
-            WidgetData{
+          // Create the item's data.
+          ItemDataShPtr data = std::make_shared<ItemData>(
+            ItemData{
               item->first,
               info.w > 1,
               column == 0u,
@@ -568,8 +568,8 @@ namespace sdl {
           );
 
           // Insert a wrapper in the corresponding vector.
-          widgetsForColumns[info.x + column].push_back(
-            WidgetDataWrapper{
+          itemsForColumns[info.x + column].push_back(
+            ItemDataWrapper{
               data->id,
               data
             }
@@ -580,20 +580,20 @@ namespace sdl {
       // There's a first part of the optimization process which should be handled
       // right away: the user is allowed to specify a minimum column width for any
       // column of the layout.
-      // We can handle the columns where there's at least a widget later on (it's
+      // We can handle the columns where there's at least a item later on (it's
       // actually part of the optimization process) but here we should handle the
-      // columns which do not contain any widgets. As no widget is there to take
+      // columns which do not contain any items. As no item is there to take
       // space such columns will be ignored by the optimization process.
       // In order to handle these nonetheless, we figured that the best way is to
       // simply subtract the required width from the available total `window`: this
       // makes sense as it would have been the width applied anyway because no
-      // widget is there to modify it so it would have been accepted right away.
+      // item is there to modify it so it would have been accepted right away.
 
       float widthForEmptyColumns = 0.0f;
 
-      // Traverse the `widgetsForColumns` map and search for columns with no widgets.
-      for (std::unordered_map<unsigned, std::vector<WidgetDataWrapper>>::const_iterator column = widgetsForColumns.cbegin() ;
-           column != widgetsForColumns.cend() ;
+      // Traverse the `itemsForColumns` map and search for columns with no items.
+      for (std::unordered_map<unsigned, std::vector<ItemDataWrapper>>::const_iterator column = itemsForColumns.cbegin() ;
+           column != itemsForColumns.cend() ;
            ++column)
       {
         // Search empty columns.
@@ -613,7 +613,7 @@ namespace sdl {
       // We start with an available space budget described by the value of `window.w()`.
       // We will first try to allocate fairly this space among all columns. Each column
       // will perform checks to determine whether the proposed dimension is valid based
-      // on the criteria of each widget registered for this column.
+      // on the criteria of each item registered for this column.
       // If this is the case the dimension will be adopted. If not, the dimension will
       // be adapted so that it fits all the constraingts for this column.
       // Once all the columns have been processed, we start all over again: the remaining
@@ -623,114 +623,114 @@ namespace sdl {
       // or there's no more columns to use to adjust the size.
       // In order to make things easier, we use a little trick here. Indeed even though
       // we're reasoning with columns here, the individual unit inside a column remains
-      // a widget. Thus, when an adjustment should be performed for a column, it is
-      // ultimately a widget which should be adjusted. Also, during the process columns
+      // a item. Thus, when an adjustment should be performed for a column, it is
+      // ultimately a item which should be adjusted. Also, during the process columns
       // are interchangeable which means that any operation can and will be applied
       // indistinctly on all the columns available for adjustments.
-      // For all these reasons, it makes more sense to keep a list of widgets to adjust
-      // instead of a list of columns: we avoid an indirection to fetch the widget linked
+      // For all these reasons, it makes more sense to keep a list of items to adjust
+      // instead of a list of columns: we avoid an indirection to fetch the item linked
       // to an identifier in a column.
-      // We still keep the global `widgetsForColumn` which allows to cherry-pick the
-      // single-cell widget for a given column, but the whole process is done in terms
-      // of widgets.
+      // We still keep the global `itemsForColumns` which allows to cherry-pick the
+      // single-cell item for a given column, but the whole process is done in terms
+      // of items.
       // A small drawbacks is that we need to know how many columns can still be used to
       // perform adjustment: indeed this is what defines how we will split fairly the
       // remanining space.
 
-      std::unordered_set<WidgetDataWrapper> widgetsToAdjust;
-      unsigned columnsRemaining = widgetsForColumns.size();
+      std::unordered_set<ItemDataWrapper> itemsToAdjust;
+      unsigned columnsRemaining = itemsForColumns.size();
       std::unordered_set<unsigned> emptyColumns;
 
       // In a first approach all the columns can be adjusted (except empty ones).
       for (unsigned column = 0u ; column < m_columns ; ++column) {
-        if (widgetsForColumns[column].empty()) {
+        if (itemsForColumns[column].empty()) {
           emptyColumns.insert(column);
           --columnsRemaining;
         }
         else {
-          widgetsToAdjust.insert(widgetsForColumns[column].cbegin(), widgetsForColumns[column].cend());
+          itemsToAdjust.insert(itemsForColumns[column].cbegin(), itemsForColumns[column].cend());
         }
       }
 
       // Also assume that we didn't use up all the available space. The remaining space is
       // the difference between the provided space from `window` minus the space used for
-      // columns with no widgets (see two paragraphs above).
+      // columns with no items (see two paragraphs above).
       float spaceToUse = window.w() - widthForEmptyColumns;
       bool allSpaceUsed = false;
 
       float achievedWidth = widthForEmptyColumns;
 
-      // Loop until no more widgets can be used to adjust the space needed or all the
+      // Loop until no more items can be used to adjust the space needed or all the
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a column is available for adjustment: we only avoid another
-      // indirection to fetch the widget when performing the adjustments.
-      // TODO: Handle cases where the widgets are too large to fit into the columns ?
-      while (!widgetsToAdjust.empty() && !allSpaceUsed) {
+      // indirection to fetch the item when performing the adjustments.
+      // TODO: Handle cases where the items are too large to fit into the columns ?
+      while (!itemsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each column still
         // available for adjustment.
         // The `defaultWidth` is computed by dividing equally the remaining `spaceToUse`
         // among all the available columns.
         // The available columns for adjustment is retrieved using the `columnsRemaining`
-        // variable and not directly the `widgetsToAdjust.size()` as a single column can
-        // have several widgets needing adjustments.
+        // variable and not directly the `itemsToAdjust.size()` as a single column can
+        // have several items needing adjustments.
         const float defaultWidth = allocateFairly(spaceToUse, columnsRemaining);
 
         log(std::string("Default width is ") + std::to_string(defaultWidth), utils::Level::Info);
 
-        // Allocate this space on each widget: as all columns are equivalent, this means
-        // that we can directly work on individual widgets.
-        for (std::unordered_set<WidgetDataWrapper>::const_iterator dataWrapper = widgetsToAdjust.cbegin() ;
-             dataWrapper != widgetsToAdjust.cend() ;
+        // Allocate this space on each item: as all columns are equivalent, this means
+        // that we can directly work on individual items.
+        for (std::unordered_set<ItemDataWrapper>::const_iterator dataWrapper = itemsToAdjust.cbegin() ;
+             dataWrapper != itemsToAdjust.cend() ;
              ++dataWrapper)
         {
-          const unsigned widget = dataWrapper->data->widget;
+          const unsigned item = dataWrapper->data->item;
 
-          // Try to assign the `defaultWidth` to this widget: we use a dedicated handler
+          // Try to assign the `defaultWidth` to this item: we use a dedicated handler
           // to handle the case where the provided space is too large/small/not suited
-          // to the widget for some reasons, in which case the handler will provide a
-          // size which can be applied to the widget.
+          // to the item for some reasons, in which case the handler will provide a
+          // size which can be applied to the item.
           // The process is not completely straightforward though as we need to account
-          // for widgets spanning multiple cells. We could either account for the span of
-          // the widget to multiply the `defaultWidth` or we can add as many instance of
-          // the widget as needed for a particular column. This second method has a lot
+          // for items spanning multiple cells. We could either account for the span of
+          // the item to multiply the `defaultWidth` or we can add as many instance of
+          // the item as needed for a particular column. This second method has a lot
           // of advantages compared to the first one se we chose it.
-          // This means that there's no need anymore to account for the widget's span in
-          // this function as each cell spanned by the widget is handled individually
-          // which allows to make the widget grow more on columns which can account for it.
+          // This means that there's no need anymore to account for the item's span in
+          // this function as each cell spanned by the item is handled individually
+          // which allows to make the item grow more on columns which can account for it.
 
-          // Apply the policy for this widget.
-          float width = computeWidthFromPolicy(cells[widget].box, defaultWidth, widgets[widget]);
+          // Apply the policy for this item.
+          float width = computeWidthFromPolicy(cells[item].box, defaultWidth, items[item]);
 
           // We now need to distribute this width to the current `data`: in order to do
-          // so, let's compute the size increase provided for this widget by the current
+          // so, let's compute the size increase provided for this item by the current
           // column: this is the size which belongs to the column.
-          dataWrapper->data->size.w() += (width - cells[widget].box.w());
-          log("Widget " + getWidgetAt(widget)->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[widget].box.w()));
+          dataWrapper->data->size.w() += (width - cells[item].box.w());
+          log("Item " + getItemAt(item)->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[item].box.w()));
 
-          // Now register the new size of the widget.
-          cells[widget].box.w() = width;
+          // Now register the new size of the item.
+          cells[item].box.w() = width;
 
-          // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\": "
-          //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+          // std::cout << "[LAY] Item \"" << getItemAt(item)->getName() << "\": "
+          //           << cells[item].box.x() << ", " << cells[item].box.y()
           //           << ", dims: "
-          //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+          //           << cells[item].box.w() << ", " << cells[item].box.h()
           //           << std::endl;
         }
 
-        // We have tried to apply the `defaultWidth` to all the remaining widgets available
+        // We have tried to apply the `defaultWidth` to all the remaining items available
         // for adjustments. This might have fail in some cases (for example due to a `Fixed`
-        // size policy for a widget in a given column) and thus we might end up with a total
-        // size for all the widget different from the one desired and expected when the
+        // size policy for a item in a given column) and thus we might end up with a total
+        // size for all the item different from the one desired and expected when the
         // `defaultWidth` has been computed.
         // In order to fix things, we must compute the deviation from the expected size and
-        // try to allocate the remaining space to other widgets (or remove the missing space
-        // from widgets which can give up some).
-        // For single-cell widget, it is rather easy: the achieved size only contributes to
+        // try to allocate the remaining space to other items (or remove the missing space
+        // from items which can give up some).
+        // For single-cell item, it is rather easy: the achieved size only contributes to
         // a single column.
-        // For multi-cell widgets it is a bit different though: we need to distribute the
+        // For multi-cell items it is a bit different though: we need to distribute the
         // width across several columns: this is usually handled by the `size` variable inside
-        // each widget's data instance: the instance located in a each column contains
+        // each item's data instance: the instance located in a each column contains
         // information for this column which should be okay as we ensure that it always stay
         // up to date with the total size (i.e. the sum of all individual instances matches
         // the global size).
@@ -739,7 +739,7 @@ namespace sdl {
         for (unsigned column = 0u ; column < m_columns ; ++column) {
           // Only handle non empty columns.
           if (emptyColumns.find(column) == emptyColumns.cend()) {
-            columns[column] = computeAchievedSize(widgetsForColumns[column]).w();
+            columns[column] = computeAchievedSize(itemsForColumns[column]).w();
           }
         }
 
@@ -771,48 +771,48 @@ namespace sdl {
         // We now know what should be done to make the `achievedWidth` closer to `desiredWidth`.
         // Based on the `policy` provided by the base class method, we can now determine which
         // column should be used to perform the needed adjustments.
-        // Even if in the end we will substitute the corresponding widgets to the individual
+        // Even if in the end we will substitute the corresponding items to the individual
         // columns, right now we need to keep the columns.
         // This will prove useful in a second phase where we will try to make column which can
         // `Expand` have priority over column which can only `Grow`. This can only be done by
-        // keeping the column's id: if we keep only widgets, we don't have any means (except
-        // through exhaustive seach) to find the associated columns to a widget. Thus we will
+        // keeping the column's id: if we keep only items, we don't have any means (except
+        // through exhaustive seach) to find the associated columns to a item. Thus we will
         // not be easily able to discard entire columns if it can only `Grow`.
         std::unordered_set<unsigned> columnsToUse;
 
-        // Traverse each column to determine whether a widget in this column can be used to
+        // Traverse each column to determine whether a item in this column can be used to
         // perform the required `action`.
         // Based on the `action`, the way we select columns is a bit different. If we need to
-        // shrink some columns, we need all widgets inside a column to be shrinkable in order
-        // for the column to be declared usable: indeed if only some widgets can be shrunk
+        // shrink some columns, we need all items inside a column to be shrinkable in order
+        // for the column to be declared usable: indeed if only some items can be shrunk
         // it also means some cannot shrink and the overall size of the column will not be
-        // modified even though the shrinkable widget are shrunk.
+        // modified even though the shrinkable item are shrunk.
         // If the action is meant to gorw the situation is a bit different though: as we still
-        // have the possibility to center widgets which are smaller than the total width of
-        // the column, a column can be grown as soon as a single widget can be grown inside
+        // have the possibility to center items which are smaller than the total width of
+        // the column, a column can be grown as soon as a single item can be grown inside
         // it.
         // In order to allow for easy detection of columns which can be expanded, we also
         // keep the column's identifiers instead of substituting right away the corresponding
-        // widgets. More details can be found in the next comment section.
-        for (unsigned column = 0u ; column < widgetsForColumns.size() ; ++column) {
-          // Retrieve the widgets associated to this column.
-          const std::vector<WidgetDataWrapper>& widgetsForColumn = widgetsForColumns[column];
+        // items. More details can be found in the next comment section.
+        for (unsigned column = 0u ; column < itemsForColumns.size() ; ++column) {
+          // Retrieve the items associated to this column.
+          const std::vector<ItemDataWrapper>& itemsForColumn = itemsForColumns[column];
 
           // Distinguish based on the action. Furhtermore we are processing columns so
           // we only care about horizontal behavior.
           if (action.canExtendHorizontally()) {
-            // Traverse the widgets for this column: if at least one can be used to `Grow`,
+            // Traverse the items for this column: if at least one can be used to `Grow`,
             // consider this column usable to perform the required action.
-            for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
-              // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForColumn[widget].data->widget;
+            for (unsigned item = 0u ; item < itemsForColumn.size() ; ++item) {
+              // Compute the status of the item for this action.
+              const unsigned itemID = itemsForColumn[item].data->item;
 
-              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getItemAt(itemID)->getName(), items[itemID], cells[itemID].box, action);
               if (usable.first) {
-                // This column can be used to `Grow` thanks to this widget. No need to go
+                // This column can be used to `Grow` thanks to this item. No need to go
                 // further.
                 log(
-                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + getWidgetAt(widgetID)->getName(),
+                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + getItemAt(itemID)->getName(),
                   utils::Level::Info
                 );
                 columnsToUse.insert(column);
@@ -821,30 +821,30 @@ namespace sdl {
             }
           }
           else if (action.canShrinkHorizontally()) {
-            // Traverse the widgets for this column: all widgets need to be able to shrink
+            // Traverse the items for this column: all items need to be able to shrink
             // in order for this colum to be marked as shrinkable.
 
             // Assume this column can be shrunk.
             bool canShrink = true;
 
-            for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
-              // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForColumn[widget].data->widget;
+            for (unsigned item = 0u ; item < itemsForColumn.size() ; ++item) {
+              // Compute the status of the item for this action.
+              const unsigned itemID = itemsForColumn[item].data->item;
 
-              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getItemAt(itemID)->getName(), items[itemID], cells[itemID].box, action);
               if (!usable.first) {
-                // As this widget cannot shrink, it means that even if other widgets shrink
+                // As this item cannot shrink, it means that even if other items shrink
                 // the width for this column will remain unchanged so we cannot use it. This
-                // is the general idea but we can refine on it: the current widget cannot
+                // is the general idea but we can refine on it: the current item cannot
                 // shrink given its current size but it does not mean that the column as a
                 // whole cannot shrink. Indeed if the current achieved size of the column
-                // is larger than the size required for this widget we might still be able
-                // to shrink the column without needing to reduce the size of this widget.
+                // is larger than the size required for this item we might still be able
+                // to shrink the column without needing to reduce the size of this item.
                 // Thus before setting the `canShrink` boolean to false, let's first check
                 // whether the width of the column allows to shrink.
-                if (columns[column] <= cells[widgetID].box.w()) {
+                if (columns[column] <= cells[itemID].box.w()) {
                   log(
-                    std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + getWidgetAt(widgetID)->getName(),
+                    std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + getItemAt(itemID)->getName(),
                     utils::Level::Warning
                   );
                   canShrink = false;
@@ -856,7 +856,7 @@ namespace sdl {
             // Register this column for shrinking if needed.
             if (canShrink) {
               log(
-                std::string("Column ") + std::to_string(column) + " containing " + std::to_string(widgetsForColumn.size()) + " widget(s) can be shrunk horizontally",
+                std::string("Column ") + std::to_string(column) + " containing " + std::to_string(itemsForColumn.size()) + " item(s) can be shrunk horizontally",
                 utils::Level::Info
               );
               columnsToUse.insert(column);
@@ -865,11 +865,11 @@ namespace sdl {
         }
 
         // We have a list of columns which can be used to perform the required `action`. There's
-        // a last filtering to apply though: if the action requires to make some widgets larger, we need
-        // to give priority to widgets which have the `Expand` flag over widgets having `Grow` flag.
+        // a last filtering to apply though: if the action requires to make some items larger, we need
+        // to give priority to items which have the `Expand` flag over items having `Grow` flag.
         // The tricky part is that we're working on columns here so there's no simple way to assign a
         // global policy to a column.
-        // In order to determine whether a column needs to `Expand`, we will check each individual widget
+        // In order to determine whether a column needs to `Expand`, we will check each individual item
         // registered for this column and if at least one has the corresponding flag we will assume that
         // the column as a whole can be `Expand`ed.
         // Of course this only applies if the `action` includes growing at all.
@@ -882,15 +882,15 @@ namespace sdl {
                ++column)
           {
             // Check whether this column can expand: this is done by checking each registered
-            // widget in this column for the appropriate flag.
-            const std::vector<WidgetDataWrapper>& widgetsForColumn = widgetsForColumns[*column];
+            // item in this column for the appropriate flag.
+            const std::vector<ItemDataWrapper>& itemsForColumn = itemsForColumns[*column];
 
-            for (unsigned widget = 0u ; widget < widgetsForColumn.size() ; ++widget) {
+            for (unsigned item = 0u ; item < itemsForColumn.size() ; ++item) {
               // Only consider horizontal direction as we're processing columns.
-              const unsigned widgetID = widgetsForColumn[widget].data->widget;
+              const unsigned itemID = itemsForColumn[item].data->item;
 
-              if (widgets[widgetID].policy.canExpandHorizontally()) {
-                // std::cout << "[LAY] " << getWidgetAt(widgetID)->getName() << " can be expanded horizontally" << std::endl;
+              if (items[itemID].policy.canExpandHorizontally()) {
+                // std::cout << "[LAY] " << getItemAt(itemID)->getName() << " can be expanded horizontally" << std::endl;
                 columnsToExpand.insert(*column);
                 // No need to continue further, the column can be `Expand`ed.
                 break;
@@ -901,8 +901,8 @@ namespace sdl {
           // std::cout << "[LAY] Saved " << columnsToExpand.size() << " columns which can expand compared to "
           //           << columnsToUse.size() << " which can extend"
           //           << std::endl;
-          // Check whether we could select at least one widget to expand: if this is not the
-          // case we can proceed to extend the widget with only a `Grow` flag.
+          // Check whether we could select at least one item to expand: if this is not the
+          // case we can proceed to extend the item with only a `Grow` flag.
           if (!columnsToExpand.empty()) {
             columnsToUse.swap(columnsToExpand);
           }
@@ -913,19 +913,19 @@ namespace sdl {
 
         // We now have a working set of columns which can be used to perform the required `action` and we
         // took into consideration precedence of `Expand` flag over `Grow` flag. We now only need for each
-        // column to substitute the corresponding widgets.
-        std::unordered_set<WidgetDataWrapper> widgetsToUse;
+        // column to substitute the corresponding items.
+        std::unordered_set<ItemDataWrapper> itemsToUse;
 
         for (std::unordered_set<unsigned>::const_iterator column = columnsToUse.cbegin() ;
              column != columnsToUse.cend() ;
              ++column)
         {
-          widgetsToUse.insert(widgetsForColumns[*column].cbegin(), widgetsForColumns[*column].cend());
+          itemsToUse.insert(itemsForColumns[*column].cbegin(), itemsForColumns[*column].cend());
         }
 
-        // Use the computed list of widgets to perform the next action in order
+        // Use the computed list of items to perform the next action in order
         // to reach the desired space.
-        widgetsToAdjust.swap(widgetsToUse);
+        itemsToAdjust.swap(itemsToUse);
       }
 
       // Warn the user in case we could not use all the space.
@@ -943,53 +943,53 @@ namespace sdl {
 
     std::vector<float>
     GridLayout::adjustRowHeight(const utils::Sizef& window,
-                                const std::vector<WidgetInfo>& widgets,
+                                const std::vector<WidgetInfo>& items,
                                 std::vector<CellInfo>& cells) const
     {
       // This method needs to combine several constraints in order to converge to final
       // rows' dimensions:
       // 1) The user might have specified `minimum row height` through the dedicated
       //    handler.
-      // 2) Widgets might have policies describing minimum or maximum sizes.
-      // 3) Several widgets in a single row might have conflicting expectations.
+      // 2) items might have policies describing minimum or maximum sizes.
+      // 3) Several items in a single row might have conflicting expectations.
       //
       // The aim is thus to combine all these constraints in order to produce the final
       // rows' dimensions vector.
-      // Note that only widget spanning a single row are considered in this function
+      // Note that only item spanning a single row are considered in this function
       // so that we get simpler algorithms.
-      // Multi-cells widgets will be considered in a second time and will only further
+      // Multi-cells items will be considered in a second time and will only further
       // adapt the dimensions produced by this function.
 
       // Start by creating the return value: in addition to the individual height for
-      // each widget this function return a global rows' dimensions vector where
+      // each item this function return a global rows' dimensions vector where
       // the maximum height for each row is registered. This allows to easily
-      // iterate over rows without needing to extract the largest widget in each
+      // iterate over rows without needing to extract the largest item in each
       // one.
-      std::vector<float> rows(widgets.size(), 0.0f);
+      std::vector<float> rows(items.size(), 0.0f);
 
-      // Now, we need to retrieve for each row the list of widgets related to it:
+      // Now, we need to retrieve for each row the list of items related to it:
       // this allows for quick access when iterating to determine rows' dimensions.
-      // We also want to provide easy access to multi-cell widget by inserting each
+      // We also want to provide easy access to multi-cell item by inserting each
       // one of them in all the rows where it appear.
       // For that to happen we want to first initialize this map with empty vectors
       // and then dynamically populate it.
 
-      std::unordered_map<unsigned, std::vector<WidgetDataWrapper>> widgetsForRows;
+      std::unordered_map<unsigned, std::vector<ItemDataWrapper>> itemsForRows;
       for (unsigned row = 0u ; row < m_rows ; ++row) {
-        widgetsForRows[row] = std::vector<WidgetDataWrapper>();
+        itemsForRows[row] = std::vector<ItemDataWrapper>();
       }
 
       for (LocationsMap::const_iterator item = m_locations.cbegin() ;
             item != m_locations.cend() ;
             ++item)
       {
-        // Insert the widget in each row spanned by it.
+        // Insert the item in each row spanned by it.
         const ItemInfo& info = item->second;
 
         for (unsigned row = 0u ; row < info.h ; ++row) {
-          // Create the widget's data.
-          WidgetDataShPtr data = std::make_shared<WidgetData>(
-            WidgetData{
+          // Create the item's data.
+          ItemDataShPtr data = std::make_shared<ItemData>(
+            ItemData{
               item->first,
               info.h > 1,
               row == 0u,
@@ -1000,8 +1000,8 @@ namespace sdl {
           );
 
           // Insert a wrapper in the corresponding vector.
-          widgetsForRows[info.y + row].push_back(
-            WidgetDataWrapper{
+          itemsForRows[info.y + row].push_back(
+            ItemDataWrapper{
               data->id,
               data
             }
@@ -1012,20 +1012,20 @@ namespace sdl {
       // There's a first part of the optimization process which should be handled
       // right away: the user is allowed to specify a minimum row height for any
       // row of the layout.
-      // We can handle the rows where there's at least a widget later on (it's
+      // We can handle the rows where there's at least a wiitemdget later on (it's
       // actually part of the optimization process) but here we should handle the
-      // rows which do not contain any widgets. As no widget is there to take
+      // rows which do not contain any items. As no item is there to take
       // space such rows will be ignored by the optimization process.
       // In order to handle these nonetheless, we figured that the best way is to
       // simply subtract the required height from the available total `window`: this
       // makes sense as it would have been the height applied anyway because no
-      // widget is there to modify it so it would have been accepted right away.
+      // item is there to modify it so it would have been accepted right away.
 
       float heightForEmptyRows = 0.0f;
 
-      // Traverse the `widgetsForRows` map and search for rows with no widgets.
-      for (std::unordered_map<unsigned, std::vector<WidgetDataWrapper>>::const_iterator row = widgetsForRows.cbegin() ;
-           row != widgetsForRows.cend() ;
+      // Traverse the `itemsForRows` map and search for rows with no items.
+      for (std::unordered_map<unsigned, std::vector<ItemDataWrapper>>::const_iterator row = itemsForRows.cbegin() ;
+           row != itemsForRows.cend() ;
            ++row)
       {
         // Search empty rows.
@@ -1045,7 +1045,7 @@ namespace sdl {
       // We start with an available space budget described by the value of `window.h()`.
       // We will first try to allocate fairly this space among all rows. Each row will
       // perform checks to determine whether the proposed dimension is valid based on
-      // the criteria of each widget registered for this row.
+      // the criteria of each item registered for this row.
       // If this is the case the dimension will be adopted. If not, the dimension will
       // be adapted so that it fits all the constraingts for this row.
       // Once all the rows have been processed, we start all over again: the remaining
@@ -1055,113 +1055,113 @@ namespace sdl {
       // or there's no more rows to use to adjust the size.
       // In order to make things easier, we use a little trick here. Indeed even though
       // we're reasoning with rows here, the individual unit inside a row remains
-      // a widget. Thus, when an adjustment should be performed for a row, it is
-      // ultimately a widget which should be adjusted. Also, during the process rows
+      // a item. Thus, when an adjustment should be performed for a row, it is
+      // ultimately a item which should be adjusted. Also, during the process rows
       // are interchangeable which means that any operation can and will be applied
       // indistinctly on all the rows available for adjustments.
-      // For all these reasons, it makes more sense to keep a list of widgets to adjust
-      // instead of a list of rows: we avoid an indirection to fetch the widget linked
+      // For all these reasons, it makes more sense to keep a list of items to adjust
+      // instead of a list of rows: we avoid an indirection to fetch the item linked
       // to an identifier in a row.
-      // We still keep the global `widgetsForRow` which allows to cherry-pick the
-      // single-cell widget for a given row, but the whole process is done in terms
-      // of widgets.
+      // We still keep the global `itemsForRows` which allows to cherry-pick the
+      // single-cell item for a given row, but the whole process is done in terms
+      // of items.
       // A small drawbacks is that we need to know how many rows can still be used to
       // perform adjustment: indeed this is what defines how we will split fairly the
       // remanining space.
 
-      std::unordered_set<WidgetDataWrapper> widgetsToAdjust;
-      unsigned rowsRemaining = widgetsForRows.size();
+      std::unordered_set<ItemDataWrapper> itemsToAdjust;
+      unsigned rowsRemaining = itemsForRows.size();
       std::unordered_set<unsigned> emptyRows;
 
       // In a first approach all the rows can be adjusted (except empty ones).
       for (unsigned row = 0u ; row < m_rows ; ++row) {
-        if (widgetsForRows[row].empty()) {
+        if (itemsForRows[row].empty()) {
           emptyRows.insert(row);
           --rowsRemaining;
         }
         else {
-          widgetsToAdjust.insert(widgetsForRows[row].cbegin(), widgetsForRows[row].cend());
+          itemsToAdjust.insert(itemsForRows[row].cbegin(), itemsForRows[row].cend());
         }
       }
 
       // Also assume that we didn't use up all the available space. The remaining space is
       // the difference between the provided space from `window` minus the space used for
-      // rows with no widgets (see two paragraphs above).
+      // rows with no items (see two paragraphs above).
       float spaceToUse = window.h() - heightForEmptyRows;
       bool allSpaceUsed = false;
 
       float achievedHeight = heightForEmptyRows;
 
-      // Loop until no more widgets can be used to adjust the space needed or all the
+      // Loop until no more items can be used to adjust the space needed or all the
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a row is available for adjustment: we only avoid another
-      // indirection to fetch the widget when performing the adjustments.
-      // TODO: Handle cases where the widgets are too large to fit into the rows ?
-      while (!widgetsToAdjust.empty() && !allSpaceUsed) {
+      // indirection to fetch the item when performing the adjustments.
+      // TODO: Handle cases where the items are too large to fit into the rows ?
+      while (!itemsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each row still
         // available for adjustment.
         // The `defaultHeight` is computed by dividing equally the remaining `spaceToUse`
         // among all the available rows.
         // The available rows for adjustment is retrieved using the `rowsRemaining`
-        // variable and not directly the `widgetsToAdjust.size()` as a single row can
-        // have several widgets needing adjustments.
+        // variable and not directly the `itemsToAdjust.size()` as a single row can
+        // have several items needing adjustments.
         const float defaultHeight = allocateFairly(spaceToUse, rowsRemaining);
 
         log(std::string("Default height is ") + std::to_string(defaultHeight), utils::Level::Info);
 
-        // Allocate this space on each widget: as all rows are equivalent, this means
-        // that we can directly work on individual widgets.
-        for (std::unordered_set<WidgetDataWrapper>::const_iterator dataWrapper = widgetsToAdjust.cbegin() ;
-             dataWrapper != widgetsToAdjust.cend() ;
+        // Allocate this space on each item: as all rows are equivalent, this means
+        // that we can directly work on individual items.
+        for (std::unordered_set<ItemDataWrapper>::const_iterator dataWrapper = itemsToAdjust.cbegin() ;
+             dataWrapper != itemsToAdjust.cend() ;
              ++dataWrapper)
         {
-          const unsigned widget = dataWrapper->data->widget;
+          const unsigned item = dataWrapper->data->item;
 
-          // Try to assign the `defaultHeight` to this widget: we use a dedicated handler
+          // Try to assign the `defaultHeight` to this item: we use a dedicated handler
           // to handle the case where the provided space is too large/small/not suited
-          // to the widget for some reasons, in which case the handler will provide a
-          // size which can be applied to the widget.
+          // to the item for some reasons, in which case the handler will provide a
+          // size which can be applied to the item.
           // The process is not completely straightforward though as we need to account
-          // for widgets spanning multiple cells. We could either account for the span of
-          // the widget to multiply the `defaultHeight` or we can add as many instance of
-          // the widget as needed for a particular row. This second method has a lot
+          // for items spanning multiple cells. We could either account for the span of
+          // the item to multiply the `defaultHeight` or we can add as many instance of
+          // the item as needed for a particular row. This second method has a lot
           // of advantages compared to the first one se we chose it.
-          // This means that there's no need anymore to account for the widget's span in
-          // this function as each cell spanned by the widget is handled individually
-          // which allows to make the widget grow more on rows which can account for it.
+          // This means that there's no need anymore to account for the item's span in
+          // this function as each cell spanned by the item is handled individually
+          // which allows to make the item grow more on rows which can account for it.
 
-          // Apply the policy for this widget.
-          float height = computeHeightFromPolicy(cells[widget].box, defaultHeight, widgets[widget]);
+          // Apply the policy for this item.
+          float height = computeHeightFromPolicy(cells[item].box, defaultHeight, items[item]);
 
           // We now need to distribute this height to the current `data`: in order to do
-          // so, let's compute the size increase provided for this widget by the current
+          // so, let's compute the size increase provided for this item by the current
           // row: this is the size which belongs to the row.
-          dataWrapper->data->size.h() += (height - cells[widget].box.h());
+          dataWrapper->data->size.h() += (height - cells[item].box.h());
 
-          // Now register the new size of the widget.
-          cells[widget].box.h() = height;
+          // Now register the new size of the item.
+          cells[item].box.h() = height;
 
-          // std::cout << "[LAY] Widget \"" << getWidgetAt(widget)->getName() << "\": "
-          //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+          // std::cout << "[LAY] Item \"" << getItemAt(item)->getName() << "\": "
+          //           << cells[item].box.x() << ", " << cells[item].box.y()
           //           << ", dims: "
-          //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+          //           << cells[item].box.w() << ", " << cells[item].box.h()
           //           << std::endl;
         }
 
-        // We have tried to apply the `defaultHeight` to all the remaining widgets available
+        // We have tried to apply the `defaultHeight` to all the remaining items available
         // for adjustments. This might have fail in some cases (for example due to a `Fixed`
-        // size policy for a widget in a given row) and thus we might end up with a total
-        // size for all the widget different from the one desired and expected when the
+        // size policy for a item in a given row) and thus we might end up with a total
+        // size for all the item different from the one desired and expected when the
         // `defaultHeight` has been computed.
         // In order to fix things, we must compute the deviation from the expected size and
-        // try to allocate the remaining space to other widgets (or remove the missing space
-        // from widgets which can give up some).
-        // For single-cell widget, it is rather easy: the achieved size only contributes to
+        // try to allocate the remaining space to other items (or remove the missing space
+        // from items which can give up some).
+        // For single-cell item, it is rather easy: the achieved size only contributes to
         // a single row.
-        // For multi-cell widgets it is a bit different though: we need to distribute the
+        // For multi-cell items it is a bit different though: we need to distribute the
         // height across several rows: this is usually handled by the `size` variable inside
-        // each widget's data instance: the instance located in a each row contains information
+        // each item's data instance: the instance located in a each row contains information
         // for this row which should be okay as we ensure that it always stay up to date with
         // the total size (i.e. the sum of all individual instances matches the global size).
         // We perform this operation after each optimization operation in order to guarantee
@@ -1169,8 +1169,8 @@ namespace sdl {
         for (unsigned row = 0u ; row < m_rows ; ++row) {
           // Only handle non empty rows.
           if (emptyRows.find(row) == emptyRows.cend()) {
-            rows[row] = computeAchievedSize(widgetsForRows[row]).h();
-            log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(widgetsForRows[row].size()) + " widgets");
+            rows[row] = computeAchievedSize(itemsForRows[row]).h();
+            log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(itemsForRows[row].size()) + " item");
           }
         }
 
@@ -1202,48 +1202,48 @@ namespace sdl {
         // We now know what should be done to make the `achievedHeight` closer to `desiredHeight`.
         // Based on the `policy` provided by the base class method, we can now determine which
         // row should be used to perform the needed adjustments.
-        // Even if in the end we will substitute the corresponding widgets to the individual
+        // Even if in the end we will substitute the corresponding items to the individual
         // rows, right now we need to keep the rows.
         // This will prove useful in a second phase where we will try to make row which can
         // `Expand` have priority over row which can only `Grow`. This can only be done by
-        // keeping the row's id: if we keep only widgets, we don't have any means (except
-        // through exhaustive seach) to find the associated rows to a widget. Thus we will
+        // keeping the row's id: if we keep only items, we don't have any means (except
+        // through exhaustive seach) to find the associated rows to a item. Thus we will
         // not be easily able to discard entire rows if it can only `Grow`.
         std::unordered_set<unsigned> rowsToUse;
 
-        // Traverse each row to determine whether a widget in this row can be used to
+        // Traverse each row to determine whether a item in this row can be used to
         // perform the required `action`.
         // Based on the `action`, the way we select rows is a bit different. If we need to
-        // shrink some rows, we need all widgets inside a row to be shrinkable in order
-        // for the row to be declared usable: indeed if only some widgets can be shrunk
+        // shrink some rows, we need all items inside a row to be shrinkable in order
+        // for the row to be declared usable: indeed if only some items can be shrunk
         // it also means some cannot shrink and the overall size of the row will not be
-        // modified even though the shrinkable widget are shrunk.
+        // modified even though the shrinkable item are shrunk.
         // If the action is meant to gorw the situation is a bit different though: as we still
-        // have the possibility to center widgets which are smaller than the total height of
-        // the row, a row can be grown as soon as a single widget can be grown inside
+        // have the possibility to center items which are smaller than the total height of
+        // the row, a row can be grown as soon as a single item can be grown inside
         // it.
         // In order to allow for easy detection of rows which can be expanded, we also
         // keep the row's identifiers instead of substituting right away the corresponding
-        // widgets. More details can be found in the next comment section.
-        for (unsigned row = 0u ; row < widgetsForRows.size() ; ++row) {
-          // Retrieve the widgets associated to this row.
-          const std::vector<WidgetDataWrapper>& widgetsForRow = widgetsForRows[row];
+        // items. More details can be found in the next comment section.
+        for (unsigned row = 0u ; row < itemsForRows.size() ; ++row) {
+          // Retrieve the items associated to this row.
+          const std::vector<ItemDataWrapper>& itemsForRow = itemsForRows[row];
 
           // Distinguish based on the action. Furhtermore we are processing rows so
           // we only care about vertical behavior.
           if (action.canExtendVertically()) {
-            // Traverse the widgets for this row: if at least one can be used to `Grow`,
+            // Traverse the items for this row: if at least one can be used to `Grow`,
             // consider this row usable to perform the required action.
-            for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
-              // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForRow[widget].data->widget;
+            for (unsigned item = 0u ; item < itemsForRow.size() ; ++item) {
+              // Compute the status of the item for this action.
+              const unsigned itemID = itemsForRow[item].data->item;
 
-              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getItemAt(itemID)->getName(), items[itemID], cells[itemID].box, action);
               if (usable.second) {
-                // This row can be used to `Grow` thanks to this widget. No need to go
+                // This row can be used to `Grow` thanks to this item. No need to go
                 // further.
                 log(
-                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + getWidgetAt(widgetID)->getName(),
+                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + getItemAt(itemID)->getName(),
                   utils::Level::Info
                 );
                 rowsToUse.insert(row);
@@ -1252,30 +1252,30 @@ namespace sdl {
             }
           }
           else if (action.canShrinkVertically()) {
-            // Traverse the widgets for this row: all widgets need to be able to shrink
+            // Traverse the items for this row: all items need to be able to shrink
             // in order for this colum to be marked as shrinkable.
 
             // Assume this row can be shrunk.
             bool canShrink = true;
 
-            for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
-              // Compute the status of the widget for this action.
-              const unsigned widgetID = widgetsForRow[widget].data->widget;
+            for (unsigned item = 0u ; item < itemsForRow.size() ; ++item) {
+              // Compute the status of the item for this action.
+              const unsigned itemID = itemsForRow[item].data->item;
 
-              std::pair<bool, bool> usable = canBeUsedTo(getWidgetAt(widgetID)->getName(), widgets[widgetID], cells[widgetID].box, action);
+              std::pair<bool, bool> usable = canBeUsedTo(getItemAt(itemID)->getName(), items[itemID], cells[itemID].box, action);
               if (!usable.second) {
-                // As this widget cannot shrink, it means that even if other widgets shrink
+                // As this item cannot shrink, it means that even if other items shrink
                 // the height for this row will remain unchanged so we cannot use it. This
-                // is the general idea but we can refine on it: the current widget cannot
+                // is the general idea but we can refine on it: the current item cannot
                 // shrink given its current size but it does not mean that the row as a
                 // whole cannot shrink. Indeed if the current achieved size of the row is
-                // larger than the size required for this widget we might still be able to
-                // shrink the row without needing to reduce the size of this widget.
+                // larger than the size required for this item we might still be able to
+                // shrink the row without needing to reduce the size of this item.
                 // Thus before setting the `canShrink` boolean to false, let's first check
                 // whether the height of the row allows to shrink.
-                if (rows[row] <= cells[widgetID].box.h()) {
+                if (rows[row] <= cells[itemID].box.h()) {
                   log(
-                    std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + getWidgetAt(widgetID)->getName(),
+                    std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + getItemAt(itemID)->getName(),
                     utils::Level::Warning
                   );
                   canShrink = false;
@@ -1287,7 +1287,7 @@ namespace sdl {
             // Register this row for shrinking if needed.
             if (canShrink) {
               log(
-                std::string("Row ") + std::to_string(row) + " containing " + std::to_string(widgetsForRow.size()) + " widget(s) can be shrunk vertically",
+                std::string("Row ") + std::to_string(row) + " containing " + std::to_string(itemsForRow.size()) + " item(s) can be shrunk vertically",
                 utils::Level::Info
               );
               rowsToUse.insert(row);
@@ -1296,11 +1296,11 @@ namespace sdl {
         }
 
         // We have a list of rows which can be used to perform the required `action`. There's
-        // a last filtering to apply though: if the action requires to make some widgets larger, we need
-        // to give priority to widgets which have the `Expand` flag over widgets having `Grow` flag.
+        // a last filtering to apply though: if the action requires to make some items larger, we need
+        // to give priority to items which have the `Expand` flag over items having `Grow` flag.
         // The tricky part is that we're working on rows here so there's no simple way to assign a
         // global policy to a row.
-        // In order to determine whether a row needs to `Expand`, we will check each individual widget
+        // In order to determine whether a row needs to `Expand`, we will check each individual item
         // registered for this row and if at least one has the corresponding flag we will assume that
         // the row as a whole can be `Expand`ed.
         // Of course this only applies if the `action` includes growing at all.
@@ -1313,15 +1313,15 @@ namespace sdl {
                ++row)
           {
             // Check whether this row can expand: this is done by checking each registered
-            // widget in this row for the appropriate flag.
-            const std::vector<WidgetDataWrapper>& widgetsForRow = widgetsForRows[*row];
+            // item in this row for the appropriate flag.
+            const std::vector<ItemDataWrapper>& itemsForRow = itemsForRows[*row];
 
-            for (unsigned widget = 0u ; widget < widgetsForRow.size() ; ++widget) {
+            for (unsigned item = 0u ; item < itemsForRow.size() ; ++item) {
               // Only consider vertical direction as we're processing rows.
-              const unsigned widgetID = widgetsForRow[widget].data->widget;
+              const unsigned itemID = itemsForRow[item].data->item;
 
-              if (widgets[widgetID].policy.canExpandVertically()) {
-                // std::cout << "[LAY] " << getWidgetAt(widgetID)->getName() << " can be expanded vertically" << std::endl;
+              if (items[itemID].policy.canExpandVertically()) {
+                // std::cout << "[LAY] " << getItemAt(itemID)->getName() << " can be expanded vertically" << std::endl;
                 rowsToExpand.insert(*row);
                 // No need to continue further, the row can be `Expand`ed.
                 break;
@@ -1332,8 +1332,8 @@ namespace sdl {
           // std::cout << "[LAY] Saved " << rowsToExpand.size() << " rows which can expand compared to "
           //           << rowsToUse.size() << " which can extend"
           //           << std::endl;
-          // Check whether we could select at least one widget to expand: if this is not the
-          // case we can proceed to extend the widget with only a `Grow` flag.
+          // Check whether we could select at least one item to expand: if this is not the
+          // case we can proceed to extend the item with only a `Grow` flag.
           if (!rowsToExpand.empty()) {
             rowsToUse.swap(rowsToExpand);
           }
@@ -1344,19 +1344,19 @@ namespace sdl {
 
         // We now have a working set of rows which can be used to perform the required `action` and we
         // took into consideration precedence of `Expand` flag over `Grow` flag. We now only need for each
-        // row to substitute the corresponding widgets.
-        std::unordered_set<WidgetDataWrapper> widgetsToUse;
+        // row to substitute the corresponding items.
+        std::unordered_set<ItemDataWrapper> itemsToUse;
 
         for (std::unordered_set<unsigned>::const_iterator row = rowsToUse.cbegin() ;
              row != rowsToUse.cend() ;
              ++row)
         {
-          widgetsToUse.insert(widgetsForRows[*row].cbegin(), widgetsForRows[*row].cend());
+          itemsToUse.insert(itemsForRows[*row].cbegin(), itemsForRows[*row].cend());
         }
 
-        // Use the computed list of widgets to perform the next action in order
+        // Use the computed list of items to perform the next action in order
         // to reach the desired space.
-        widgetsToAdjust.swap(widgetsToUse);
+        itemsToAdjust.swap(itemsToUse);
       }
 
       // Warn the user in case we could not use all the space.
@@ -1374,120 +1374,120 @@ namespace sdl {
 
     void
     GridLayout::adjustMultiCellWidth(const std::vector<float>& columns,
-                                     const std::vector<WidgetInfo>& widgetsInfo,
+                                     const std::vector<WidgetInfo>& items,
                                      std::vector<CellInfo>& cells)
     {
-      // Here we want to perform the last adjustments to the multi-cell widgets
+      // Here we want to perform the last adjustments to the multi-cell items
       // registered in the input `cells` vector.
       // Due to the mechanism in place to determine the optimal repartition of
-      // widgets, we might end up during shrinking phases with multi-cell widgets
+      // items, we might end up during shrinking phases with multi-cell items
       // taking less space than actually available.
       // In order to fix that, we chose to add an additional phase to account for
-      // an adjustment of the multi-cell widgets so that they take up all the
+      // an adjustment of the multi-cell items so that they take up all the
       // available space.
 
-      // Traverse the list of widget and process each multi-cell one.
-      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
-        // Check whether the widget is a multi-cell widget.
-        if (!cells[widget].multiCell) {
-          // Move on to the next widget.
+      // Traverse the list of item and process each multi-cell one.
+      for (unsigned item = 0u ; item < cells.size() ; ++item) {
+        // Check whether the item is a multi-cell item.
+        if (!cells[item].multiCell) {
+          // Move on to the next item.
           continue;
         }
 
-        const unsigned widgetID = cells[widget].widget;
+        const unsigned itemID = cells[item].item;
 
-        // Retireve the area spanned by this widget.
-        LocationsMap::const_iterator locIt = m_locations.find(widgetID);
+        // Retireve the area spanned by this item.
+        LocationsMap::const_iterator locIt = m_locations.find(itemID);
         if (locIt == m_locations.cend()) {
           error(
-            std::string("Could not retrieve information for widget \"") +
-            getWidgetAt(widgetID)->getName() + "\" while updating grid layout"
+            std::string("Could not retrieve information for item \"") +
+            getItemAt(itemID)->getName() + "\" while updating grid layout"
           );
         }
         const ItemInfo& loc = locIt->second;
 
-        // Determine the total width of the columns spanned by this widget.
+        // Determine the total width of the columns spanned by this item.
         float totalWidth = 0.0f;
         for (unsigned column = 0u ; column < loc.w ; ++column) {
           totalWidth += columns[loc.x + column];
         }
 
-        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\" has "
-        //           << " width " << cells[widget].box.w()
+        // std::cout << "[LAY] item \"" << getItemAt(itemID)->getName() << "\" has "
+        //           << " width " << cells[item].box.w()
         //           << " but could span " << totalWidth
         //           << std::endl;
 
-        // Now try to assign this width to the widget: as the `computeWidthFromPolicy`
-        // method tries to *add* the provided width to the existing size of the widget
+        // Now try to assign this width to the item: as the `computeWidthFromPolicy`
+        // method tries to *add* the provided width to the existing size of the item
         // we need to account only for the width difference and not the total width.
-        const float widthIncrement = totalWidth - cells[widget].box.w();
-        float width = computeWidthFromPolicy(cells[widget].box, widthIncrement, widgetsInfo[widgetID]);
-        cells[widget].box.w() = width;
+        const float widthIncrement = totalWidth - cells[item].box.w();
+        float width = computeWidthFromPolicy(cells[item].box, widthIncrement, items[itemID]);
+        cells[item].box.w() = width;
 
-        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\": "
-        //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+        // std::cout << "[LAY] Item \"" << getItemAt(itemID)->getName() << "\": "
+        //           << cells[item].box.x() << ", " << cells[item].box.y()
         //           << ", dims: "
-        //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+        //           << cells[item].box.w() << ", " << cells[item].box.h()
         //           << std::endl;
       }
     }
 
     void
     GridLayout::adjustMultiCellHeight(const std::vector<float>& rows,
-                                      const std::vector<WidgetInfo>& widgetsInfo,
+                                      const std::vector<WidgetInfo>& items,
                                       std::vector<CellInfo>& cells)
     {
-      // Here we want to perform the last adjustments to the multi-cell widgets
+      // Here we want to perform the last adjustments to the multi-cell items
       // registered in the input `cells` vector.
       // Due to the mechanism in place to determine the optimal repartition of
-      // widgets, we might end up during shrinking phases with multi-cell widgets
+      // items, we might end up during shrinking phases with multi-cell items
       // taking less space than actually available.
       // In order to fix that, we chose to add an additional phase to account for
-      // an adjustment of the multi-cell widgets so that they take up all the
+      // an adjustment of the multi-cell items so that they take up all the
       // available space.
 
-      // Traverse the list of widget and process each multi-cell one.
-      for (unsigned widget = 0u ; widget < cells.size() ; ++widget) {
-        // Check whether the widget is a multi-cell widget.
-        if (!cells[widget].multiCell) {
-          // Move on to the next widget.
+      // Traverse the list of item and process each multi-cell one.
+      for (unsigned item = 0u ; item < cells.size() ; ++item) {
+        // Check whether the item is a multi-cell item.
+        if (!cells[item].multiCell) {
+          // Move on to the next item.
           continue;
         }
 
-        const unsigned widgetID = cells[widget].widget;
+        const unsigned itemID = cells[item].item;
 
-        // Retireve the area spanned by this widget.
-        LocationsMap::const_iterator locIt = m_locations.find(widgetID);
+        // Retireve the area spanned by this item.
+        LocationsMap::const_iterator locIt = m_locations.find(itemID);
         if (locIt == m_locations.cend()) {
           error(
-            std::string("Could not retrieve information for widget \"") +
-            getWidgetAt(widgetID)->getName() + "\" while updating grid layout"
+            std::string("Could not retrieve information for item \"") +
+            getItemAt(itemID)->getName() + "\" while updating grid layout"
           );
         }
         const ItemInfo& loc = locIt->second;
 
-        // Determine the total width of the columns spanned by this widget.
+        // Determine the total width of the columns spanned by this item.
         float totalHeight = 0.0f;
         for (unsigned row = 0u ; row < loc.h ; ++row) {
           totalHeight += rows[loc.y + row];
         }
 
-        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\" has "
-        //           << " height " << cells[widget].box.h()
+        // std::cout << "[LAY] Item \"" << getItemAt(itemID)->getName() << "\" has "
+        //           << " height " << cells[item].box.h()
         //           << " but could span " << totalHeight
         //           << std::endl;
 
-        // Now try to assign this height to the widget: as the `computeHeightFromPolicy`
-        // method tries to *add* the provided height to the existing size of the widget
+        // Now try to assign this height to the item: as the `computeHeightFromPolicy`
+        // method tries to *add* the provided height to the existing size of the item
         // we need to account only for the height difference and not the total height.
-        const float heightIncrement = totalHeight - cells[widget].box.h();
-        float height = computeHeightFromPolicy(cells[widget].box, heightIncrement, widgetsInfo[widgetID]);
-        cells[widget].box.h() = height;
+        const float heightIncrement = totalHeight - cells[item].box.h();
+        float height = computeHeightFromPolicy(cells[item].box, heightIncrement, items[itemID]);
+        cells[item].box.h() = height;
 
-        // std::cout << "[LAY] Widget \"" << getWidgetAt(widgetID)->getName() << "\": "
-        //           << cells[widget].box.x() << ", " << cells[widget].box.y()
+        // std::cout << "[LAY] Item \"" << getItemAt(itemID)->getName() << "\": "
+        //           << cells[item].box.x() << ", " << cells[item].box.y()
         //           << ", dims: "
-        //           << cells[widget].box.w() << ", " << cells[widget].box.h()
+        //           << cells[item].box.w() << ", " << cells[item].box.h()
         //           << std::endl;
       }
     }

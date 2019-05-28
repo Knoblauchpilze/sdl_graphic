@@ -16,26 +16,23 @@ namespace sdl {
         virtual ~SelectorLayout();
 
         int
-        addItem(core::SdlWidget* item) override;
+        addItem(core::LayoutItem* item) override;
 
         int
-        addItem(core::SdlWidget* item,
+        addItem(core::LayoutItem* item,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
                 const unsigned& h) override;
 
         int
-        removeItem(core::SdlWidget* item) override;
+        removeItem(core::LayoutItem* item) override;
 
         void
         setActiveItem(const std::string& name);
 
         void
         setActiveItem(const int& index);
-
-        std::string
-        getActiveItem() const;
 
         int
         getActiveItemId() const;
@@ -46,7 +43,7 @@ namespace sdl {
         computeGeometry(const utils::Boxf& window) override;
 
         void
-        handleItemInsertion(core::SdlWidget* item);
+        handleItemInsertion(core::LayoutItem* item);
 
       private:
 

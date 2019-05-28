@@ -92,7 +92,7 @@ namespace sdl {
 
     inline
     int
-    GridLayout::addItem(core::SdlWidget* container,
+    GridLayout::addItem(core::LayoutItem* container,
                         const unsigned& x,
                         const unsigned& y,
                         const unsigned& w,

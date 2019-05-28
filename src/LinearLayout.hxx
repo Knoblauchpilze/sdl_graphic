@@ -37,19 +37,19 @@ namespace sdl {
 
     inline
     utils::Sizef
-    LinearLayout::computeDefaultWidgetBox(const utils::Sizef& area,
-                                          const unsigned& widgetsCount) const {
+    LinearLayout::computeDefaultItemBox(const utils::Sizef& area,
+                                        const unsigned& itemsCount) const {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
         return utils::Sizef(
-          allocateFairly(area.w(), widgetsCount),
+          allocateFairly(area.w(), itemsCount),
           area.h()
         );
       }
       else if (getDirection() == Direction::Vertical) {
         return utils::Sizef(
           area.w(),
-          allocateFairly(area.h(), widgetsCount)
+          allocateFairly(area.h(), itemsCount)
         );
       }
       error(std::string("Unknown direction when updating layout (direction: ") + std::to_string(static_cast<int>(getDirection())) + ")");

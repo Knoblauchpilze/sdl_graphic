@@ -8,12 +8,12 @@ namespace sdl {
 
     inline
     int
-    SelectorLayout::addItem(core::SdlWidget* item) {
+    SelectorLayout::addItem(core::LayoutItem* item) {
       // Use the base method to perform the insertion.
       int index = core::Layout::addItem(item);
 
       // Handle the insertion of this item if it is valid:
-      // we set the visible status of the widget and also
+      // we set the visible status of the item and also
       // set it as active if it is the only one inserted
       // in the layout.
       if (item != nullptr) {
@@ -26,7 +26,7 @@ namespace sdl {
 
     inline
     int
-    SelectorLayout::addItem(core::SdlWidget* item,
+    SelectorLayout::addItem(core::LayoutItem* item,
                             const unsigned& x,
                             const unsigned& y,
                             const unsigned& w,
@@ -36,7 +36,7 @@ namespace sdl {
       int index = core::Layout::addItem(item, x, y, w, h);
 
       // Handle the insertion of this item if it is valid:
-      // we set the visible status of the widget and also
+      // we set the visible status of the item and also
       // set it as active if it is the only one inserted
       // in the layout.
       if (item != nullptr) {
@@ -50,13 +50,13 @@ namespace sdl {
     inline
     void
     SelectorLayout::setActiveItem(const std::string& name) {
-      // Try to retrieve the index of the widget with the input name.
-      // Not that we will activate the first widget which name corresponds
+      // Try to retrieve the index of the item with the input name.
+      // Not that we will activate the first item which name corresponds
       // to the input name.
 
       const int id = getIndexOf(name);
 
-      // Check whether we could find a widget with the specified name.
+      // Check whether we could find a item with the specified name.
       if (id < 0) {
         error(
           std::string("Cannot activate item \"") + name + "\"",
@@ -91,36 +91,6 @@ namespace sdl {
     }
 
     inline
-    std::string
-    SelectorLayout::getActiveItem() const {
-      // Check that we can effectively access the active item.
-      if (m_activeItem < 0) {
-        error(
-          std::string("Cannot retrieve name of active child ") + std::to_string(m_activeItem),
-          std::string("No active item selected")
-        );
-      }
-      if (m_activeItem >= getItemsCount()) {
-        error(
-          std::string("Cannot retrieve name of active child ") + std::to_string(m_activeItem),
-          std::string("Only ") + std::to_string(getItemsCount()) + " item(s) registered"
-        );
-      }
-
-      // Retrieve the active item as a widget pointer.
-      const core::SdlWidget* activeItem = getWidgetAt(m_activeItem);
-      if (activeItem == nullptr) {
-        error(
-          std::string("Cannot retrieve name of active child ") + std::to_string(m_activeItem),
-          std::string("Invalid null element")
-        );
-      }
-
-      // Retrieve the name of the active item.
-      return activeItem->getName();
-    }
-
-    inline
     int
     SelectorLayout::getActiveItemId() const {
       if (m_activeItem < 0) {
@@ -141,9 +111,9 @@ namespace sdl {
 
     inline
     void
-    SelectorLayout::handleItemInsertion(core::SdlWidget* item) {
-      // If this item is the only one inserted in the widget,
-      // use it as the active widget.
+    SelectorLayout::handleItemInsertion(core::LayoutItem* item) {
+      // If this item is the only one inserted in the item,
+      // use it as the active item.
       // Otherwise, we should make it not visible.
       if (getItemsCount() == 1) {
         m_activeItem = 0u;

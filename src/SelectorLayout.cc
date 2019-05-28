@@ -16,10 +16,10 @@ namespace sdl {
     SelectorLayout::~SelectorLayout() {}
 
     int
-    SelectorLayout::removeItem(core::SdlWidget* item) {
+    SelectorLayout::removeItem(core::LayoutItem* item) {
       // We need to determine whether this item corresponds to the active item.
       // If it is the case we need to update this layout so that it does not
-      // have any active widget anymore. Otherwise we have to handle the update
+      // have any active item anymore. Otherwise we have to handle the update
       // of the internal `m_activeItem` si that it still reflects the active
       // item if any.
 
@@ -49,7 +49,7 @@ namespace sdl {
       // The item is not the currently selected item. We need to update it
       // so that the active item stays the same even after removing the input
       // item.
-      // To do so, we will first retrieve the widget associated to the active
+      // To do so, we will first retrieve the item associated to the active
       // item, then proceed to the removal of the input item and finally update
       // the active item with its new index.
       // Of course this only applies if there is an active item in the first
@@ -61,8 +61,8 @@ namespace sdl {
         return Layout::removeItem(item);
       }
 
-      // First retrieve the widget corresponding to the active item.
-      core::SdlWidget* activeItem = getWidgetAt(m_activeItem);
+      // First retrieve the item corresponding to the active item.
+      core::LayoutItem* activeItem = getItemAt(m_activeItem);
 
       // Remove the item using the dedicated handler.
       int removedID = Layout::removeItem(item);

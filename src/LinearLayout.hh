@@ -36,11 +36,11 @@ namespace sdl {
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept override;
 
         utils::Sizef
-        computeDefaultWidgetBox(const utils::Sizef& area,
-                                const unsigned& widgetsCount) const;
+        computeDefaultItemBox(const utils::Sizef& area,
+                              const unsigned& itemsCount) const;
 
         utils::Sizef
-        computeSizeOfWidgets(const std::vector<utils::Boxf>& boxes) const;
+        computeSizeOfItems(const std::vector<utils::Boxf>& boxes) const;
 
       private:
 

@@ -44,7 +44,7 @@ namespace sdl {
         setRowsMinimumHeight(const float& height);
 
         int
-        addItem(core::SdlWidget* container,
+        addItem(core::LayoutItem* container,
                 const unsigned& x,
                 const unsigned& y,
                 const unsigned& w,
@@ -66,7 +66,7 @@ namespace sdl {
         // Convenience record to hold the position of items in the layout.
         struct ItemInfo {
           unsigned x, y, w, h;
-          core::SdlWidget* widget;
+          core::LayoutItem* item;
         };
 
         // Convenience record holding the information for a single column/row.
@@ -76,57 +76,57 @@ namespace sdl {
         };
 
         // Convenience record holding the detailed information for a single cell
-        // of the grid layout. If the `widget` value is negative, it means that
-        // no widget occupy the location. In any other case, the `widget` value
-        // corresponds to the key to reach the widget spanning this cell in the
+        // of the grid layout. If the `item` value is negative, it means that
+        // no item occupy the location. In any other case, the `item` value
+        // corresponds to the key to reach the item spanning this cell in the
         // `m_locations` map.
-        // The `multiCell` value indicates whether the widget is a multi-cell
-        // widget in which case the `hStretch` and `vStretch` should be ignored.
+        // The `multiCell` value indicates whether the item is a multi-cell
+        // item in which case the `hStretch` and `vStretch` should be ignored.
         struct CellInfo {
           unsigned hStretch;
           unsigned vStretch;
           utils::Boxf box;
           bool multiCell;
-          int widget;
+          int item;
         };
 
-        // Convenience record holding the data representing a widget during the
-        // optimiwation process. It allows to represent easily multi-cell widget
+        // Convenience record holding the data representing a item during the
+        // optimiwation process. It allows to represent easily multi-cell item
         // by providing a way to link cells' information.
-        // The basic information corresponds to the index of the widget it is
+        // The basic information corresponds to the index of the item it is
         // associated in some array.
-        // The `shared` attribute allows to detezrmine whether this widget is
+        // The `shared` attribute allows to detezrmine whether this item is
         // shared and the `master` allows to specify whether it is the first
-        // occurrence of this widget's data in the array. Indeed most processes
-        // want to work on a per-widget basis and don't really care about
+        // occurrence of this item's data in the array. Indeed most processes
+        // want to work on a per-item basis and don't really care about
         // duplicates.
-        // One can access to the total extent of a widget through the `span`
-        // value which counts how many `WidgetData` element with a similar `widget`
+        // One can access to the total extent of a item through the `span`
+        // value which counts how many `ItemData` element with a similar `item`
         // can be found.
-        // For any widget there's only one instance of widget data which has its
+        // For any item there's only one instance of item data which has its
         // `master` value set to true.
         // An identifier shall be provided for this data in order to be able to
         // use it correctly in unordered set. A common value corresponds to the
         // cell id (which is unique within a grid layout computed as follows:
         // `y * m_columns + x`.
         // The `suze` allows to determine which portion of the overall `box`
-        // assigned for this widget belongs to this piece of data. This allows
-        // for a better repartition of size among the cells spanned by a widget.
-        struct WidgetData {
-          int widget;
+        // assigned for this item belongs to this piece of data. This allows
+        // for a better repartition of size among the cells spanned by a item.
+        struct ItemData {
+          int item;
           bool shared;
           bool master;
           unsigned span;
           unsigned id;
           mutable utils::Sizef size;
         };
-        using WidgetDataShPtr = std::shared_ptr<WidgetData>;
+        using ItemDataShPtr = std::shared_ptr<ItemData>;
 
-        // Convenience structure which allows to share data of widget but still
+        // Convenience structure which allows to share data of item but still
         // keeping the identifier property.
-        struct WidgetDataWrapper {
+        struct ItemDataWrapper {
           unsigned id;
-          WidgetDataShPtr data;
+          ItemDataShPtr data;
         };
 
         void
@@ -136,36 +136,36 @@ namespace sdl {
         computeCellsInfo() const noexcept;
 
         virtual void
-        adjustWidgetToConstraints(const utils::Sizef& window,
-                                  std::vector<WidgetInfo>& widgets) const noexcept;
+        adjustItemToConstraints(const utils::Sizef& window,
+                                std::vector<WidgetInfo>& items) const noexcept;
 
         utils::Sizef
-        computeAchievedSize(const std::vector<WidgetDataWrapper>& elements) const noexcept;
+        computeAchievedSize(const std::vector<ItemDataWrapper>& elements) const noexcept;
 
         std::vector<float>
         adjustColumnsWidth(const utils::Sizef& window,
-                           const std::vector<WidgetInfo>& widgets,
+                           const std::vector<WidgetInfo>& items,
                            std::vector<CellInfo>& cells) const;
 
         std::vector<float>
         adjustRowHeight(const utils::Sizef& window,
-                        const std::vector<WidgetInfo>& widgets,
+                        const std::vector<WidgetInfo>& items,
                         std::vector<CellInfo>& cells) const;
 
         void
         adjustMultiCellWidth(const std::vector<float>& columns,
-                             const std::vector<WidgetInfo>& widgetsInfo,
+                             const std::vector<WidgetInfo>& items,
                              std::vector<CellInfo>& cells);
 
         void
         adjustMultiCellHeight(const std::vector<float>& rows,
-                              const std::vector<WidgetInfo>& widgetsInfo,
+                              const std::vector<WidgetInfo>& items,
                               std::vector<CellInfo>& cells);
 
       private:
 
-        friend std::hash<WidgetDataWrapper>;
-        friend bool operator==(const WidgetDataWrapper& lhs, const WidgetDataWrapper& rhs) noexcept;
+        friend std::hash<ItemDataWrapper>;
+        friend bool operator==(const ItemDataWrapper& lhs, const ItemDataWrapper& rhs) noexcept;
 
         using LocationsMap = std::unordered_map<int, ItemInfo>;
 
