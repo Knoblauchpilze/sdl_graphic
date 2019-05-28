@@ -15,7 +15,8 @@ namespace sdl {
                    const unsigned& rows,
                    const float& margin = 0.0f,
                    core::SdlWidget* widget = nullptr,
-                   const bool rootLayout = false);
+                   const bool rootLayout = false,
+                   const std::string& name = std::string("grid_layout"));
 
         virtual ~GridLayout();
 
@@ -131,6 +132,17 @@ namespace sdl {
 
         void
         resetGridInfo();
+
+        /**
+         * @brief - Updates the coordinates of the item at index `item` with the provided
+         *          box.
+         *          If no such item ccan be found, an error is raised.
+         * @param item - the index of the item to update.
+         * @param coordinates - the new coordinates to assign to this item.
+         */
+        void
+        updateGridCoordinates(const int& item,
+                              const utils::Boxi& coordinates);
 
         std::vector<CellInfo>
         computeCellsInfo() const noexcept;

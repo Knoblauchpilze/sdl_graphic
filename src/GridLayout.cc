@@ -12,8 +12,9 @@ namespace sdl {
                            const unsigned& rows,
                            const float& margin,
                            core::SdlWidget* widget,
-                           const bool rootLayout):
-      core::Layout(widget, margin, true, std::string("grid_layout"), rootLayout),
+                           const bool rootLayout,
+                           const std::string& name):
+      core::Layout(widget, margin, true, name, rootLayout),
       m_columns(columns),
       m_rows(rows),
 
@@ -265,6 +266,26 @@ namespace sdl {
 
       // Call parent method.
       core::Layout::makeGeometryDirty();
+    }
+
+    void
+    GridLayout::updateGridCoordinates(const int& item,
+                                      const utils::Boxi& coordinates)
+    {
+      // Try to retrieve the desired item.
+      LocationsMap::iterator itemToUpdate = m_locations.find(item);
+
+      if (itemToUpdate == m_locations.end()) {
+        error(
+          std::string("Could not update grid coordinates for item ") + std::to_string(item),
+          std::string("Item not found")
+        );
+      }
+
+      itemToUpdate->second.x = coordinates.x();
+      itemToUpdate->second.y = coordinates.y();
+      itemToUpdate->second.w = coordinates.w();
+      itemToUpdate->second.h = coordinates.h();
     }
 
     std::vector<GridLayout::CellInfo>
