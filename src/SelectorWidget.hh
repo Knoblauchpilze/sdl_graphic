@@ -33,6 +33,22 @@ namespace sdl {
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
+        /**
+         * @brief - Reimplementation of the `addWidget` method of the base `SdlWidget` class.
+         *          This allows to provide a specific behavior when a widget is added as a
+         *          child of this widget: we need to insert it into the associated layout so
+         *          that we can keep the encapsulation and not expose specific methods to
+         *          insert a widget in this object.
+         *          By specializing this method we allow for simple use of a `SelectorWidget`
+         *          and easy insertion of elements inside it: we just have to use the regular
+         *          way of parenting each child widget and it will automatically be added to
+         *          the layout.
+         * @param widget - the widget which should be assigned `this` as parent: it will be
+         *                 inserted in the internal layout during the process.
+         */
+        void
+        addWidget(SdlWidget* widget) override;
+
       private:
 
         bool
