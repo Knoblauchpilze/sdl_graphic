@@ -13,6 +13,7 @@ set (SOURCES
   SelectorLayout.cc
   PictureWidget.cc
   LabelWidget.cc
+  ComboBox.cc
   )
 
 add_library (sdl_graphic SHARED
