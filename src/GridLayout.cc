@@ -138,7 +138,7 @@ namespace sdl {
       // we might have to redo an adjustment for single-cell items afterwards.
 
       // Proceed to adjust the columns' width.
-      log(std::string("Adjusting columns width"), utils::Level::Notice);
+      // log(std::string("Adjusting columns width"), utils::Level::Notice);
       std::vector<float> columnsDims = adjustColumnsWidth(internalSize, itemsInfo, cells);
 
       // Adjust rows' height.
@@ -625,10 +625,10 @@ namespace sdl {
         }
       }
 
-      log(
-        std::string("Total size: ") + std::to_string(window.w()) + ", used for empty columns: " + std::to_string(widthForEmptyColumns),
-        utils::Level::Info
-      );
+      // log(
+      //   std::string("Total size: ") + std::to_string(window.w()) + ", used for empty columns: " + std::to_string(widthForEmptyColumns),
+      //   utils::Level::Info
+      // );
 
       // Let's start the optimization process.
       // We start with an available space budget described by the value of `window.w()`.
@@ -697,7 +697,7 @@ namespace sdl {
         // have several items needing adjustments.
         const float defaultWidth = allocateFairly(spaceToUse, columnsRemaining);
 
-        log(std::string("Default width is ") + std::to_string(defaultWidth), utils::Level::Info);
+        // log(std::string("Default width is ") + std::to_string(defaultWidth), utils::Level::Info);
 
         // Allocate this space on each item: as all columns are equivalent, this means
         // that we can directly work on individual items.
@@ -727,7 +727,7 @@ namespace sdl {
           // so, let's compute the size increase provided for this item by the current
           // column: this is the size which belongs to the column.
           dataWrapper->data->size.w() += (width - cells[item].box.w());
-          log("Item " + getItemAt(item)->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[item].box.w()));
+          // log("Item " + getItemAt(item)->getName() + " has now size " + std::to_string(width) + " from " + std::to_string(cells[item].box.w()));
 
           // Now register the new size of the item.
           cells[item].box.w() = width;
@@ -787,7 +787,7 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
 
-        log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedWidth) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
+        // log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedWidth) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
 
         // We now know what should be done to make the `achievedWidth` closer to `desiredWidth`.
         // Based on the `policy` provided by the base class method, we can now determine which
@@ -832,10 +832,10 @@ namespace sdl {
               if (usable.first) {
                 // This column can be used to `Grow` thanks to this item. No need to go
                 // further.
-                log(
-                  std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + getItemAt(itemID)->getName(),
-                  utils::Level::Info
-                );
+                // log(
+                //   std::string("Column ") + std::to_string(column) + " can be extended horizontally thanks to " + getItemAt(itemID)->getName(),
+                //   utils::Level::Info
+                // );
                 columnsToUse.insert(column);
                 break;
               }
@@ -864,10 +864,10 @@ namespace sdl {
                 // Thus before setting the `canShrink` boolean to false, let's first check
                 // whether the width of the column allows to shrink.
                 if (columns[column] <= cells[itemID].box.w()) {
-                  log(
-                    std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + getItemAt(itemID)->getName(),
-                    utils::Level::Warning
-                  );
+                  // log(
+                  //   std::string("Column ") + std::to_string(column) + " cannot be shrunk horizontally because of " + getItemAt(itemID)->getName(),
+                  //   utils::Level::Warning
+                  // );
                   canShrink = false;
                   break;
                 }
@@ -876,10 +876,10 @@ namespace sdl {
 
             // Register this column for shrinking if needed.
             if (canShrink) {
-              log(
-                std::string("Column ") + std::to_string(column) + " containing " + std::to_string(itemsForColumn.size()) + " item(s) can be shrunk horizontally",
-                utils::Level::Info
-              );
+              // log(
+              //   std::string("Column ") + std::to_string(column) + " containing " + std::to_string(itemsForColumn.size()) + " item(s) can be shrunk horizontally",
+              //   utils::Level::Info
+              // );
               columnsToUse.insert(column);
             }
           }
@@ -1057,10 +1057,10 @@ namespace sdl {
         }
       }
 
-      log(
-        std::string("Total size: ") + std::to_string(window.h()) + ", used for empty rows: " + std::to_string(heightForEmptyRows),
-        utils::Level::Info
-      );
+      // log(
+      //   std::string("Total size: ") + std::to_string(window.h()) + ", used for empty rows: " + std::to_string(heightForEmptyRows),
+      //   utils::Level::Info
+      // );
 
       // Let's start the optimization process.
       // We start with an available space budget described by the value of `window.h()`.
@@ -1129,7 +1129,7 @@ namespace sdl {
         // have several items needing adjustments.
         const float defaultHeight = allocateFairly(spaceToUse, rowsRemaining);
 
-        log(std::string("Default height is ") + std::to_string(defaultHeight), utils::Level::Info);
+        // log(std::string("Default height is ") + std::to_string(defaultHeight), utils::Level::Info);
 
         // Allocate this space on each item: as all rows are equivalent, this means
         // that we can directly work on individual items.
@@ -1191,7 +1191,7 @@ namespace sdl {
           // Only handle non empty rows.
           if (emptyRows.find(row) == emptyRows.cend()) {
             rows[row] = computeAchievedSize(itemsForRows[row]).h();
-            log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(itemsForRows[row].size()) + " item");
+            // log("Row " + std::to_string(row) + " achieved size " + std::to_string(rows[row]) + " from " + std::to_string(itemsForRows[row].size()) + " item");
           }
         }
 
@@ -1218,7 +1218,7 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const core::SizePolicy action = shrinkOrGrow(window, achievedSize, 0.5f);
 
-        log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedHeight) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
+        // log(std::string("Desired ") + window.toString() + ", achieved: " + std::to_string(achievedHeight) + ", space: " + std::to_string(spaceToUse), utils::Level::Info);
 
         // We now know what should be done to make the `achievedHeight` closer to `desiredHeight`.
         // Based on the `policy` provided by the base class method, we can now determine which
@@ -1263,10 +1263,10 @@ namespace sdl {
               if (usable.second) {
                 // This row can be used to `Grow` thanks to this item. No need to go
                 // further.
-                log(
-                  std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + getItemAt(itemID)->getName(),
-                  utils::Level::Info
-                );
+                // log(
+                //   std::string("Row ") + std::to_string(row) + " can be extended vertically thanks to " + getItemAt(itemID)->getName(),
+                //   utils::Level::Info
+                // );
                 rowsToUse.insert(row);
                 break;
               }
@@ -1295,10 +1295,10 @@ namespace sdl {
                 // Thus before setting the `canShrink` boolean to false, let's first check
                 // whether the height of the row allows to shrink.
                 if (rows[row] <= cells[itemID].box.h()) {
-                  log(
-                    std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + getItemAt(itemID)->getName(),
-                    utils::Level::Warning
-                  );
+                  // log(
+                  //   std::string("Row ") + std::to_string(row) + " cannot be shrunk vertically because of " + getItemAt(itemID)->getName(),
+                  //   utils::Level::Warning
+                  // );
                   canShrink = false;
                   break;
                 }
@@ -1307,10 +1307,10 @@ namespace sdl {
 
             // Register this row for shrinking if needed.
             if (canShrink) {
-              log(
-                std::string("Row ") + std::to_string(row) + " containing " + std::to_string(itemsForRow.size()) + " item(s) can be shrunk vertically",
-                utils::Level::Info
-              );
+              // log(
+              //   std::string("Row ") + std::to_string(row) + " containing " + std::to_string(itemsForRow.size()) + " item(s) can be shrunk vertically",
+              //   utils::Level::Info
+              // );
               rowsToUse.insert(row);
             }
           }
