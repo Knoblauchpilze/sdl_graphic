@@ -61,7 +61,7 @@ namespace sdl {
       // that it is still possible to keep the standard way of parenting
       // widgets: add this item as parent when creating the children.
       // Of course we still need to perform the base operations.
-      
+
       core::SdlWidget::addWidget(widget);
 
       // Add the input `widget` to the layout.
