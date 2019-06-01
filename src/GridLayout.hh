@@ -11,12 +11,13 @@ namespace sdl {
     class GridLayout: public core::Layout {
       public:
 
-        GridLayout(const unsigned& columns,
+        GridLayout(const std::string& name,
+                   core::SdlWidget* widget,
+                   const unsigned& columns,
                    const unsigned& rows,
                    const float& margin = 0.0f,
-                   core::SdlWidget* widget = nullptr,
                    const bool rootLayout = false,
-                   const std::string& name = std::string("grid_layout"));
+                   const bool virtualLayout = false);
 
         virtual ~GridLayout();
 

@@ -15,8 +15,8 @@ namespace sdl {
       public:
 
         SelectorWidget(const std::string& name,
-                       const bool switchOnLeftClick = false,
                        core::SdlWidget* parent = nullptr,
+                       const bool switchOnLeftClick = false,
                        const core::engine::Color& color = core::engine::Color(),
                        const utils::Sizef& area = utils::Sizef());
 

@@ -8,13 +8,14 @@
 namespace sdl {
   namespace graphic {
 
-    GridLayout::GridLayout(const unsigned& columns,
+    GridLayout::GridLayout(const std::string& name,
+                           core::SdlWidget* widget,
+                           const unsigned& columns,
                            const unsigned& rows,
                            const float& margin,
-                           core::SdlWidget* widget,
                            const bool rootLayout,
-                           const std::string& name):
-      core::Layout(widget, margin, true, name, rootLayout),
+                           const bool virtualLayout):
+      core::Layout(name, widget, margin, rootLayout, true, virtualLayout),
       m_columns(columns),
       m_rows(rows),
 

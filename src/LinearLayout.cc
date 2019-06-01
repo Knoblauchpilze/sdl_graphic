@@ -7,11 +7,12 @@
 namespace sdl {
   namespace graphic {
 
-    LinearLayout::LinearLayout(const core::Layout::Direction& direction,
+    LinearLayout::LinearLayout(const std::string& name,
+                               core::SdlWidget* widget,
+                               const Direction& direction,
                                const float& margin,
-                               const float& interMargin,
-                               core::SdlWidget* widget):
-      core::Layout(widget, margin),
+                               const float& interMargin):
+      core::Layout(name, widget, margin, widget == nullptr),
       m_direction(direction),
       m_componentMargin(interMargin)
     {

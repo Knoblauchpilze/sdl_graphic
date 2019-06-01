@@ -10,8 +10,9 @@ namespace sdl {
     class SelectorLayout: public core::Layout {
       public:
 
-        SelectorLayout(const float& margin = 1.0f,
-                       core::SdlWidget* widget = nullptr);
+        SelectorLayout(const std::string& name,
+                       core::SdlWidget* widget,
+                       const float& margin = 1.0f);
 
         virtual ~SelectorLayout();
 

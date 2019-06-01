@@ -12,10 +12,11 @@ namespace sdl {
     class LinearLayout: public core::Layout {
       public:
 
-        LinearLayout(const Direction& direction,
+        LinearLayout(const std::string& name,
+                     core::SdlWidget* widget,
+                     const Direction& direction,
                      const float& margin = 1.0f,
-                     const float& interMargin = 0.0f,
-                     core::SdlWidget* widget = nullptr);
+                     const float& interMargin = 0.0f);
 
         virtual ~LinearLayout();
 

@@ -8,14 +8,14 @@ namespace sdl {
 
     inline
     SelectorWidget::SelectorWidget(const std::string& name,
-                                   const bool switchOnLeftClick,
                                    core::SdlWidget* parent,
+                                   const bool switchOnLeftClick,
                                    const core::engine::Color& color,
                                    const utils::Sizef& area):
       core::SdlWidget(name, area, parent, color),
       m_switchOnLeftClick(switchOnLeftClick)
     {
-      setLayout(std::make_shared<SelectorLayout>(0.0f, this));
+      setLayout(std::make_shared<SelectorLayout>(std::string("selector_layout_for_") + getName(), this, 0.0f));
     }
 
     inline
