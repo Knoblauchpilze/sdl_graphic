@@ -14,6 +14,7 @@ set (SOURCES
   PictureWidget.cc
   LabelWidget.cc
   ComboBox.cc
+  TabWidget.cc
   )
 
 add_library (sdl_graphic SHARED
