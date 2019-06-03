@@ -34,7 +34,7 @@ namespace sdl {
 
         ComboBox(const std::string& name,
                  const InsertPolicy& policy,
-                 SdlWidget* parent = nullptr,
+                 core::SdlWidget* parent = nullptr,
                  const utils::Sizef& area = utils::Sizef(),
                  const int maxVisibleItems = 10);
 

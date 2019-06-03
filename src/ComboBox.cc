@@ -6,7 +6,7 @@ namespace sdl {
 
     ComboBox::ComboBox(const std::string& name,
                        const InsertPolicy& policy,
-                       SdlWidget* parent,
+                       core::SdlWidget* parent,
                        const utils::Sizef& area,
                        const int maxVisibleItems):
       core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::White),
@@ -94,7 +94,19 @@ namespace sdl {
     }
 
     void
-    ComboBox::drawContentPrivate(const utils::Uuid& /*uuid*/) const {}
+    ComboBox::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
+      // TODO: Should probably be implemented as a linear layout with two items: the
+      // icon and the text.
+      // We could assign a max size on the widget which would be based on the dimensions
+      // of the largest item. The icon also has a maximum size, which is hard coded and
+      // consistent with the specifications of the parameters of the `addItem` method which
+      // should be completed with missing information. Note that the labels are updated and
+      // not recreated each time: we do not have cache for each combobox item.
+      // We should maybe replace the picture widget used by each item by a single string
+      // representing the path to the item.
+      // This would allow for example to use a selector widget instead of a picture widget
+      // so that we could have some cache mechanism for pictures.
+    }
 
     std::pair<int, bool>
     ComboBox::getIndexFromInsertPolicy(const std::string& text) const {
