@@ -126,14 +126,14 @@ namespace sdl {
       // Create two children: a picture widget and a label widget which will be used
       // to represent the items of this combobox.
       PictureWidget* icon = new PictureWidget(
-        "combobox_icon",
+        std::string("combobox_icon"),
         std::string(),
         PictureWidget::Mode::Fit,
         this
       );
 
       LabelWidget* text = new LabelWidget(
-        "combobox_text",
+        std::string("combobox_text"),
         std::string(),
         std::string("data/fonts/times.ttf"),
         15,
@@ -226,8 +226,8 @@ namespace sdl {
 
       // We need to activate the corresponding text and icon from the internal
       // table.
-      getChildAs<PictureWidget>("combobox_icon")->setImagePath(m_items[m_activeItem].icon);
-      getChildAs<LabelWidget>("combobox_text")->setText(m_items[m_activeItem].text);
+      getChildAs<PictureWidget>(std::string("combobox_icon"))->setImagePath(m_items[m_activeItem].icon);
+      getChildAs<LabelWidget>(std::string("combobox_text"))->setText(m_items[m_activeItem].text);
     }
 
   }
