@@ -4,7 +4,6 @@
 # include <memory>
 # include <vector>
 # include <sdl_core/SdlWidget.hh>
-# include "PictureWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -57,13 +56,13 @@ namespace sdl {
          *          Also note that this widget will take ownership of the provided `icon` and proceed
          *          to remove it at most appropriate time.
          * @param text - the text to insert using a position derived from the insert policy.
-         * @param icon - a pointer to a picture widget to associate to this `text` entru. Note that
-         *               of the provided value is null (default) this parameter is ignored and no icon
-         *               will be associated to the item.
+         * @param icon - a string representing the path to reach the icon to associate to this `text`
+         *               entry. Note that if the provided value is null (default) this parameter is
+         *               ignored and no icon will be associated to the item.
          */
         void
         insertItem(const std::string& text,
-                   PictureWidget* icon = nullptr);
+                   const std::string& icon = std::string());
 
         /**
          * @brief - Inserts the provided `text` in this combobox at the specified `index`. If the
@@ -78,14 +77,14 @@ namespace sdl {
          *          to remove it at most appropriate time.
          * @param index - the index at which the `text` should be inserted in this combobox.
          * @param text - the text to insert at the specified location.
-         * @param icon - a pointer to a picture widget to associate to this `text` entry. Note that
-         *               if the provided value is null (default) this parameter is ignored and no
-         *               icon will be associated to the item.
+         * @param icon - a string representing the path to reach the icon to associate to this `text`
+         *               entry. Note that if the provided value is null (default) this parameter is
+         *               ignored and no icon will be associated to the item.
          */
         void
         insertItem(const int index,
                    const std::string& text,
-                   PictureWidget* icon = nullptr);
+                   const std::string& icon = std::string());
 
         void
         removeItem(const int index);
@@ -102,6 +101,13 @@ namespace sdl {
         drawContentPrivate(const utils::Uuid& uuid) const override;
 
       private:
+
+        /**
+         * @brief - Used to build this component by creating the adequate layout and the component
+         *          to use to represent each item of the combobox.
+         */
+        void
+        build();
 
         /**
          * @brief - Used to determine the index at which an item should be inserted. This method
@@ -127,7 +133,7 @@ namespace sdl {
          */
         struct ComboBoxItem {
           std::string text;
-          PictureWidget* icon;
+          std::string icon;
         };
 
         using ItemsMap = std::vector<ComboBoxItem>;

@@ -1,5 +1,8 @@
 
 # include "ComboBox.hh"
+# include "LinearLayout.hh"
+# include "LabelWidget.hh"
+# include "PictureWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -16,14 +19,17 @@ namespace sdl {
 
       m_activeItem(-1),
       m_items()
-    {}
+    {
+      // Build the layout for this component.
+      build();
+    }
 
     ComboBox::~ComboBox() {}
 
     void
     ComboBox::insertItem(const int index,
                          const std::string& text,
-                         PictureWidget* icon)
+                         const std::string& icon)
     {
       // Create a new item from the input data.
       ComboBoxItem item = ComboBoxItem{
@@ -71,11 +77,6 @@ namespace sdl {
         );
       }
 
-      // We need to delete the icon associated to this item if any.
-      if (m_items[index].icon != nullptr) {
-        delete m_items[index].icon;
-      }
-
       // Perform the deletion.
       m_items.erase(m_items.cbegin() + index);
 
@@ -106,6 +107,45 @@ namespace sdl {
       // representing the path to the item.
       // This would allow for example to use a selector widget instead of a picture widget
       // so that we could have some cache mechanism for pictures.
+    }
+
+    void
+    ComboBox::build() {
+      // Assign a linear layout which will allow positionning items and icons.
+      LinearLayoutShPtr layout = std::make_shared<LinearLayout>(
+        getName() + "'s_layout",
+        this,
+        LinearLayout::Direction::Horizontal,
+        0.0f,
+        1.0f
+      );
+
+      // Create two children: a picture widget and a label widget which will be used
+      // to represent the items of this combobox.
+      PictureWidget* icon = new PictureWidget(
+        getName() + "'s_icon",
+        std::string(),
+        PictureWidget::Mode::Fit,
+        this
+      );
+
+      LabelWidget* text = new LabelWidget(
+        getName() + "'s_text",
+        std::string(),
+        std::string("data/fonts/times.ttf"),
+        15,
+        LabelWidget::HorizontalAlignment::Left,
+        LabelWidget::VerticalAlignment::Center,
+        this,
+        core::engine::Color::NamedColor::Silver
+      );
+
+      // Add these items to the layout.
+      layout->addItem(icon);
+      layout->addItem(text);
+
+      // And assign the layout to this widget.
+      setLayout(layout);
     }
 
     std::pair<int, bool>

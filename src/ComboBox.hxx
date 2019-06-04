@@ -49,7 +49,7 @@ namespace sdl {
     inline
     void
     ComboBox::insertItem(const std::string& text,
-                         PictureWidget* icon)
+                         const std::string& icon)
     {
       // Determine the index to which this item should be inserted from the
       // internal insertion policy.
