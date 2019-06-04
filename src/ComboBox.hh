@@ -92,13 +92,13 @@ namespace sdl {
       protected:
 
         /**
-         * @brief - Reimplementation of the parent `SdlWidget` method to handle the repaint of this
-         *          combobox. The goal is basically to display the icon and the text associated to
-         *          the active item.
-         * @param uuid - the identifier of the texture to draw on.
+         * @brief - Reimplementation of the base `EngineObject` method which allows to react
+         *          on the click of the mouse on this widget to select a new active item.
+         * @param e - the mouse event describing the click.
+         * @return - true if the event was recognized, false otherwise.
          */
-        void
-        drawContentPrivate(const utils::Uuid& uuid) const override;
+        bool
+        mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
       private:
 
@@ -123,6 +123,9 @@ namespace sdl {
          */
         std::pair<int, bool>
         getIndexFromInsertPolicy(const std::string& text) const;
+
+        void
+        setActiveItem(const int& index);
 
       private:
 

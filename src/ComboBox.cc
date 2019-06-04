@@ -94,26 +94,29 @@ namespace sdl {
       makeContentDirty();
     }
 
-    void
-    ComboBox::drawContentPrivate(const utils::Uuid& /*uuid*/) const {
-      // TODO: Should probably be implemented as a linear layout with two items: the
-      // icon and the text.
-      // We could assign a max size on the widget which would be based on the dimensions
-      // of the largest item. The icon also has a maximum size, which is hard coded and
-      // consistent with the specifications of the parameters of the `addItem` method which
-      // should be completed with missing information. Note that the labels are updated and
-      // not recreated each time: we do not have cache for each combobox item.
-      // We should maybe replace the picture widget used by each item by a single string
-      // representing the path to the item.
-      // This would allow for example to use a selector widget instead of a picture widget
-      // so that we could have some cache mechanism for pictures.
+    bool
+    ComboBox::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
+      // We need to switch the active widget or assign it if none is
+      // selected yet. Nothing happens if theere is already a widget
+      // active and no more than one is registered in this box.
+      // In addition to that we have to verify that the location of
+      // the click is inside of this widget.
+
+      // Determine whether the position of the click is inside the widget.
+      if (isInsideWidget(e.getMousePosition()) && getItemsCount() > 1) {
+        // Update the active widget.
+        setActiveItem((getActiveItem() + 1) % getItemsCount());
+      }
+
+      // Use base handler to determine whether the event was recognized.
+      return core::SdlWidget::mouseButtonReleaseEvent(e);
     }
 
     void
     ComboBox::build() {
       // Assign a linear layout which will allow positionning items and icons.
       LinearLayoutShPtr layout = std::make_shared<LinearLayout>(
-        getName() + "'s_layout",
+        "combobox_layout",
         this,
         LinearLayout::Direction::Horizontal,
         0.0f,
@@ -123,14 +126,14 @@ namespace sdl {
       // Create two children: a picture widget and a label widget which will be used
       // to represent the items of this combobox.
       PictureWidget* icon = new PictureWidget(
-        getName() + "'s_icon",
+        "combobox_icon",
         std::string(),
         PictureWidget::Mode::Fit,
         this
       );
 
       LabelWidget* text = new LabelWidget(
-        getName() + "'s_text",
+        "combobox_text",
         std::string(),
         std::string("data/fonts/times.ttf"),
         15,
@@ -200,6 +203,31 @@ namespace sdl {
 
       // Silent compiler even though `error` will throw.
       return std::make_pair(0, false);
+    }
+
+    void
+    ComboBox::setActiveItem(const int& index) {
+      // Remove the corresponding item if it exists.
+      if (index < 0 || index >= getItemsCount()) {
+        error(
+          std::string("Cannot set active item ") + std::to_string(index) + " in combobox",
+          std::string("No such item")
+        );
+      }
+
+      // If the index corresponds to the currently active item we don't have to
+      // do anything.
+      if (index == m_activeItem) {
+        return;
+      }
+
+      // Assign the active item.
+      m_activeItem = index;
+
+      // We need to activate the corresponding text and icon from the internal
+      // table.
+      getChildAs<PictureWidget>("combobox_icon")->setImagePath(m_items[m_activeItem].icon);
+      getChildAs<LabelWidget>("combobox_text")->setText(m_items[m_activeItem].text);
     }
 
   }
