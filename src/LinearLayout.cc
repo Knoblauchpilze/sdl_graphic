@@ -14,7 +14,8 @@ namespace sdl {
                                const float& interMargin):
       core::Layout(name, widget, margin, widget == nullptr),
       m_direction(direction),
-      m_componentMargin(interMargin)
+      m_componentMargin(interMargin),
+      m_idsToPosition()
     {
       // Nothing to do.
     }

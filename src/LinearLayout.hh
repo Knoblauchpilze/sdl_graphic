@@ -2,6 +2,7 @@
 # define   LINEARLAYOUT_HH
 
 # include <memory>
+# include <vector>
 # include <maths_utils/Size.hh>
 # include <sdl_core/Layout.hh>
 # include <sdl_core/SizePolicy.hh>
@@ -19,6 +20,16 @@ namespace sdl {
                      const float& interMargin = 0.0f);
 
         virtual ~LinearLayout();
+
+        int
+        addItem(LayoutItem* item) override;
+
+        int
+        addItem(LayoutItem* item,
+                const int& index) override;
+
+        int
+        removeItem(LayoutItem* item) override;
 
         const Direction&
         getDirection() const noexcept;
@@ -45,9 +56,17 @@ namespace sdl {
 
       private:
 
+        using IdToPosition = std::vector<int>;
+
         Direction m_direction;
         float m_componentMargin;
 
+        /**
+         * @brief - Allows to store the logical position of the item stored at a given
+         *          position in the parent table. This allows to correctly assign the
+         *          rendering area to widgets based on their index in the layout.
+         */
+        IdToPosition m_idsToPosition;
     };
 
     using LinearLayoutShPtr = std::shared_ptr<LinearLayout>;
