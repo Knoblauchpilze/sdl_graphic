@@ -8,83 +8,51 @@ namespace sdl {
     SelectorLayout::SelectorLayout(const std::string& name,
                                    core::SdlWidget* widget,
                                    const float& margin):
-      core::Layout(name, widget, margin, widget == nullptr, true),
-      m_activeItem(-1)
+      core::Layout(name, widget, margin, widget == nullptr),
+      m_activeItem(-1),
+      m_idsToPosition()
     {
       // Nothing to do.
     }
 
     SelectorLayout::~SelectorLayout() {}
 
-    int
-    SelectorLayout::removeItem(core::LayoutItem* item) {
-      // We need to determine whether this item corresponds to the active item.
-      // If it is the case we need to update this layout so that it does not
-      // have any active item anymore. Otherwise we have to handle the update
-      // of the internal `m_activeItem` si that it still reflects the active
-      // item if any.
-
-      if (item == nullptr) {
-        // Use the base handler, we cannot do anything on our side.
-        return Layout::removeItem(item);
-      }
-
-      // Let's retrieve the index of this layout in the container.
-      const int idItem = getIndexOf(item);
-
-      // Check whether this item was found in the layout.
-      if (idItem < 0) {
-        // Use the base handler, we cannot do anything useful in here.
-        return Layout::removeItem(item);
-      }
-
-      // Check whether this item is the active item.
-      if (idItem == m_activeItem) {
-        // No more active item.
-        m_activeItem = -1;
-
-        // Use the base handler to remove the item and we're done.
-        return Layout::removeItem(item);
-      }
-
-      // The item is not the currently selected item. We need to update it
-      // so that the active item stays the same even after removing the input
-      // item.
-      // To do so, we will first retrieve the item associated to the active
-      // item, then proceed to the removal of the input item and finally update
-      // the active item with its new index.
-      // Of course this only applies if there is an active item in the first
-      // place.
-
-      // Check whether there is an active item.
-      if (m_activeItem < 0) {
-        // We only have to perform the removal of the item using the base handler.
-        return Layout::removeItem(item);
-      }
-
-      // First retrieve the item corresponding to the active item.
-      core::LayoutItem* activeItem = getItemAt(m_activeItem);
-
-      // Remove the item using the dedicated handler.
-      int removedID = Layout::removeItem(item);
-
-      // Retrieve the index of the active item.
-      const int newID = getIndexOf(activeItem);
-      if (!isValidIndex(newID)) {
-        // Should not occur: something must have gone wrong during the removal.
-        m_activeItem = -1;
-
+    void
+    SelectorLayout::setActiveItem(const int& index) {
+      // Check whether the provided index is valid.
+      if (!isValidIndex(index)) {
         error(
-          std::string("Could not update active item after removing item \"") + item->getName() + "\"",
-          std::string("Active item could not be retrieve")
+          std::string("Cannot activate child ") + std::to_string(index),
+          std::string("Only ") + std::to_string(getItemsCount()) + " item(s) registered"
         );
       }
 
-      // Update the index of the active item.
-      m_activeItem = newID;
+      // If the index corresponds to the currently active item we don't have to
+      // do anything.
+      if (index == m_activeItem) {
+        return;
+      }
 
-      // Returnt he value provided by the base handler.
-      return removedID;
+      // Activate the input item and invalidate the layout.
+      m_activeItem = index;
+      makeGeometryDirty();
+    }
+
+    void
+    SelectorLayout::switchToNext() {
+      // If no items are registered in the layout, return early.
+      if (empty()) {
+        return;
+      }
+
+      // If no active item are set, assign the first one.
+      if (m_activeItem < 0) {
+        setActiveItem(0);
+      }
+
+      // In any other case, activate the next item and loop to
+      // the first if needed.
+      setActiveItem((m_activeItem + 1) % getItemsCount());
     }
 
     void
@@ -101,7 +69,11 @@ namespace sdl {
       // child, use all the available space.
       std::vector<utils::Boxf> bboxes(getItemsCount(), utils::Boxf());
 
-      bboxes[m_activeItem] = utils::Boxf(
+      // Retrieve the realID of the desired active item from the
+      // internal array.
+      const int realID = m_idsToPosition[m_activeItem];
+
+      bboxes[realID] = utils::Boxf(
         getMargin().w() + componentSize.w() / 2.0f,
         getMargin().h() + componentSize.h() / 2.0f,
         componentSize.w(),
@@ -113,8 +85,166 @@ namespace sdl {
 
       // Disable other items.
       std::vector<bool> visible(getItemsCount(), false);
-      visible[m_activeItem] = true;
+      visible[realID] = true;
       assignVisibilityStatus(visible);
+    }
+
+    void
+    SelectorLayout::removeItemFromIndex(int item) {
+      // So here we need to remove the input `item` from the internal association
+      // array. In addition to that we also need to update the active item to
+      // still make it match the current item if any is active.
+
+      // Handle the case where the `item` is not valid.
+      if (!isValidIndex(item)) {
+        // Let the base method handle that.
+        core::Layout::removeItemFromIndex(item);
+        return;
+      }
+
+      // Traverse the logical association array and update it: basically anything
+      // before the removed item can be left unchanged, and anything after that
+      // needs to be shifted by one.
+      // Note that the notion of _before the removed item_ actually corresponds to
+      // the logical position.
+
+      // Find the logical item corresponding to the real id `item`.
+      int rmLogicID = -1;
+      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (m_idsToPosition[id] == item) {
+          rmLogicID = id;
+        }
+      }
+
+      if (rmLogicID < 0) {
+        error(
+          std::string("Could not remove item ") + std::to_string(item) + " from layout",
+          std::string("No such item")
+        );
+      }
+
+      // The item exactly at position `item` should be ignored.
+      IdToPosition newIDs(m_idsToPosition.size() - 1);
+      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (id < rmLogicID) {
+          newIDs[id] = m_idsToPosition[id];
+        }
+        else if (id == rmLogicID) {
+          // Ignore this item as it will be deleted.
+        }
+        else {
+          newIDs[id - 1] = m_idsToPosition[id];
+        }
+      }
+
+      // Swap with the internal array.
+      m_idsToPosition.swap(newIDs);
+
+      // Perform the removal of the item using the base handler.
+      core::Layout::removeItemFromIndex(item);
+
+      // Now we need to handle the active item. Note that we do not rely on the
+      // input real ID `item` but rather on the corresponding logical id fetched
+      // from the intial version of the internal association array.
+      // If no active item is set, we're all
+      // good.
+      // If the active item points to an item before the removed one, we're all good
+      // as well.
+      // Only in the case of an active item larger or equal to the removed one we need
+      // to try to maintain some kind of order: to do so we will select the same item
+      // based on its index.
+      if (m_activeItem < rmLogicID) {
+        return;
+      }
+
+      // If there's no more item, do not bother.
+      if (getItemsCount() == 1) {
+        m_activeItem = -1;
+        return;
+      }
+
+      // We need to update the active item to be one less that initially: this will
+      // account for the deletion of the input `item`.
+      // Note that as we removed the item, the items count is now accurate.
+      const int newActive = (m_activeItem - 1 + getItemsCount()) % getItemsCount();
+      setActiveItem(newActive);
+    }
+
+    void
+    SelectorLayout::handleItemInsertion(core::LayoutItem* item,
+                                        const int& logicalID,
+                                        const int& realID)
+    {
+      // Return early if some basic assumptions are not verified.
+      if (item == nullptr) {
+        return;
+      }
+
+      // Clamp the input `logicalID` so that it fits nicely in the
+      // bounds provided by this item. This also allows for _safe_
+      // insertion by specifying either a negative value as `logicalID`
+      // (in which case the item will be inserted in the first position)
+      // or a value larger than the items count (in which case the
+      // item will be inserted after the last element).
+      // We're much less resilient for the `realID` though.
+
+      if (realID < 0 || realID >= getItemsCount()) {
+        error(
+          std::string("Could not handle insertion of item \"") + item->getName() + " at index " +
+          std::to_string(logicalID),
+          std::string("Invalid ID returned by layout (id: ") + std::to_string(realID) + ")"
+        );
+      }
+
+      // Don't forget to subtract one from the `items count` as at this step we
+      // already inserted the new item.
+      int logicID = std::max(0, std::min(logicID, getItemsCount() - 1));
+
+      // We now need to update the internal `m_idsToPosition` array. This array
+      // contains for each logical id the real position of the item. Of course
+      // the insertion of the item `logicalID` might disrupt the existing values
+      // so we need to account for that.
+      // To do so we need to traverse the existing internal array and update each
+      // logical id greater than the input `logicalID`.
+
+      // Update logical ids.
+      IdToPosition newIDs(m_idsToPosition.size() + 1);
+      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (id < logicID) {
+          // The item is before the `logicalID` in order: keep it at the same spot.
+          newIDs[id] = m_idsToPosition[id];
+        }
+        else {
+          // This item is after the newly inserted `logicalID`: move it back in the
+          // list.
+          newIDs[id + 1] = m_idsToPosition[id];
+        }
+      }
+
+      // Assign the new `logicID`.
+      newIDs[logicID] = realID;
+
+      // Swap with the internal array.
+      m_idsToPosition.swap(newIDs);
+
+      // Now we need to handle automatic activation of the first item when it is
+      // inserted.
+      if (getItemsCount() == 1) {
+        setActiveItem(logicID);
+      }
+
+      // Also handle the update of the `m_activeItem` if needed: basically if it
+      // was already assigned and it was greater than the newly inserted item,
+      // we need to update it.
+      // Otherwise we do not.
+      if (m_activeItem >= logicID) {
+        // Theoretically we just need to modify the internal index: the item was
+        // already activated and we will keep it active so we're good.
+        ++m_activeItem;
+
+        // However we need to make the newly inserted item hidden.
+        item->setVisible(false);
+      }
     }
 
   }

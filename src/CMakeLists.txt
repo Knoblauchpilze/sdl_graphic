@@ -13,6 +13,7 @@ set (SOURCES
   SelectorLayout.cc
   PictureWidget.cc
   LabelWidget.cc
+  SelectorWidget.cc
   ComboBox.cc
   TabWidget.cc
   )

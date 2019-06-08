@@ -7,31 +7,21 @@ namespace sdl {
   namespace graphic {
 
     inline
-    SelectorWidget::SelectorWidget(const std::string& name,
-                                   core::SdlWidget* parent,
-                                   const bool switchOnLeftClick,
-                                   const core::engine::Color& color,
-                                   const utils::Sizef& area):
-      core::SdlWidget(name, area, parent, color),
-      m_switchOnLeftClick(switchOnLeftClick)
-    {
-      setLayout(std::make_shared<SelectorLayout>(std::string("selector_layout_for_") + getName(), this, 0.0f));
-    }
-
-    inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
       getLayout().setActiveItem(name);
-      makeContentDirty();
-      makeGeometryDirty();
     }
 
     inline
     void
     SelectorWidget::setActiveWidget(const int& index) {
       getLayout().setActiveItem(index);
-      makeContentDirty();
-      makeGeometryDirty();
+    }
+
+    inline
+    void
+    SelectorWidget::switchToNext() {
+      getLayout().switchToNext();
     }
 
     inline
@@ -46,34 +36,12 @@ namespace sdl {
 
       // Determine whether the position of the click is inside the widget.
       if (isInsideWidget(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1u) {
-        // Update the active widget.
-        setActiveWidget((getLayout().getActiveItemId() + 1) % getChildrenCount());
+        // Switch to the next widget.
+        switchToNext();
       }
 
       // Use base handler to determine whether the event was recognized.
       return core::SdlWidget::mouseButtonReleaseEvent(e);
-    }
-
-    void
-    SelectorWidget::addWidget(SdlWidget* widget) {
-      // In order not to break the encapsulation and keep the fact that this
-      // item uses a `SelectorLayout`, we prefer to reimplement this method so
-      // that it is still possible to keep the standard way of parenting
-      // widgets: add this item as parent when creating the children.
-      // Of course we still need to perform the base operations.
-
-      core::SdlWidget::addWidget(widget);
-
-      // Add the input `widget` to the layout.
-      SelectorLayout* layout = getLayoutAs<SelectorLayout>();
-      if (layout == nullptr) {
-        error(
-          std::string("Could not insert widget \"") + widget->getName() + "\" into selector widget",
-          std::string("Invalid layout")
-        );
-      }
-
-      layout->addItem(widget);
     }
 
     inline
