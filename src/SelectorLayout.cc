@@ -8,7 +8,7 @@ namespace sdl {
     SelectorLayout::SelectorLayout(const std::string& name,
                                    core::SdlWidget* widget,
                                    const float& margin):
-      core::Layout(name, widget, margin, widget == nullptr),
+      core::Layout(name, widget, margin),
       m_activeItem(-1),
       m_idsToPosition()
     {
@@ -74,8 +74,8 @@ namespace sdl {
       const int realID = m_idsToPosition[m_activeItem];
 
       bboxes[realID] = utils::Boxf(
-        getMargin().w() + componentSize.w() / 2.0f,
-        getMargin().h() + componentSize.h() / 2.0f,
+        getMargin().w(),
+        getMargin().h(),
         componentSize.w(),
         componentSize.h()
       );
@@ -242,6 +242,7 @@ namespace sdl {
         // Theoretically we just need to modify the internal index: the item was
         // already activated and we will keep it active so we're good.
         ++m_activeItem;
+        log("Active item is now " + std::to_string(m_activeItem), utils::Level::Error);
 
         // However we need to make the newly inserted item hidden.
         item->setVisible(false);
