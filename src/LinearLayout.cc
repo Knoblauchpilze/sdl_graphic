@@ -213,8 +213,8 @@ namespace sdl {
         // The centering only takes place in the perpendicular direction of
         // the flow of the layout (e.g. vertical direction for horizontal
         // layout and horizontal direction for vertical layout).
-        float xItem = x + outputBoxes[index].w() / 2.0f;
-        float yItem = y + outputBoxes[index].h() / 2.0f;
+        float xItem = x;
+        float yItem = y;
 
         if (getDirection() == Direction::Horizontal && outputBoxes[index].h() < internalSize.h()) {
           yItem += ((internalSize.h() - outputBoxes[index].h()) / 2.0f);
