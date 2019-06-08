@@ -1,6 +1,7 @@
 
 # include "TabWidget.hh"
 # include "SelectorWidget.hh"
+# include "LabelWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -21,9 +22,9 @@ namespace sdl {
     TabWidget::~TabWidget() {}
 
     void
-    TabWidget::insertTab(const int /*index*/,
+    TabWidget::insertTab(const int index,
                          core::SdlWidget* item,
-                         const std::string& /*text*/)
+                         const std::string& text)
     {
       // Check trivial case where the item is not valid.
       if (item == nullptr) {
@@ -33,14 +34,32 @@ namespace sdl {
         );
       }
 
+      // Compute the tab's title: either the provided `text` or
+      // the name of the widget.
+      std::string title = text;
+      if (title.empty()) {
+        title = item->getName();
+      }
+
+      // Create the label widget which will represent this widget in the
+      // title's bar.
+      LabelWidget* titleWidget = new LabelWidget(
+        std::string("title_for_") + std::to_string(index) + "_" + item->getName(),
+        title,
+        std::string("data/fonts/times.ttf"),
+        10,
+        LabelWidget::HorizontalAlignment::Center,
+        LabelWidget::VerticalAlignment::Center,
+        this
+      );
+
       // In order to correctly insert the item into the tabwidget we need
       // to both insert its representation into the selector layout but
       // also to insert the corresponding title in the bar.
-      // TODO: Perform insertion of the newly created label widget ?
+      m_titlesLayout->addItem(titleWidget, index);
 
       // First insert the widget into the selector layout.
-      // TODO: Perform insertion of the item.
-      // TODO: Perform check for LinearLayout removal.
+      getChildAs<SelectorWidget>(std::string("tabwidget_selector"))->insertWidget(item, index);
     }
 
     void
@@ -60,6 +79,12 @@ namespace sdl {
       //    titles bar.
 
       // TODO: Handle removal of the tab.
+      // TODO: Perform check for LinearLayout removal.
+    }
+
+    void
+    TabWidget::addWidget(core::SdlWidget* widget) {
+      core::SdlWidget::addWidget(widget);
     }
 
     void
@@ -88,6 +113,9 @@ namespace sdl {
         1.0f
       );
 
+      // Assign the layout to this widget.
+      setLayout(layout);
+
       // Create the secondary layout which will handle positionning
       // of widgets' titles.
       m_titlesLayout = std::make_shared<LinearLayout>(
@@ -110,9 +138,6 @@ namespace sdl {
       // the general layout for this item.
       layout->addItem(m_titlesLayout.get());
       layout->addItem(selector);
-
-      // Assign the layout to this widget.
-      setLayout(layout);
     }
 
   }
