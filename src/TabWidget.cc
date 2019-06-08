@@ -121,6 +121,7 @@ namespace sdl {
         0.0f,
         1.0f
       );
+      m_titlesLayout->setNested(true);
 
       // Create the selector layout which will contain the various
       // widgets inserted into this component.
