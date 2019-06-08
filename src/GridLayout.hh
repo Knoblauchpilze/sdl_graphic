@@ -16,7 +16,7 @@ namespace sdl {
                    const unsigned& columns,
                    const unsigned& rows,
                    const float& margin = 0.0f,
-                   const bool rootLayout = false,
+                   const bool nested = false,
                    const bool virtualLayout = false);
 
         virtual ~GridLayout();

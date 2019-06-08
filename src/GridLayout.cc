@@ -13,9 +13,9 @@ namespace sdl {
                            const unsigned& columns,
                            const unsigned& rows,
                            const float& margin,
-                           const bool rootLayout,
+                           const bool nested,
                            const bool virtualLayout):
-      core::Layout(name, widget, margin, rootLayout, virtualLayout),
+      core::Layout(name, widget, margin, nested, virtualLayout),
       m_columns(columns),
       m_rows(rows),
 
@@ -197,10 +197,6 @@ namespace sdl {
         for (unsigned row = 0u ; row < loc->second.y ; ++row) {
           yItem += rowsDims[row];
         }
-
-        // Center the position (because `Boxf` are centered).
-        xItem += (cells[index].box.w() / 2.0f);
-        yItem += (cells[index].box.h() / 2.0f);
 
         // Handle the centering of the item in case it is smaller than the
         // desired width or height.
