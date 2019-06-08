@@ -19,6 +19,10 @@ namespace sdl {
     SelectorWidget::insertWidget(core::SdlWidget* widget,
                                  const int& index)
     {
+      // Insert the input widget as child of this widget so that it gets redrawn.
+      if (widget != nullptr) {
+        widget->setParent(this);
+      }
       // We rely on the internal layout method to perform the insertion.
       getLayout().addItem(widget, index);
     }
