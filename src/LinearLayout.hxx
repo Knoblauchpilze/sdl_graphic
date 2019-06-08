@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     int
-    LinearLayout::addItem(LayoutItem* item) {
+    LinearLayout::addItem(core::LayoutItem* item) {
       // Use the specialized handler and assume that we add this item
       // at the end of the layout.
       return addItem(item, getItemsCount());
@@ -16,7 +16,7 @@ namespace sdl {
 
     inline
     int
-    LinearLayout::addItem(LayoutItem* item,
+    LinearLayout::addItem(core::LayoutItem* item,
                           const int& index)
     {
       // We want to insert the `item` at logical position `index`. This
@@ -71,7 +71,8 @@ namespace sdl {
 
     inline
     int
-    LinearLayout::removeItem(LayoutItem* item) {
+    LinearLayout::removeItem(core::LayoutItem* item) {
+      // TODO: Maybe reimplement `removeItemFromIndex` instead ?
       // While removing the item, we need to make sure that the internal table
       // indicating the logical position of the item stays consistent.
       // To do so, we need to perform an update of the internal table based on

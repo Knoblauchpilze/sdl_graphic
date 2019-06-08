@@ -22,14 +22,14 @@ namespace sdl {
         virtual ~LinearLayout();
 
         int
-        addItem(LayoutItem* item) override;
+        addItem(core::LayoutItem* item) override;
 
         int
-        addItem(LayoutItem* item,
+        addItem(core::LayoutItem* item,
                 const int& index) override;
 
         int
-        removeItem(LayoutItem* item) override;
+        removeItem(core::LayoutItem* item) override;
 
         const Direction&
         getDirection() const noexcept;

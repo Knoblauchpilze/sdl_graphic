@@ -15,7 +15,7 @@ namespace sdl {
                            const float& margin,
                            const bool rootLayout,
                            const bool virtualLayout):
-      core::Layout(name, widget, margin, rootLayout, true, virtualLayout),
+      core::Layout(name, widget, margin, rootLayout, virtualLayout),
       m_columns(columns),
       m_rows(rows),
 
