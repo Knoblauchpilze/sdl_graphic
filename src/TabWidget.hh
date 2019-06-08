@@ -16,7 +16,7 @@ namespace sdl {
          * @brief - Describes the position of the tab indication in this widget relatively
          *          to the content of the widgets.
          */
-        enum class TabPosition { 
+        enum class TabPosition {
           North, //<! - Tab indication will be displayed above the content.
           South, //<! - Tab indication will be displayed below the content.
           West,  //<! - Tab indication will be displayed on the left of the content.
@@ -58,20 +58,6 @@ namespace sdl {
          */
         void
         removeTab(const int index);
-
-      protected:
-
-        /**
-         * @brief - Reimplementation of the `addWidget` method of the base `SdlWidget` class.
-         *          This allows to provide a specific behavior when a widget is added as a
-         *          child of this widget: we need to insert it into the internal selector
-         *          layout so that it gets repainted upon the selector layout and not rely on
-         *          the fact that the selector layout will be drawn before any children.
-         * @param widget - the widget which should be assigned `this` as parent: it will be
-         *                 inserted in the internal widget and layout during the process.
-         */
-        void
-        addWidget(core::SdlWidget* widget) override;
 
       private:
 

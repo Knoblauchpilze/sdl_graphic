@@ -10,7 +10,7 @@ namespace sdl {
                          core::SdlWidget* parent,
                          const TabPosition& tabLayout,
                          const utils::Sizef& area):
-      core::SdlWidget(name, area, parent),
+      core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::Magenta),
       m_activeTab(-1),
       m_tabLayout(tabLayout),
       m_titlesLayout(nullptr),
@@ -50,7 +50,8 @@ namespace sdl {
         10,
         LabelWidget::HorizontalAlignment::Center,
         LabelWidget::VerticalAlignment::Center,
-        this
+        this,
+        core::engine::Color::fromRGB(1.0f, 192.0f/255.0f, 203.0f/255.0f)
       );
 
       // In order to correctly insert the item into the tabwidget we need
@@ -80,11 +81,6 @@ namespace sdl {
 
       // TODO: Handle removal of the tab.
       // TODO: Perform check for LinearLayout removal.
-    }
-
-    void
-    TabWidget::addWidget(core::SdlWidget* widget) {
-      core::SdlWidget::addWidget(widget);
     }
 
     void
@@ -131,7 +127,8 @@ namespace sdl {
       SelectorWidget* selector = new SelectorWidget(
         std::string("tabwidget_selector"),
         this,
-        false
+        false,
+        core::engine::Color::NamedColor::Olive
       );
 
       // Add the nested titles layout and the selector widget to
