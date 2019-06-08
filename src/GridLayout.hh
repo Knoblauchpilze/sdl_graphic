@@ -15,9 +15,7 @@ namespace sdl {
                    core::SdlWidget* widget,
                    const unsigned& columns,
                    const unsigned& rows,
-                   const float& margin = 0.0f,
-                   const bool nested = false,
-                   const bool virtualLayout = false);
+                   const float& margin = 0.0f);
 
         virtual ~GridLayout();
 

@@ -12,10 +12,8 @@ namespace sdl {
                            core::SdlWidget* widget,
                            const unsigned& columns,
                            const unsigned& rows,
-                           const float& margin,
-                           const bool nested,
-                           const bool virtualLayout):
-      core::Layout(name, widget, margin, nested, virtualLayout),
+                           const float& margin):
+      core::Layout(name, widget, margin),
       m_columns(columns),
       m_rows(rows),
 

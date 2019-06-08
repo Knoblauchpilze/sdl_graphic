@@ -12,7 +12,7 @@ namespace sdl {
                                const Direction& direction,
                                const float& margin,
                                const float& interMargin):
-      core::Layout(name, widget, margin, widget == nullptr),
+      core::Layout(name, widget, margin),
       m_direction(direction),
       m_componentMargin(interMargin),
       m_idsToPosition()
