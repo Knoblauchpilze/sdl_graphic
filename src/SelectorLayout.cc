@@ -231,6 +231,7 @@ namespace sdl {
       // inserted.
       if (getItemsCount() == 1) {
         setActiveItem(logicID);
+        return;
       }
 
       // Also handle the update of the `m_activeItem` if needed: basically if it
