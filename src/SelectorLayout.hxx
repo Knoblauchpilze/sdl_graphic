@@ -12,7 +12,7 @@ namespace sdl {
                             const int& index)
     {
       // Use the base method to perform the insertion.
-      int realID = core::Layout::addItem(item, index);
+      int realID = core::Layout::addItem(item);
 
       // Handle insertion internally.
       handleItemInsertion(item, index, realID);
@@ -24,14 +24,8 @@ namespace sdl {
     inline
     int
     SelectorLayout::addItem(core::LayoutItem* item) {
-      // Use the base method to perform the insertion.
-      int index = core::Layout::addItem(item);
-
-      // Handle insertion internally.
-      handleItemInsertion(item, index, index);
-
-      // Return the ID provided by the base class.
-      return index;
+      // Insert this item at the end of the existing widgets.
+      return addItem(item, getItemsCount());
     }
 
     inline
