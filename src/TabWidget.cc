@@ -50,9 +50,9 @@ namespace sdl {
         10,
         LabelWidget::HorizontalAlignment::Center,
         LabelWidget::VerticalAlignment::Center,
-        this,
-        core::engine::Color::fromRGB(1.0f, 192.0f/255.0f, 203.0f/255.0f)
+        this
       );
+      titleWidget->setPalette(item->getPalette());
 
       // In order to correctly insert the item into the tabwidget we need
       // to both insert its representation into the selector layout but
