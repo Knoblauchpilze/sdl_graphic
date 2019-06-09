@@ -198,7 +198,7 @@ namespace sdl {
 
       // Don't forget to subtract one from the `items count` as at this step we
       // already inserted the new item.
-      int logicID = std::max(0, std::min(logicID, getItemsCount() - 1));
+      int logicID = std::max(0, std::min(logicalID, getItemsCount() - 1));
 
       // We now need to update the internal `m_idsToPosition` array. This array
       // contains for each logical id the real position of the item. Of course
@@ -242,7 +242,6 @@ namespace sdl {
         // Theoretically we just need to modify the internal index: the item was
         // already activated and we will keep it active so we're good.
         ++m_activeItem;
-        log("Active item is now " + std::to_string(m_activeItem), utils::Level::Error);
 
         // However we need to make the newly inserted item hidden.
         item->setVisible(false);
