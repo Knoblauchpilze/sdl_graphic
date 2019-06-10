@@ -2,9 +2,10 @@
 # define   TAB_WIDGET_HH
 
 # include <memory>
-# include <unordered_map>
+# include <vector>
 # include <sdl_core/SdlWidget.hh>
 # include "LinearLayout.hh"
+# include "SelectorWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -68,9 +69,34 @@ namespace sdl {
         void
         build();
 
+        /**
+         * @brief - Used to create a title widget from the input `text` and insert it
+         *          at the desired `index` in the internal titles layout.
+         *          One can specify whether this method should update the internal array
+         *          registering all tabs `m_tabs`. This is useful because of the way wa
+         *          handle the non-creation of the title layout for the first tab widget.
+         * @param index - the index at which the title should be inserted inside the
+         *                internal titles layout.
+         * @param text - the text which should be displayed for this title.
+         * @param updateIDs - true if the internal `m_tabs` array should be updated, false
+         *                    otherwise.
+         */
+        void
+        createTitleForWidget(const int index,
+                             const std::string& text,
+                             bool updateIDs = true);
+
+        /**
+         * @brief - Wrapper around the parent `getChildAs` method for better convenience.
+         *          Note that if the selector widget cannot be found an error is raised.
+         * @return - a reference to the selector widget associated to this tab layout.
+         */
+        SelectorWidget&
+        getSelector();
+
       private:
 
-        using TabsMap = std::unordered_map<int, std::string>;
+        using Tabs = std::vector<std::string>;
 
         // TODO: Handle tab activation.
         int m_activeTab;
@@ -91,11 +117,18 @@ namespace sdl {
         LinearLayoutShPtr m_titlesLayout;
 
         /**
+         * @brief - A counter which is incremented at each tab creation: allows to provide unique
+         *          naming for each tab of this widget thus making sure that they will not be
+         *          merged or overriden when added as children.
+         */
+        unsigned m_tabCount;
+
+        /**
          * @brief - Associates the index of the tab with its name. This allows the user to reference
          *          tabs by index instead of using their name (which might not have been provided by
          *          the user).
          */
-        TabsMap m_tabs;
+        Tabs m_tabs;
 
     };
 

@@ -6,6 +6,21 @@
 namespace sdl {
   namespace graphic {
 
+    inline
+    SelectorWidget&
+    TabWidget::getSelector() {
+      SelectorWidget* selector = getChildAs<SelectorWidget>(std::string("tabwidget_selector"));
+
+      if (selector == nullptr) {
+        error(
+          std::string("Cannot retrieve selector widget from tabwidget"),
+          std::string("No such widget")
+        );
+      }
+
+      return *selector;
+    }
+
   }
 }
 
