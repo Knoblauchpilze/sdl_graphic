@@ -7,6 +7,12 @@ namespace sdl {
   namespace graphic {
 
     inline
+    int
+    TabWidget::getTabsCount() const noexcept {
+      return m_tabs.size();
+    }
+
+    inline
     SelectorWidget&
     TabWidget::getSelector() {
       SelectorWidget* selector = getChildAs<SelectorWidget>(std::string("tabwidget_selector"));

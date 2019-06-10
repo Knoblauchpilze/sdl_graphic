@@ -49,7 +49,7 @@ namespace sdl {
       if (m_tabs.empty()) {
         // Insert the tab into the internal `m_tabs` array but do not
         // trigger the creation of a title widget.
-        m_tabs.push_back(text);
+        m_tabs.push_back(title);
       }
       else {
         // Check whether we should create the first item title widget:
@@ -67,7 +67,7 @@ namespace sdl {
         // tabs have been registered into this widget).
         if (m_tabs.size() > 1u) {
           m_titlesLayout->setVisible(true);
-          makeGeometryDirty();
+          invalidate();
         }
       }
 
@@ -120,6 +120,11 @@ namespace sdl {
       }
 
       m_tabs.swap(newTabs);
+    }
+
+    void
+    TabWidget::removeTab(core::SdlWidget* /*widget*/) {
+      // TODO: Implementation.
     }
 
     void

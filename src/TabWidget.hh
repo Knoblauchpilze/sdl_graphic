@@ -34,6 +34,13 @@ namespace sdl {
         virtual ~TabWidget();
 
         /**
+         * @brief - Retrieves the number of tabs existing in this widget.
+         * @return - a value describing the number of tabs for this widget.
+         */
+        int
+        getTabsCount() const noexcept;
+
+        /**
          * @brief - Used to insert the specified widget at the index `index` under the
          *          specified title. We use the index as a loose description of the
          *          desired position of the widget and value like `-1` or `size + 1`
@@ -59,6 +66,14 @@ namespace sdl {
          */
         void
         removeTab(const int index);
+
+        /**
+         * @brief - Used to remove the tab widget specified by the input pointer. If no such
+         *          item exists in this component an error is raised.
+         * @param widget - a pointer to the tab to remove from this layout.
+         */
+        void
+        removeTab(core::SdlWidget* widget);
 
       private:
 
