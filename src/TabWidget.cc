@@ -100,27 +100,75 @@ namespace sdl {
       // We choose not to create an additional widget to support
       // this layout and rather use the hierarchical nesting of
       // the layout items.
+      //
+      // According to the tab layout associated to this widget
+      // we should create the layout accordingly.
 
-      LinearLayoutShPtr layout = std::make_shared<LinearLayout>(
-        std::string("tabwidget_layout"),
-        this,
-        LinearLayout::Direction::Vertical,
-        0.0f,
-        1.0f
-      );
+      LinearLayoutShPtr layout;
+
+      switch (m_tabLayout) {
+        case TabPosition::North:
+        case TabPosition::South:
+          layout = std::make_shared<LinearLayout>(
+            std::string("tabwidget_layout"),
+            this,
+            LinearLayout::Direction::Vertical,
+            0.0f,
+            1.0f
+          );
+          break;
+        case TabPosition::West:
+        case TabPosition::East:
+          layout = std::make_shared<LinearLayout>(
+            std::string("tabwidget_layout"),
+            this,
+            LinearLayout::Direction::Horizontal,
+            0.0f,
+            1.0f
+          );
+          break;
+        default:
+          error(
+            std::string("Could not create layout for tab widget"),
+            std::string("Unknown tab position ") + std::to_string(static_cast<int>(m_tabLayout))
+          );
+          break;
+      }
 
       // Assign the layout to this widget.
       setLayout(layout);
 
       // Create the secondary layout which will handle positionning
       // of widgets' titles.
-      m_titlesLayout = std::make_shared<LinearLayout>(
-        std::string("tabwidget_titles_layout"),
-        nullptr,
-        LinearLayout::Direction::Horizontal,
-        0.0f,
-        1.0f
-      );
+      switch (m_tabLayout) {
+        case TabPosition::North:
+        case TabPosition::South:
+          m_titlesLayout = std::make_shared<LinearLayout>(
+            std::string("tabwidget_titles_layout"),
+            nullptr,
+            LinearLayout::Direction::Horizontal,
+            0.0f,
+            1.0f
+          );
+          break;
+        case TabPosition::West:
+        case TabPosition::East:
+          m_titlesLayout = std::make_shared<LinearLayout>(
+            std::string("tabwidget_layout"),
+            this,
+            LinearLayout::Direction::Vertical,
+            0.0f,
+            1.0f
+          );
+          break;
+        default:
+          error(
+            std::string("Could not create layout for tab widget"),
+            std::string("Unknown tab position ") + std::to_string(static_cast<int>(m_tabLayout))
+          );
+          break;
+      }
+
       m_titlesLayout->setNested(true);
 
       // Create the selector layout which will contain the various
@@ -134,8 +182,24 @@ namespace sdl {
 
       // Add the nested titles layout and the selector widget to
       // the general layout for this item.
-      layout->addItem(m_titlesLayout.get());
-      layout->addItem(selector);
+      switch (m_tabLayout) {
+        case TabPosition::North:
+        case TabPosition::West:
+          layout->addItem(m_titlesLayout.get());
+          layout->addItem(selector);
+          break;
+        case TabPosition::South:
+        case TabPosition::East:
+          layout->addItem(selector);
+          layout->addItem(m_titlesLayout.get());
+          break;
+        default:
+          error(
+            std::string("Could not create populate for tab widget"),
+            std::string("Unknown tab position ") + std::to_string(static_cast<int>(m_tabLayout))
+          );
+          break;
+      }
     }
 
   }

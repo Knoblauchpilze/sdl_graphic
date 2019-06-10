@@ -75,7 +75,12 @@ namespace sdl {
         // TODO: Handle tab activation.
         int m_activeTab;
 
-        // TODO: Handle tab layout.
+        /**
+         * @brief - Describes the position of the tab titles relatively to the tab content. Based
+         *          on the orientation of the tabs, the titles may be displayed horizontally or
+         *          vertically. This allows to always use the less space possible to display tabs
+         *          titles so that we get maximum space for the content.
+         */
         TabPosition m_tabLayout;
 
         /**
