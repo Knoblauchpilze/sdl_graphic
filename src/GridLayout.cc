@@ -570,6 +570,11 @@ namespace sdl {
         // Insert the item in each column spanned by it.
         const ItemInfo& info = item->second;
 
+        // Only if the item is visible.
+        if (!items[item->first].visible) {
+          continue;
+        }
+
         for (unsigned column = 0u ; column < info.w ; ++column) {
           // Create the item's data.
           ItemDataShPtr data = std::make_shared<ItemData>(
@@ -1001,6 +1006,11 @@ namespace sdl {
       {
         // Insert the item in each row spanned by it.
         const ItemInfo& info = item->second;
+
+        // Only if the item is visible.
+        if (!items[item->first].visible) {
+          continue;
+        }
 
         for (unsigned row = 0u ; row < info.h ; ++row) {
           // Create the item's data.
