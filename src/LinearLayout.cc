@@ -63,7 +63,9 @@ namespace sdl {
 
       // In a first approach all the items can be adjusted.
       for (unsigned index = 0u ; index < itemsInfo.size() ; ++index) {
-        itemsToAdjust.insert(index);
+        if (itemsInfo[index].visible) {
+          itemsToAdjust.insert(index);
+        }
       }
 
       // Also assume that we didn't use up all the available space.
