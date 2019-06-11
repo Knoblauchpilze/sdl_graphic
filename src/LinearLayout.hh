@@ -28,9 +28,6 @@ namespace sdl {
         addItem(core::LayoutItem* item,
                 const int& index) override;
 
-        int
-        removeItem(core::LayoutItem* item) override;
-
         const Direction&
         getDirection() const noexcept;
 
@@ -41,6 +38,21 @@ namespace sdl {
 
         void
         computeGeometry(const utils::Boxf& window) override;
+
+        /**
+         * @brief - Reimplementation of the base `Layout` class method so that we can
+         *          perform the needed updates when handling an item deletion. Indeed
+         *          we need to relabel items based on their new position due to the
+         *          removal of the input item.
+         *          Note that this method should be called upon deleting an item by
+         *          the base class: at this point we know that the item we want to
+         *          remove exits in the layout and has not yet been deleted.
+         * @param item - the index of the item to remove. This corresponds to the real
+         *               id of the item to delete as described in the base `Layout`
+         *               class.
+         */
+        void
+        removeItemFromIndex(int item) override;
 
       private:
 

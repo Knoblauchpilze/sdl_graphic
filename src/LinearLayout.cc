@@ -253,6 +253,94 @@ namespace sdl {
       assignRenderingAreas(outputBoxes, window);
     }
 
+    void
+    LinearLayout::removeItemFromIndex(int item) {
+      // While removing the item, we need to make sure that the internal table
+      // indicating the logical position of the item stays consistent.
+      // To do so, we need to perform an update of the internal table based on
+      // the new real position of the items.
+      // Basically let's consider the following situation:
+      //
+      // m_idsToPosition[0] = 1
+      // m_idsToPosition[1] = 0
+      // m_idsToPosition[2] = 2
+      // m_idsToPosition[3] = 4
+      // m_idsToPosition[4] = 3
+      //
+      // We want to remove the item `2`. Note that this will not correspond to
+      // the real item at position `2` but rather to the item at *logical* id
+      // `2`.
+      // If we simply remove the item from the internal table we will get the
+      // following array:
+      //
+      // m_idsToPosition[0] = 1
+      // m_idsToPosition[1] = 0
+      // m_idsToPosition[3] = 4
+      // m_idsToPosition[4] = 3
+      //
+      // It is not hard to see that we have a problem: the real index `3` or `4`
+      // do not match any widget anymore and the next time we will try to assign
+      // positions to these, we will face trouble.
+      // The solution is to rely on the fact that the `Layout` class will perform
+      // a collapse of the remaining items with a position larger than the one we
+      // want to erase. So we could just decrease by one the real index of all the
+      // items which had an id greater than the index of the item we just removed.
+      // Doing this we would end up with the following:
+      //
+      // m_idsToPosition[0] = 1
+      // m_idsToPosition[1] = 0
+      // m_idsToPosition[2] = 3
+      // m_idsToPosition[3] = 2
+      //
+      // Which is now correct.
+      // And we also have to remove the corresponding logical entry in the internal
+      // table before considering ourselves done.
+
+      // Handle the case where the `item` is not valid.
+      if (!isValidIndex(item)) {
+        // Let the base method handle that.
+        core::Layout::removeItemFromIndex(item);
+        return;
+      }
+
+      // Now update the real indices of the widgets with a real index greater than
+      // the one we removed.
+      // In the meantime we can try tofind the logical id of the item which has just
+      // been removed.
+
+      // Find the logical item corresponding to the real id `item`.
+      int rmLogicID = -1;
+      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (m_idsToPosition[id] == item) {
+          rmLogicID = id;
+        }
+      }
+
+      if (rmLogicID < 0) {
+        error(
+          std::string("Could not remove item ") + std::to_string(item) + " from layout",
+          std::string("No such item")
+        );
+      }
+
+      // The item exactly at position `item` should be ignored.
+      IdToPosition newIDs(m_idsToPosition.size() - 1);
+      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (id < rmLogicID) {
+          newIDs[id] = m_idsToPosition[id];
+        }
+        else if (id == rmLogicID) {
+          // Ignore this item as it will be deleted.
+        }
+        else {
+          newIDs[id - 1] = m_idsToPosition[id];
+        }
+      }
+
+      // Swap with the internal array.
+      m_idsToPosition.swap(newIDs);
+    }
+
     utils::Sizef
     LinearLayout::computeSizeOfItems(const std::vector<utils::Boxf>& boxes) const {
       float flowingSize = 0.0f;
