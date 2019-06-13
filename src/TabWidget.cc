@@ -14,7 +14,8 @@ namespace sdl {
       m_tabLayout(tabLayout),
       m_titlesLayout(nullptr),
       m_tabCount(0u),
-      m_tabs()
+      m_tabs(),
+      m_lonelyTab()
     {
       build();
     }
@@ -49,14 +50,17 @@ namespace sdl {
       if (m_tabs.empty()) {
         // Insert the tab into the internal `m_tabs` array but do not
         // trigger the creation of a title widget.
-        m_tabs.push_back(title);
+        m_tabs.push_back(getTitleNameFromTabID());
+
+        // Also save the title for this tab.
+        m_lonelyTab = title;
       }
       else {
         // Check whether we should create the first item title widget:
         // this occurs when we are inserting the second tab into this
         // widget.
         if (m_tabs.size() == 1u) {
-          createTitleForWidget(0u, m_tabs[0], false);
+          createTitleForWidget(0u, m_lonelyTab, false);
         }
 
         // Use the dedicated handler to create the title widget for the
@@ -255,9 +259,18 @@ namespace sdl {
                                     bool updateIDs)
     {
       // Create the label widget which will represent this widget in the
-      // title's bar.
+      // title's bar. We need either to compute it or to retrieve it from
+      // the existing values in the case `updateIDs` is set to `false`.
+      std::string name;
+      if (updateIDs) {
+        name = getTitleNameFromTabID();
+      }
+      else {
+        name = m_tabs[index];
+      }
+
       LabelWidget* titleWidget = new LabelWidget(
-        std::string("title_for_") + std::to_string(m_tabCount),
+        name,
         text,
         std::string("data/fonts/times.ttf"),
         10,
@@ -267,12 +280,14 @@ namespace sdl {
       );
       titleWidget->setPalette(getPalette());
 
-      ++m_tabCount;
-
       // In order to correctly insert the item into the tabwidget we need
       // to both insert its representation into the selector layout but
       // also to insert the corresponding title in the bar.
       m_titlesLayout->addItem(titleWidget, index);
+
+      // Register the click on the title widget so that we can update the
+      // displayed widget in the internal selector.
+      titleWidget->onClick.connect_member<TabWidget>(this, &TabWidget::onTitleClicked);
 
       // We also need to update the internal array of associations between
       // the names of the tab and their indices.
@@ -295,9 +310,40 @@ namespace sdl {
           newTabs[i + 1] = m_tabs[i];
         }
       }
-      newTabs[index] = text;
+      newTabs[index] = name;
 
       m_tabs.swap(newTabs);
+    }
+
+    void
+    TabWidget::onTitleClicked(const std::string& name) {
+      // Retrieve the index of the tab based on the name of the title widget which has
+      // been clicked.
+
+      int id = 0;
+      bool found = false;
+      while (!found && id < getTabsCount()) {
+        if (m_tabs[id] == name) {
+          found = true;
+        }
+        else {
+          ++id;
+        }
+      }
+
+      log("Clicked on tab " + name + " which is on id " + std::to_string(id));
+
+      // Check for errors.
+      if (!found) {
+        log(
+          std::string("Could not activate widget from clicked title \"") + name + "\"",
+          utils::Level::Warning
+        );
+        return;
+      }
+
+      // Activate the item.
+      getSelector().setActiveWidget(id);
     }
 
   }

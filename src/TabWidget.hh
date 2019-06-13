@@ -109,6 +109,23 @@ namespace sdl {
         SelectorWidget&
         getSelector();
 
+        /**
+         * @brief - Used to connect this method as receiver of the titles widget so that we
+         *          can update the internal widget displayed when the user clicks on the
+         *          title.
+         * @param name - the name of the widget which has been clicked.
+         */
+        void
+        onTitleClicked(const std::string& name);
+
+        /**
+         * @brief - Used to retrieve the name of the title widget representing the tab from
+         *          the internal tab id.
+         * @return - a string representing the name of the title widget.
+         */
+        std::string
+        getTitleNameFromTabID();
+
       private:
 
         using Tabs = std::vector<std::string>;
@@ -144,6 +161,11 @@ namespace sdl {
          *          the user).
          */
         Tabs m_tabs;
+
+        /**
+         * @brief - Is either empty or contains the text to assign to the unique tab for this widget.
+         */
+        std::string m_lonelyTab;
 
     };
 

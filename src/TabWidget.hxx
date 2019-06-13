@@ -27,6 +27,16 @@ namespace sdl {
       return *selector;
     }
 
+    inline
+    std::string
+    TabWidget::getTitleNameFromTabID() {
+      // Retrieve an identifier for the tab.
+      const int id = m_tabCount;
+      ++m_tabCount;
+
+      return std::string("title_for_") + std::to_string(id);
+    }
+
   }
 }
 
