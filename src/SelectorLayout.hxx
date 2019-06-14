@@ -8,42 +8,27 @@ namespace sdl {
 
     inline
     int
+    SelectorLayout::addItem(core::LayoutItem* item) {
+      // Assume the item will be inserted at the end of the layout.
+      const int logicID = getItemsCount();
+
+      // Insert the item.
+      addItem(item, logicID);
+
+      // Return the logical id of the item.
+      return logicID;
+    }
+
+    inline
+    void
     SelectorLayout::addItem(core::LayoutItem* item,
                             const int& index)
     {
       // Use the base method to perform the insertion.
-      int realID = core::Layout::addItem(item);
+      int physID = core::Layout::addItem(item);
 
       // Handle insertion internally.
-      handleItemInsertion(item, index, realID);
-
-      // Return the ID provided by the base class.
-      return realID;
-    }
-
-    inline
-    int
-    SelectorLayout::addItem(core::LayoutItem* item) {
-      // Insert this item at the end of the existing widgets.
-      return addItem(item, getItemsCount());
-    }
-
-    inline
-    int
-    SelectorLayout::addItem(core::LayoutItem* item,
-                            const unsigned& x,
-                            const unsigned& y,
-                            const unsigned& w,
-                            const unsigned& h)
-    {
-      // Use the base method to perform the insertion.
-      int index = core::Layout::addItem(item, x, y, w, h);
-
-      // Handle insertion internally.
-      handleItemInsertion(item, index, index);
-
-      // Return the ID provided by the base class.
-      return index;
+      handleItemInsertion(item, index, physID);
     }
 
     inline
@@ -75,6 +60,37 @@ namespace sdl {
       }
 
       return m_activeItem;
+    }
+
+    inline
+    int
+    SelectorLayout::getLogicalIDFromPhysicalID(const int physID) const noexcept {
+      // Assume we can't find the logical id.
+      int logicID = -1;
+
+      // Traverse the internal array of associations.
+      int id = 0;
+      while (id < static_cast<int>(m_idsToPosition.size()) && logicID < 0) {
+        if (m_idsToPosition[id] == physID) {
+          logicID = id;
+        }
+        ++id;
+      }
+
+      // Return the logical id, either valid or invalid.
+      return logicID;
+    }
+
+    inline
+    int
+    SelectorLayout::getPhysicalIDFromLogicalID(const int logicID) const noexcept {
+      // Check whether the input logical id seems valid.
+      if (logicID < 0 || logicID >= static_cast<int>(m_idsToPosition.size())) {
+        return -1;
+      }
+
+      // The physical id is directly given by the associations table.
+      return m_idsToPosition[logicID];
     }
 
   }

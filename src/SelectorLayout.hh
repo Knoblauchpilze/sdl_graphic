@@ -19,16 +19,9 @@ namespace sdl {
         int
         addItem(core::LayoutItem* item) override;
 
-        int
+        void
         addItem(core::LayoutItem* item,
                 const int& index) override;
-
-        int
-        addItem(core::LayoutItem* item,
-                const unsigned& x,
-                const unsigned& y,
-                const unsigned& w,
-                const unsigned& h) override;
 
         void
         setActiveItem(const std::string& name);
@@ -57,20 +50,39 @@ namespace sdl {
         computeGeometry(const utils::Boxf& window) override;
 
         /**
-         * @brief - Reimplementation of the base `Layout` class method so that we can
-         *          perform the needed updates when handling an item deletion. Indeed
-         *          we need to update the active item if any, as well as the internal
-         *          array of associations between the logical ids of items and their
-         *          real ids as defined in the base class.
-         *          Note that this method should be called upon deleting an item by
-         *          the base class: at this point we know that the item we want to
-         *          remove exits in the layout and has not yet been deleted.
-         * @param item - the index of the item to remove. This corresponds to the real
-         *               id of the item to delete as described in the base `Layout`
-         *               class.
+         * @brief - Reimplementation of the base `Layout` method in order to associate
+         *          the logical id to the physical id. This method basically traverses
+         *          the internal array of associations and try to find the corresponding
+         *          id.
+         * @param physID - the physical id for which the logical id should be returned.
+         * @return - an logical index which corresponds to the input physical id or a
+         *           negative value if no such index exists in the layout.
          */
-        void
-        removeItemFromIndex(int item) override;
+        int
+        getLogicalIDFromPhysicalID(const int physID) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `Layout` method in order to associate
+         *          the logical id to the physical id using the internal table of
+         *          associations.
+         * @param logicID - the logical id for which the physical id should be returned.
+         * @return - an physical index which corresponds to the input logical id or a
+         *           negative value if no such index exists in the layout.
+         */
+        int
+        getPhysicalIDFromLogicalID(const int logicID) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `Layout` method to provide update of the
+         *          internal associations table between the logical id and physical id.
+         * @param logicID - the logical id which has just been removed.
+         * @param physID - the physical id which has just been removed.
+         * @return - true if the item that was removed corresponds to the active item,
+         *           and false otherwise.
+         */
+        bool
+        onIndexRemoved(const int logicID,
+                       const int physID) override;
 
         /**
          * @brief - Used to handle the insertion of the input `item` at the specified

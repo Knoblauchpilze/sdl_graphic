@@ -89,47 +89,22 @@ namespace sdl {
       assignVisibilityStatus(visible);
     }
 
-    void
-    SelectorLayout::removeItemFromIndex(int item) {
-      // So here we need to remove the input `item` from the internal association
-      // array. In addition to that we also need to update the active item to
-      // still make it match the current item if any is active.
+    bool
+    SelectorLayout::onIndexRemoved(const int logicID,
+                                   const int /*physID*/)
+    {
+      log("Removing item " + std::to_string(logicID) + " from selector layout");
 
-      // Handle the case where the `item` is not valid.
-      if (!isValidIndex(item)) {
-        // Let the base method handle that.
-        core::Layout::removeItemFromIndex(item);
-        return;
-      }
-
-      // Traverse the logical association array and update it: basically anything
-      // before the removed item can be left unchanged, and anything after that
-      // needs to be shifted by one.
-      // Note that the notion of _before the removed item_ actually corresponds to
-      // the logical position.
-
-      // Find the logical item corresponding to the real id `item`.
-      int rmLogicID = -1;
-      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
-        if (m_idsToPosition[id] == item) {
-          rmLogicID = id;
-        }
-      }
-
-      if (rmLogicID < 0) {
-        error(
-          std::string("Could not remove item ") + std::to_string(item) + " from layout",
-          std::string("No such item")
-        );
-      }
-
-      // The item exactly at position `item` should be ignored.
+      // Now update the local information by removing the input item from the internal
+      // table. We basically copy all the information except for the deleted item.
+      // Note that the internal `m_idsToPosition` will be left unchanged for values
+      // smaller than `rmLogicID` and shifted by one for value larger than that.
       IdToPosition newIDs(m_idsToPosition.size() - 1);
-      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
-        if (id < rmLogicID) {
+      for (int id = 0 ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (id < logicID) {
           newIDs[id] = m_idsToPosition[id];
         }
-        else if (id == rmLogicID) {
+        else if (id == logicID) {
           // Ignore this item as it will be deleted.
         }
         else {
@@ -139,9 +114,6 @@ namespace sdl {
 
       // Swap with the internal array.
       m_idsToPosition.swap(newIDs);
-
-      // Perform the removal of the item using the base handler.
-      core::Layout::removeItemFromIndex(item);
 
       // Now we need to handle the active item. Note that we do not rely on the
       // input real ID `item` but rather on the corresponding logical id fetched
@@ -153,14 +125,15 @@ namespace sdl {
       // Only in the case of an active item larger or equal to the removed one we need
       // to try to maintain some kind of order: to do so we will select the same item
       // based on its index.
-      if (m_activeItem < rmLogicID) {
-        return;
+      if (m_activeItem < logicID) {
+        // No need to rebuild the layout, the active item has not been modified.
+        return false;
       }
 
       // If there's no more item, do not bother.
-      if (getItemsCount() == 1) {
+      if (getItemsCount() == 0) {
         m_activeItem = -1;
-        return;
+        return false;
       }
 
       // We need to update the active item to be one less that initially: this will
@@ -168,6 +141,9 @@ namespace sdl {
       // Note that as we removed the item, the items count is now accurate.
       const int newActive = (m_activeItem - 1 + getItemsCount()) % getItemsCount();
       setActiveItem(newActive);
+
+      // Update the layout as an item has been removed.
+      return true;
     }
 
     void
@@ -209,7 +185,7 @@ namespace sdl {
 
       // Update logical ids.
       IdToPosition newIDs(m_idsToPosition.size() + 1);
-      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+      for (int id = 0 ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
         if (id < logicID) {
           // The item is before the `logicalID` in order: keep it at the same spot.
           newIDs[id] = m_idsToPosition[id];
