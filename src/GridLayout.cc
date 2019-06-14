@@ -227,8 +227,10 @@ namespace sdl {
       assignRenderingAreas(outputBoxes, window);
     }
 
-    void
-    GridLayout::makeGeometryDirty() {
+    bool
+    GridLayout::onIndexRemoved(const int /*logicID*/,
+                               const int /*physID*/)
+    {
       // We need to update the local information about items. This means basically updating the
       // `m_locations` attribute. In order to do so, we need to rely on some invariant properties
       // of the item which have been updated. We will use the address in order to maintain some
@@ -259,8 +261,8 @@ namespace sdl {
         }
       }
 
-      // Call parent method.
-      core::Layout::makeGeometryDirty();
+      // The layout need to be rebuilt.
+      return true;
     }
 
     void

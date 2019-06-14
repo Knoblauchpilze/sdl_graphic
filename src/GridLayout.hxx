@@ -91,7 +91,7 @@ namespace sdl {
     }
 
     inline
-    int
+    void
     GridLayout::addItem(core::LayoutItem* container,
                         const unsigned& x,
                         const unsigned& y,
@@ -99,11 +99,11 @@ namespace sdl {
                         const unsigned& h)
     {
       // Use the base handler to add the item and retrieve its index.
-      int containerIndex = core::Layout::addItem(container);
+      int physID = core::Layout::addItem(container);
 
       // Add the item to the internal array if a valid index was generated.
-      if (containerIndex >= 0) {
-        m_locations[containerIndex] = ItemInfo{
+      if (physID >= 0) {
+        m_locations[physID] = ItemInfo{
           std::min(m_columns - 1, x),
           std::min(m_rows - 1, y),
           std::min(m_columns - std::min(m_columns - 1, x), w),
@@ -111,9 +111,6 @@ namespace sdl {
           container
         };
       }
-
-      // Return the index computed by the base class.
-      return containerIndex;
     }
 
     inline

@@ -43,7 +43,7 @@ namespace sdl {
         void
         setRowsMinimumHeight(const float& height);
 
-        int
+        void
         addItem(core::LayoutItem* container,
                 const unsigned& x,
                 const unsigned& y,
@@ -58,8 +58,16 @@ namespace sdl {
         void
         computeGeometry(const utils::Boxf& area) override;
 
-        void
-        makeGeometryDirty() override;
+        /**
+         * @brief - Reimplementation of the base `Layout` method to provide update of the
+         *          internal associations table between the logical id and physical id.
+         * @param logicID - the logical id which has just been removed.
+         * @param physID - the physical id which has just been removed.
+         * @return - true as this layout always needs a rebuild when an item is removed.
+         */
+        bool
+        onIndexRemoved(const int logicID,
+                       const int physID) override;
 
       protected:
 
