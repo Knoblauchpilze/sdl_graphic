@@ -21,10 +21,17 @@ namespace sdl {
 
         virtual ~LinearLayout();
 
+        /**
+         * @brief - Reimplementation of the base `Layout` method. The aim here is to provide
+         *          an index and call the corresponding `addItem` overload.
+         * @param item - the item to insert in the layout.
+         * @return - the logical id of the inserted item or a negative value if the item could
+         *           not be inserted for some reasons.
+         */
         int
         addItem(core::LayoutItem* item) override;
 
-        int
+        void
         addItem(core::LayoutItem* item,
                 const int& index) override;
 
@@ -39,22 +46,41 @@ namespace sdl {
         void
         computeGeometry(const utils::Boxf& window) override;
 
-        /**
-         * @brief - Reimplementation of the base `Layout` class method so that we can
-         *          perform the needed updates when handling an item deletion. Indeed
-         *          we need to relabel items based on their new position due to the
-         *          removal of the input item.
-         *          Note that this method should be called upon deleting an item by
-         *          the base class: at this point we know that the item we want to
-         *          remove exits in the layout and has not yet been deleted.
-         * @param item - the index of the item to remove. This corresponds to the real
-         *               id of the item to delete as described in the base `Layout`
-         *               class.
-         */
-        void
-        removeItemFromIndex(int item) override;
-
       private:
+
+        /**
+         * @brief - Reimplementation of the base `Layout` method in order to associate
+         *          the logical id to the physical id. This method basically traverses
+         *          the internal array of associations and try to find the corresponding
+         *          id.
+         * @param physID - the physical id for which the logical id should be returned.
+         * @return - an logical index which corresponds to the input physical id or a
+         *           negative value if no such index exists in the layout.
+         */
+        int
+        getLogicalIDFromPhysicalID(const int physID) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `Layout` method in order to associate
+         *          the logical id to the physical id using the internal table of
+         *          associations.
+         * @param logicID - the logical id for which the physical id should be returned.
+         * @return - an physical index which corresponds to the input logical id or a
+         *           negative value if no such index exists in the layout.
+         */
+        int
+        getPhysicalIDFromLogicalID(const int logicID) const noexcept override;
+
+        /**
+         * @brief - Reimplementation of the base `Layout` method to provide update of the
+         *          internal associations table between the logical id and physical id.
+         * @param logicID - the logical id which has just been removed.
+         * @param physID - the physical id which has just been removed.
+         * @return - true as this layout always needs a rebuild when an item is removed.
+         */
+        bool
+        onIndexRemoved(const int logicID,
+                       const int physID) override;
 
         utils::Sizef
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept override;

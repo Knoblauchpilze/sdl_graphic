@@ -254,82 +254,72 @@ namespace sdl {
     }
 
     void
-    LinearLayout::removeItemFromIndex(int item) {
-      // While removing the item, we need to make sure that the internal table
-      // indicating the logical position of the item stays consistent.
-      // To do so, we need to perform an update of the internal table based on
-      // the new real position of the items.
-      // Basically let's consider the following situation:
+    LinearLayout::addItem(core::LayoutItem* item,
+                          const int& index)
+    {
+      // We want to insert the `item` at logical position `index`. This
+      // includes registering the item in the layout as usual but we also
+      // need to register it into the internal `m_idsToPosition` table.
       //
-      // m_idsToPosition[0] = 1
-      // m_idsToPosition[1] = 0
-      // m_idsToPosition[2] = 2
-      // m_idsToPosition[3] = 4
-      // m_idsToPosition[4] = 3
-      //
-      // We want to remove the item `2`. Note that this will not correspond to
-      // the real item at position `2` but rather to the item at *logical* id
-      // `2`.
-      // If we simply remove the item from the internal table we will get the
-      // following array:
-      //
-      // m_idsToPosition[0] = 1
-      // m_idsToPosition[1] = 0
-      // m_idsToPosition[3] = 4
-      // m_idsToPosition[4] = 3
-      //
-      // It is not hard to see that we have a problem: the real index `3` or `4`
-      // do not match any widget anymore and the next time we will try to assign
-      // positions to these, we will face trouble.
-      // The solution is to rely on the fact that the `Layout` class will perform
-      // a collapse of the remaining items with a position larger than the one we
-      // want to erase. So we could just decrease by one the real index of all the
-      // items which had an id greater than the index of the item we just removed.
-      // Doing this we would end up with the following:
-      //
-      // m_idsToPosition[0] = 1
-      // m_idsToPosition[1] = 0
-      // m_idsToPosition[2] = 3
-      // m_idsToPosition[3] = 2
-      //
-      // Which is now correct.
-      // And we also have to remove the corresponding logical entry in the internal
-      // table before considering ourselves done.
+      // Also we should update position of existing items so that we still
+      // have consistent ids ranging from `0` all the way to `getItemsCount()`.
 
-      // Handle the case where the `item` is not valid.
-      if (!isValidIndex(item)) {
-        // Let the base method handle that.
-        core::Layout::removeItemFromIndex(item);
+      // The first thing is to add the item using the base handler: this will
+      // provide us a first index to work with.
+      int physID = Layout::addItem(item);
+
+      // Check whether the insertion was successful.
+      if (physID < 0) {
         return;
       }
 
-      // Now update the real indices of the widgets with a real index greater than
-      // the one we removed.
-      // In the meantime we can try tofind the logical id of the item which has just
-      // been removed.
+      // At this point we know that the item could successfully be added to
+      // the layout. We still need to account for its logical position
+      // described by the input `index`.
+      // We have three main cases:
+      // 1. `index < 0` in which case we insert the `item` before the first
+      //    element of the layout.
+      // 2. `index >= size` in which case we insert the `item` after the
+      //    last element of the layout.
+      // 3. We insert the element in the middle of the layout.
+      //
+      // In all 3 cases we need to relabel the items which come after the
+      // newly inserted item so that we keep some kind of consistency.
 
-      // Find the logical item corresponding to the real id `item`.
-      int rmLogicID = -1;
-      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
-        if (m_idsToPosition[id] == item) {
-          rmLogicID = id;
+      // First, normalize the index: don't forget that the current size of
+      // the layout *includes* the item we want to insert (because `addItem`
+      // has already been called).
+      int normalized = std::min(std::max(0, index), getItemsCount() - 1);
+
+      // Update the label of existing items if it exceeds the new desired
+      // logical index.
+      for (unsigned id = 0u ; id < m_idsToPosition.size() ; ++id) {
+        if (m_idsToPosition[id] >= normalized) {
+          ++m_idsToPosition[id];
         }
       }
 
-      if (rmLogicID < 0) {
-        error(
-          std::string("Could not remove item ") + std::to_string(item) + " from layout",
-          std::string("No such item")
-        );
-      }
+      // Now we have a valid set of labels with a hole at the position the
+      // new `item` should be inserted: let's fix that.
+      m_idsToPosition.insert(m_idsToPosition.cbegin() + normalized, physID);
+    }
 
-      // The item exactly at position `item` should be ignored.
+    bool
+    LinearLayout::onIndexRemoved(const int logicID,
+                                 const int /*physID*/)
+    {
+      log("Removing item " + std::to_string(logicID) + " from linear layout");
+
+      // Now update the local information by removing the input item from the internal
+      // table. We basically copy all the information except for the deleted item.
+      // Note that the internal `m_idsToPosition` will be left unchanged for values
+      // smaller than `rmLogicID` and shifted by one for value larger than that.
       IdToPosition newIDs(m_idsToPosition.size() - 1);
-      for (int id = 0u ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
-        if (id < rmLogicID) {
+      for (int id = 0 ; id < static_cast<int>(m_idsToPosition.size()) ; ++id) {
+        if (id < logicID) {
           newIDs[id] = m_idsToPosition[id];
         }
-        else if (id == rmLogicID) {
+        else if (id == logicID) {
           // Ignore this item as it will be deleted.
         }
         else {
@@ -339,6 +329,9 @@ namespace sdl {
 
       // Swap with the internal array.
       m_idsToPosition.swap(newIDs);
+
+      // Update the layout as an item has been removed.
+      return true;
     }
 
     utils::Sizef

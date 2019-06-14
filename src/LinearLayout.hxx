@@ -9,64 +9,14 @@ namespace sdl {
     inline
     int
     LinearLayout::addItem(core::LayoutItem* item) {
-      // Use the specialized handler and assume that we add this item
-      // at the end of the layout.
-      return addItem(item, getItemsCount());
-    }
+      // Assume the item will be inserted at the end of the layout.
+      const int logicID = getItemsCount();
 
-    inline
-    int
-    LinearLayout::addItem(core::LayoutItem* item,
-                          const int& index)
-    {
-      // We want to insert the `item` at logical position `index`. This
-      // includes registering the item in the layout as usual but we also
-      // need to register it into the internal `m_idsToPosition` table.
-      //
-      // Also we should update position of existing items so that we still
-      // have consistent ids ranging from `0` all the way to `getItemsCount()`.
+      // Insert the item.
+      addItem(item, logicID);
 
-      // The first thing is to add the item using the base handler: this will
-      // provide us a first index to work with.
-      int id = Layout::addItem(item);
-
-      // Check whether the insertion was successful.
-      if (id < 0) {
-        return id;
-      }
-
-      // At this point we know that the item could successfully be added to
-      // the layout. We still need to account for its logical position
-      // described by the input `index`.
-      // We have three main cases:
-      // 1. `index < 0` in which case we insert the `item` before the first
-      //    element of the layout.
-      // 2. `index >= size` in which case we insert the `item` after the
-      //    last element of the layout.
-      // 3. We insert the element in the middle of the layout.
-      //
-      // In all 3 cases we need to relabel the items which come after the
-      // newly inserted item so that we keep some kind of consistency.
-
-      // First, normalize the index: don't forget that the current size of
-      // the layout *includes* the item we want to insert (because `addItem`
-      // has already been called).
-      int normalized = std::min(std::max(0, index), getItemsCount() - 1);
-
-      // Update the label of existing items if it exceeds the new desired
-      // logical index.
-      for (unsigned id = 0u ; id < m_idsToPosition.size() ; ++id) {
-        if (m_idsToPosition[id] >= normalized) {
-          ++m_idsToPosition[id];
-        }
-      }
-
-      // Now we have a valid set of labels with a hole at the position the
-      // new `item` should be inserted: let's fix that.
-      m_idsToPosition.insert(m_idsToPosition.cbegin() + normalized, id);
-
-      // Return the value provided by the base handler.
-      return id;
+      // Return the logical id of the item.
+      return logicID;
     }
 
     inline
@@ -79,6 +29,37 @@ namespace sdl {
     const float&
     LinearLayout::getComponentMargin() const noexcept {
       return m_componentMargin;
+    }
+
+    inline
+    int
+    LinearLayout::getLogicalIDFromPhysicalID(const int physID) const noexcept {
+      // Assume we can't find the logical id.
+      int logicID = -1;
+
+      // Traverse the internal array of associations.
+      int id = 0;
+      while (id < static_cast<int>(m_idsToPosition.size()) && logicID < 0) {
+        if (m_idsToPosition[id] == physID) {
+          logicID = id;
+        }
+        ++id;
+      }
+
+      // Return the logical id, either valid or invalid.
+      return logicID;
+    }
+
+    inline
+    int
+    LinearLayout::getPhysicalIDFromLogicalID(const int logicID) const noexcept {
+      // Check whether the input logical id seems valid.
+      if (logicID < 0 || logicID >= static_cast<int>(m_idsToPosition.size())) {
+        return -1;
+      }
+
+      // The physical id is directly given by the associations table.
+      return m_idsToPosition[logicID];
     }
 
     inline
