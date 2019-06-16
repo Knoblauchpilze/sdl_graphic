@@ -54,6 +54,27 @@ namespace sdl {
         insertWidget(core::SdlWidget* widget,
                      const int& index);
 
+        /**
+         * @brief - Removes the widget at the specified `index`. The active item is updated
+         *          to the previous available widget (if any) if the removed index was the
+         *          active one.
+         *          Note that if no such index exists in the selector an error is raised.
+         * @param index - the index of the widget to remove.
+         */
+        void
+        removeItem(const int index);
+
+        /**
+         * @brief - Removes the specified item frmo this widget. Just like the `removeWidget`
+         *          overload the active item is updated if needed.
+         *          Note that if the widget does not exist an error is raised. Also note that
+         *          this function calls the `removeWidget` internally.
+         * @param widget - the widget to remove.
+         * @return - the index of this widget in the layout.
+         */
+        int
+        removeItem(core::SdlWidget* widget);
+
       protected:
 
         bool

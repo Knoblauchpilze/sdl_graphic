@@ -35,7 +35,7 @@ namespace sdl {
       // inside of this widget.
 
       // Determine whether the position of the click is inside the widget.
-      if (isInsideWidget(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1u) {
+      if (isInsideWidget(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1) {
         // Switch to the next widget.
         switchToNext();
       }
