@@ -70,6 +70,8 @@ namespace sdl {
         /**
          * @brief - Used to remove the tab widget specified by the input pointer. If no such
          *          item exists in this component an error is raised.
+         *          Note that this function calls the `removeTab` overloaded method when the
+         *          index for this widget has been determined.
          * @param widget - a pointer to the tab to remove from this layout.
          */
         void
@@ -93,12 +95,14 @@ namespace sdl {
          * @param index - the index at which the title should be inserted inside the
          *                internal titles layout.
          * @param text - the text which should be displayed for this title.
+         * @param item - the name of the widget associated with this title.
          * @param updateIDs - true if the internal `m_tabs` array should be updated, false
          *                    otherwise.
          */
         void
         createTitleForWidget(const int index,
                              const std::string& text,
+                             const std::string& item,
                              bool updateIDs = true);
 
         /**
@@ -126,12 +130,26 @@ namespace sdl {
         std::string
         getTitleNameFromTabID();
 
+        /**
+         * @brief - Removes the specified `index` from the internal `m_tabs` list. No controls
+         *          are performed to verify whether the `index` is valid.
+         * @param index - the index to remove from the internal list.
+         */
+        void
+        removeIndexFromInternal(const int index);
+
       private:
 
-        using Tabs = std::vector<std::string>;
+        /**
+         * @brief - Convenience structure recording information about a tab.
+         */
+        struct TabInfo {
+          std::string itemName;
+          std::string titleWidgetName;
+          std::string tabName;
+        };
 
-        // TODO: Handle tab activation.
-        int m_activeTab;
+        using Tabs = std::vector<TabInfo>;
 
         /**
          * @brief - Describes the position of the tab titles relatively to the tab content. Based
@@ -161,11 +179,6 @@ namespace sdl {
          *          the user).
          */
         Tabs m_tabs;
-
-        /**
-         * @brief - Is either empty or contains the text to assign to the unique tab for this widget.
-         */
-        std::string m_lonelyTab;
 
     };
 

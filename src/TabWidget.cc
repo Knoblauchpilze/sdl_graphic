@@ -10,12 +10,10 @@ namespace sdl {
                          const TabPosition& tabLayout,
                          const utils::Sizef& area):
       core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::Magenta),
-      m_activeTab(-1),
       m_tabLayout(tabLayout),
       m_titlesLayout(nullptr),
       m_tabCount(0u),
-      m_tabs(),
-      m_lonelyTab()
+      m_tabs()
     {
       build();
     }
@@ -50,22 +48,25 @@ namespace sdl {
       if (m_tabs.empty()) {
         // Insert the tab into the internal `m_tabs` array but do not
         // trigger the creation of a title widget.
-        m_tabs.push_back(getTitleNameFromTabID());
-
-        // Also save the title for this tab.
-        m_lonelyTab = title;
+        m_tabs.push_back(
+          TabInfo{
+            item->getName(),
+            getTitleNameFromTabID(),
+            title
+          }
+        );
       }
       else {
         // Check whether we should create the first item title widget:
         // this occurs when we are inserting the second tab into this
         // widget.
         if (m_tabs.size() == 1u) {
-          createTitleForWidget(0u, m_lonelyTab, false);
+          createTitleForWidget(0u, m_tabs[0].tabName, m_tabs[0].itemName, false);
         }
 
         // Use the dedicated handler to create the title widget for the
         // input `index`.
-        createTitleForWidget(index, title);
+        createTitleForWidget(index, title, item->getName());
 
         // Activate the titles layout if needed (i.e. if at least two
         // tabs have been registered into this widget).
@@ -97,38 +98,57 @@ namespace sdl {
       //    removed item.
 
       // 1. Remove the item from the selector layout.
-      // TODO: Perform check for LinearLayout removal.
+      getSelector().removeItem(index);
 
       // 2. Remove the item from the titles layout if needed.
       // We will also make the titles layout hidden if the tabs
       // count drop to less than 2.
-      // TODO: Handle removal of the tab.
+      m_titlesLayout->removeItemFromIndex(index);
 
-      // 3. Update the internal `m_tabs` array.
-      // Create the new version of the tabs data.
-      Tabs newTabs(m_tabs.size() - 1u);
-
-      for (int i = 0u ; i < static_cast<int>(m_tabs.size()) ; ++i) {
-        // We need to keep the name of the tab at the same position if its
-        // index is smaller than the input `index` and move it one setp
-        // closer if it is greater.
-        if (i < index) {
-          newTabs[i] = m_tabs[i];
-        }
-        else if (i == index) {
-          // Ignore the tab to delete.
-        }
-        else {
-          newTabs[i - 1] = m_tabs[i];
-        }
+      if (getTabsCount() == 1) {
+        m_titlesLayout->setVisible(false);
       }
 
-      m_tabs.swap(newTabs);
+      // 3. Update the internal `m_tabs` array.
+      removeIndexFromInternal(index);
     }
 
     void
-    TabWidget::removeTab(core::SdlWidget* /*widget*/) {
-      // TODO: Implementation.
+    TabWidget::removeTab(core::SdlWidget* widget) {
+      // Check whether the item is valid.
+      if (widget == nullptr) {
+        error(
+          std::string("Cannot remove tab from tabwidget"),
+          std::string("Invalid null tab")
+        );
+      }
+
+      // We need to determine the index of this widget in the tabwidget.
+      // To do so we need to use the internal `m_tabs` array which contains
+      // the indices of widgets inserted in this tab along with their names.
+      int id = 0;
+      bool found = false;
+
+      // Traverse the internal `m_tabs` list and find the index for this widget.
+      while (id < getTabsCount() && !found) {
+        if (m_tabs[id].itemName == widget->getName()) {
+          found = true;
+        }
+        else {
+          ++id;
+        }
+      }
+
+      // Check whether we could find the widget.
+      if (!found) {
+        error(
+          std::string("Could not remove tab \"") + widget->getName() + "\" from tabwidget",
+          std::string("No such tab")
+        );
+      }
+
+      // Remove the item using the overloaded version of `removeTab`.
+      removeTab(id);
     }
 
     void
@@ -256,6 +276,7 @@ namespace sdl {
     void
     TabWidget::createTitleForWidget(const int index,
                                     const std::string& text,
+                                    const std::string& item,
                                     bool updateIDs)
     {
       // Create the label widget which will represent this widget in the
@@ -266,7 +287,7 @@ namespace sdl {
         name = getTitleNameFromTabID();
       }
       else {
-        name = m_tabs[index];
+        name = m_tabs[index].titleWidgetName;
       }
 
       LabelWidget* titleWidget = new LabelWidget(
@@ -310,7 +331,11 @@ namespace sdl {
           newTabs[i + 1] = m_tabs[i];
         }
       }
-      newTabs[index] = name;
+      newTabs[index] = TabInfo{
+        item,
+        name,
+        text
+      };
 
       m_tabs.swap(newTabs);
     }
@@ -323,7 +348,8 @@ namespace sdl {
       int id = 0;
       bool found = false;
       while (!found && id < getTabsCount()) {
-        if (m_tabs[id] == name) {
+        log("Trying to activate \"" + name + "\", item " + std::to_string(id) + " has item name \"" + m_tabs[id].itemName + "\" and tab name \"" + m_tabs[id].tabName + "\" and title name \"" + m_tabs[id].titleWidgetName + "\"");
+        if (m_tabs[id].titleWidgetName == name) {
           found = true;
         }
         else {
@@ -344,6 +370,30 @@ namespace sdl {
 
       // Activate the item.
       getSelector().setActiveWidget(id);
+    }
+
+    void
+    TabWidget::removeIndexFromInternal(const int index) {
+      // Create a new list and populate it with the new data.
+      Tabs newTabs(m_tabs.size() - 1u);
+
+      for (int i = 0u ; i < static_cast<int>(m_tabs.size()) ; ++i) {
+        // We need to keep the name of the tab at the same position if its
+        // index is smaller than the input `index` and move it one setp
+        // closer if it is greater.
+        if (i < index) {
+          newTabs[i] = m_tabs[i];
+        }
+        else if (i == index) {
+          // Ignore the tab to delete.
+        }
+        else {
+          newTabs[i - 1] = m_tabs[i];
+        }
+      }
+
+      // Swap the new data with the internal list.
+      m_tabs.swap(newTabs);
     }
 
   }
