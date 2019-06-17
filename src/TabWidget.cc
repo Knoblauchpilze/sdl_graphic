@@ -97,8 +97,20 @@ namespace sdl {
       // 3. update the internal `m_tabs` array to reflect the
       //    removed item.
 
-      // 1. Remove the item from the selector layout.
-      getSelector().removeItem(index);
+      // 1. Remove the item from the selector layout. To do so
+      // we need first to retrieve the child associated to the
+      // input `index`. We have to traverse the internal table
+      // to associate a name to the `index` and then rely on
+      // the base method to retrieve the child from the name.
+      core::SdlWidget* item = getChildAs<core::SdlWidget>(m_tabs[index].itemName);
+      if (item == nullptr) {
+        error(
+          std::string("Could not remove item ") + std::to_string(index) + " from tabwidget",
+          std::string("No associated widget")
+        );
+      }
+
+      getSelector().removeItem(item);
 
       // 2. Remove the item from the titles layout if needed.
       // We will also make the titles layout hidden if the tabs
