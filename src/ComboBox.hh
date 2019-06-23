@@ -103,6 +103,14 @@ namespace sdl {
       private:
 
         /**
+         * @brief - Enumeration describing the possible states for a combo box.
+         */
+        enum class State {
+          Closed,
+          Dropped
+        };
+
+        /**
          * @brief - Used to build this component by creating the adequate layout and the component
          *          to use to represent each item of the combobox.
          */
@@ -124,8 +132,41 @@ namespace sdl {
         std::pair<int, bool>
         getIndexFromInsertPolicy(const std::string& text) const;
 
+        /**
+         * @brief - Assign a new active item to the combobox. The item is checked against internal
+         *          data to determine whether it actually exists and the corresponding display is
+         *          updated to reflect this new active item.
+         * @param index - the index of the item to activate.
+         */
         void
         setActiveItem(const int& index);
+
+        /**
+         * @brief - Returns true if this combobox is dropped (i.e. displays the available options)
+         *          and false otherwise.
+         * @return - true if the combobox is dropped, false otherwise.
+         */
+        bool
+        isDropped() const noexcept;
+
+        /**
+         * @brief - Equivalent to `!isDropped()`. Returns true if the combobox is true and false
+         *          otherwise.
+         * @¶eturn - true if the combobox is closed, false otherwise.
+         */
+        bool
+        isClosed() const noexcept;
+
+        /**
+         * @brief - Assign the input state to this combobox. The state can either be identical to
+         *          the current state in which case this method does nothing or need a repaint in
+         *          which case this method does the necessary work to do so.
+         *          Changing the state will likely result in a resize of the component in order to
+         *          be able to display all the options.
+         * @param state - the new state to assign to this combobox.
+         */
+        void
+        setState(const State& state);
 
       private:
 
@@ -143,6 +184,13 @@ namespace sdl {
 
         InsertPolicy m_insertPolicy;
         int m_maxVisibleItems;
+
+        /**
+         * @brief - Describes the current state of the combobox. For now the combobox has two macro
+         *          states which corresponds to a situation where all the options are displayed or
+         *          only the active one.
+         */
+        State m_state;
 
         int m_activeItem;
         ItemsMap m_items;

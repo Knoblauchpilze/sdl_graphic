@@ -65,6 +65,17 @@ namespace sdl {
       insertItem(index.first, text, icon);
     }
 
+    inline
+    bool
+    ComboBox::isDropped() const noexcept {
+      return m_state == State::Dropped;
+    }
+
+    bool
+    ComboBox::isClosed() const noexcept {
+      return m_state == State::Closed;
+    }
+
   }
 }
 

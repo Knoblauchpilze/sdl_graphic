@@ -17,9 +17,15 @@ namespace sdl {
       m_insertPolicy(policy),
       m_maxVisibleItems(maxVisibleItems),
 
+      m_state(State::Closed),
+
       m_activeItem(-1),
       m_items()
     {
+      // Assign the z order for this widget: it should be drawn in front of other
+      // regular widgets.
+      setZOrder(1);
+
       // Build the layout for this component.
       build();
     }
@@ -96,17 +102,45 @@ namespace sdl {
 
     bool
     ComboBox::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
-      // We need to switch the active widget or assign it if none is
-      // selected yet. Nothing happens if theere is already a widget
-      // active and no more than one is registered in this box.
-      // In addition to that we have to verify that the location of
-      // the click is inside of this widget.
+      // Clicking on a combobox can have different effects based on its
+      // current state.
+      // Basically the comboxbox has two macro states: it can be dropped
+      // or closed. When the combobox is dropped, all the options in the
+      // limit of `m_maxVisibleItems` are displayed. In the closed state,
+      // only the currently selected option is displayed.
+      // When the macro state is closed, a click on the combobox will
+      // make it drop and display all the options. When the macro state
+      // is dropped, a click on the combobox will correspond to a click
+      // on an option and thus update the active item. It will also close
+      // the combobox as an option has been selected.
+      // Of course we first need to determine whether the click has been
+      // triggered inside the widget before doing anything.
 
-      // Determine whether the position of the click is inside the widget.
-      if (isInsideWidget(e.getMousePosition()) && getItemsCount() > 1) {
-        // Update the active widget.
-        setActiveItem((getActiveItem() + 1) % getItemsCount());
+      // Check whether the click is inside the widget.
+      bool inside = isInsideWidget(e.getMousePosition());
+
+      // If the click was not in the widget, close the combobox.
+      if (!inside) {
+        setState(State::Closed);
       }
+
+      // If the click occurred inside the widget, we need to determine
+      // the current state of ths combobox. If the combobox is closed
+      // the click will trigger a drop event. If the combobox is already
+      // dropped we need to handle the selection of a widget.
+
+      if (inside && isClosed()) {
+        // Create a drop event.
+        setState(State::Dropped);
+      }
+
+      // At this point we clicked on the combobox while it is dropped: we
+      // need to determine whether the click occurred on the base item (i.e.
+      // the one currently selected) or if a new item was selected.
+      // This is not handled in this method though, usually we should get
+      // a signal from the corresponding element in the `listItemClicked`
+      // slot.
+      // So we don't have anything more to do here.
 
       // Use base handler to determine whether the event was recognized.
       return core::SdlWidget::mouseButtonReleaseEvent(e);
@@ -228,6 +262,11 @@ namespace sdl {
       // table.
       getChildAs<PictureWidget>(std::string("combobox_icon"))->setImagePath(m_items[m_activeItem].icon);
       getChildAs<LabelWidget>(std::string("combobox_text"))->setText(m_items[m_activeItem].text);
+    }
+
+    void
+    ComboBox::setState(const State& /*state*/) {
+      // TODO: Handle state change.
     }
 
   }
