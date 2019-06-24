@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     LabelWidget::setText(const std::string& text) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
+      std::lock_guard<std::recursive_mutex> guard(getLocker());
       m_text = text;
       setTextChanged();
     }
@@ -17,14 +17,14 @@ namespace sdl {
     inline
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
+      std::lock_guard<std::recursive_mutex> guard(getLocker());
       m_hAlignment = alignment;
     }
 
     inline
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
-      std::lock_guard<std::mutex> guard(getLocker());
+      std::lock_guard<std::recursive_mutex> guard(getLocker());
       m_vAlignment = alignment;
     }
 
