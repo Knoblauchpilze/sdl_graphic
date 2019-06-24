@@ -316,6 +316,7 @@ namespace sdl {
 
         if (icon == nullptr) {
           // Create the item.
+          // TODO: We need to insert it into a layout of some sort, probably a grid layout global to this widget.
           icon = new PictureWidget(
             getIconNameFromID(id),
             std::string(),
