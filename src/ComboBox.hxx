@@ -71,9 +71,28 @@ namespace sdl {
       return m_state == State::Dropped;
     }
 
+    inline
     bool
     ComboBox::isClosed() const noexcept {
       return m_state == State::Closed;
+    }
+
+    inline
+    int
+    ComboBox::getVisibleItemsCount() const noexcept {
+      return std::max(1, std::min(getItemsCount(), m_maxVisibleItems));
+    }
+
+    inline
+    std::string
+    ComboBox::getIconNameFromID(const int& id) const noexcept {
+      return std::string("icon_widget_") + std::to_string(id);
+    }
+
+    inline
+    std::string
+    ComboBox::getTextNameFromID(const int& id) const noexcept {
+      return std::string("text_widget_") + std::to_string(id);
     }
 
   }

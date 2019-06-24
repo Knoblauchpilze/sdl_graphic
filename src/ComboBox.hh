@@ -100,6 +100,15 @@ namespace sdl {
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `LayoutItem` method to allow saving of the
+         *          area to assign so that it can be used to open/close the combobox.
+         * @param e - the resize event describing the resize operation.
+         * @return - true if the event was recognized, false otherwise.
+         */
+        bool
+        resizeEvent(const core::engine::ResizeEvent& e) override;
+
       private:
 
         /**
@@ -168,6 +177,41 @@ namespace sdl {
         void
         setState(const State& state);
 
+        /**
+         * @brief - Used to retrieve the size of this combobox when it is dropped. We use the box
+         *          describing the size of the box when closed (held in the internal `m_closedBox`
+         *          attribute) and multiply it by the number of items to be displayed.
+         *          The number of items to be displayed is the minimum between the total number of
+         *          items available and the `m_maxVisibleItems` value.
+         * @return - the size of this combobox when it is dropped.
+         */
+        utils::Boxf
+        getDroppedSize() const noexcept;
+
+        /**
+         * @brief - Used to retrieve the visible items count. This value is at least one, and is
+         *          the minimum between the total items count and the maximum visible count.
+         * @return - the number of items visible.
+         */
+        int
+        getVisibleItemsCount() const noexcept;
+
+        /**
+         * @brief - Retrieves the name of the icon widget for the specified index.
+         * @param id - the index of the icon name which shall be retrieved.
+         * @return - the string assigned to the icon widget representing item `id`.
+         */
+        std::string
+        getIconNameFromID(const int& id) const noexcept;
+
+        /**
+         * @brief - Retrieves the name of the text widget for the specified index.
+         * @param id - the index of the text name which shall be retrieved.
+         * @return - the string assigned to the text widget representing item `id`.
+         */
+        std::string
+        getTextNameFromID(const int& id) const noexcept;
+
       private:
 
         /**
@@ -191,6 +235,13 @@ namespace sdl {
          *          only the active one.
          */
         State m_state;
+
+        /**
+         * @brief - Describes the area assigned to this widget when in closed state. We need to keep
+         *          this value in order to allow the widget to be opened and closed without needing
+         *          to ask the layout about the size for this widget.
+         */
+        utils::Boxf m_closedBox;
 
         int m_activeItem;
         ItemsMap m_items;

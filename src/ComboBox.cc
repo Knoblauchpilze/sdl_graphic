@@ -3,6 +3,7 @@
 # include "LinearLayout.hh"
 # include "LabelWidget.hh"
 # include "PictureWidget.hh"
+# include <core_utils/CoreException.hh>
 
 namespace sdl {
   namespace graphic {
@@ -18,6 +19,7 @@ namespace sdl {
       m_maxVisibleItems(maxVisibleItems),
 
       m_state(State::Closed),
+      m_closedBox(),
 
       m_activeItem(-1),
       m_items()
@@ -146,6 +148,17 @@ namespace sdl {
       return core::SdlWidget::mouseButtonReleaseEvent(e);
     }
 
+    bool
+    ComboBox::resizeEvent(const core::engine::ResizeEvent& e) {
+      // We need to assign this box as the closed box.
+      m_closedBox = e.getNewSize();
+
+      // TODO: Handle case where the combobox is opened.
+
+      // USe the base method to provide the return value.
+      return SdlWidget::resizeEvent(e);
+    }
+
     void
     ComboBox::build() {
       // Assign a linear layout which will allow positionning items and icons.
@@ -265,8 +278,99 @@ namespace sdl {
     }
 
     void
-    ComboBox::setState(const State& /*state*/) {
-      // TODO: Handle state change.
+    ComboBox::setState(const State& state) {
+      // First check that the state is actually different from the current state
+      if (m_state == state) {
+        // Nothing to do.
+        return;
+      }
+
+      // We need to assign a new size to the combobox based on the desired state.
+      // The current closed size is always saved in the `m_closedBox` and in order
+      // to obtain the opened size we multiply it by the number of item visible
+      // in the combobox.
+
+      // Assume the size is for the closed size.
+      utils::Boxf newSize = m_closedBox;
+      if (state == State::Dropped) {
+        newSize = getDroppedSize();
+      }
+
+      log("Old size is " + m_closedBox.toString() + ", new is " + newSize.toString());
+
+      // Update the internal state.
+      m_state = state;
+
+      // Now proceed to posting a resize event with the new size.
+      postEvent(std::make_shared<core::engine::ResizeEvent>(
+        newSize,
+        LayoutItem::getRenderingArea()
+      ));
+
+      // We also need to either create the needed icon and text widgets
+      // or make them visible if they already exist.
+      const int count = getVisibleItemsCount();
+      for (int id = 0 ; id < count ; ++id) {
+        // Try to set the icon and the visible status for the picture widget.
+        PictureWidget* icon = getChildOrNull<PictureWidget>(getIconNameFromID(id));
+
+        if (icon == nullptr) {
+          // Create the item.
+          icon = new PictureWidget(
+            getIconNameFromID(id),
+            std::string(),
+            PictureWidget::Mode::Fit,
+            this
+          );
+        }
+
+        // Now we either created the icon widget if needed or found it if it
+        // already existed. We can assign properties to the picture widget.
+        icon->setImagePath(m_items[m_activeItem].icon);
+        icon->setVisible(true);
+
+        // Try to set the text and the visible status for the label widget.
+        LabelWidget* text = getChildOrNull<LabelWidget>(getTextNameFromID(id));
+
+        if (text == nullptr) {
+          // Create the item.
+          text = new LabelWidget(
+            getTextNameFromID(id),
+            m_items[m_activeItem].text,
+            std::string("data/fonts/times.ttf"),
+            15,
+            LabelWidget::HorizontalAlignment::Left,
+            LabelWidget::VerticalAlignment::Center,
+            this,
+            core::engine::Color::NamedColor::Yellow
+          );
+        }
+
+        // Now we either created the label widget if needed or found it if it
+        // already existed. We can assign properties to the label widget.
+        text->setText(m_items[m_activeItem].text);
+        text->setVisible(true);
+      }
+    }
+
+    utils::Boxf
+    ComboBox::getDroppedSize() const noexcept {
+      // We basically scale the closed size by the number of items to
+      // display. We use either the minimum number of items available
+      // or the count of items.
+      // We at least want to keep one element even though no elements
+      // are registered in the combobox.
+      const int scaling = getVisibleItemsCount();
+
+      // Compute the delta.
+      const float delta = (scaling - 1) * m_closedBox.h();
+
+      return utils::Boxf(
+        m_closedBox.x(),
+        m_closedBox.y() - delta / 2.0f,
+        m_closedBox.w(),
+        m_closedBox.h() * scaling
+      );
     }
 
   }
