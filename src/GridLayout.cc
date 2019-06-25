@@ -137,7 +137,7 @@ namespace sdl {
       // we might have to redo an adjustment for single-cell items afterwards.
 
       // Proceed to adjust the columns' width.
-      // log(std::string("Adjusting columns width"), utils::Level::Notice);
+      log(std::string("Adjusting columns width"), utils::Level::Notice);
       std::vector<float> columnsDims = adjustColumnsWidth(internalSize, itemsInfo, cells);
 
       // Adjust rows' height.
@@ -551,7 +551,7 @@ namespace sdl {
       // the maximum width for each column is registered. This allows to easily
       // iterate over columns without needing to extract the largest item in each
       // one.
-      std::vector<float> columns(items.size(), 0.0f);
+      std::vector<float> columns(m_columns, 0.0f);
 
       // Now, we need to retrieve for each column the list of items related to it:
       // this allows for quick access when iterating to determine columns' dimensions.
@@ -988,7 +988,7 @@ namespace sdl {
       // the maximum height for each row is registered. This allows to easily
       // iterate over rows without needing to extract the largest item in each
       // one.
-      std::vector<float> rows(items.size(), 0.0f);
+      std::vector<float> rows(m_rows, 0.0f);
 
       // Now, we need to retrieve for each row the list of items related to it:
       // this allows for quick access when iterating to determine rows' dimensions.
