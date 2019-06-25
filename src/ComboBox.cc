@@ -1,6 +1,6 @@
 
 # include "ComboBox.hh"
-# include "LinearLayout.hh"
+# include "GridLayout.hh"
 # include "LabelWidget.hh"
 # include "PictureWidget.hh"
 # include <core_utils/CoreException.hh>
@@ -162,13 +162,15 @@ namespace sdl {
     void
     ComboBox::build() {
       // Assign a linear layout which will allow positionning items and icons.
-      LinearLayoutShPtr layout = std::make_shared<LinearLayout>(
+      GridLayoutShPtr layout = std::make_shared<GridLayout>(
         "combobox_layout",
         this,
-        LinearLayout::Direction::Horizontal,
-        0.0f,
-        1.0f
+        2u,
+        1u + static_cast<unsigned>(m_maxVisibleItems)
       );
+
+      // And assign the layout to this widget.
+      setLayout(layout);
 
       // Create two children: a picture widget and a label widget which will be used
       // to represent the items of this combobox.
@@ -191,11 +193,8 @@ namespace sdl {
       );
 
       // Add these items to the layout.
-      layout->addItem(icon);
-      layout->addItem(text);
-
-      // And assign the layout to this widget.
-      setLayout(layout);
+      layout->addItem(icon, 0, 0, 1, 1);
+      layout->addItem(text, 1, 0, 1, 1);
     }
 
     std::pair<int, bool>
@@ -307,6 +306,9 @@ namespace sdl {
         LayoutItem::getRenderingArea()
       ));
 
+      // Retrieve the layout so that we can insert new widgets if needed.
+      GridLayout* layout = getLayoutAs<GridLayout>();
+
       // We also need to either create the needed icon and text widgets
       // or make them visible if they already exist.
       const int count = getVisibleItemsCount();
@@ -323,11 +325,18 @@ namespace sdl {
             PictureWidget::Mode::Fit,
             this
           );
+
+          // Add it to the layout.
+          layout->addItem(icon, 0u, 1u + id, 1u, 1u);
+
+          // Register the click on the icon widget so that we can update the
+          // selected element in this combobox.
+          icon->onClick.connect_member<ComboBox>(this, &ComboBox::onElementClicked);
         }
 
         // Now we either created the icon widget if needed or found it if it
         // already existed. We can assign properties to the picture widget.
-        icon->setImagePath(m_items[m_activeItem].icon);
+        icon->setImagePath(m_items[id].icon);
         icon->setVisible(true);
 
         // Try to set the text and the visible status for the label widget.
@@ -337,7 +346,7 @@ namespace sdl {
           // Create the item.
           text = new LabelWidget(
             getTextNameFromID(id),
-            m_items[m_activeItem].text,
+            std::string(),
             std::string("data/fonts/times.ttf"),
             15,
             LabelWidget::HorizontalAlignment::Left,
@@ -345,11 +354,18 @@ namespace sdl {
             this,
             core::engine::Color::NamedColor::Yellow
           );
+
+          // Add it to the layout.
+          layout->addItem(text, 1u, 1u + id, 1u, 1u);
+
+          // Register the click on the icon widget so that we can update the
+          // selected element in this combobox.
+          text->onClick.connect_member<ComboBox>(this, &ComboBox::onElementClicked);
         }
 
         // Now we either created the label widget if needed or found it if it
         // already existed. We can assign properties to the label widget.
-        text->setText(m_items[m_activeItem].text);
+        text->setText(m_items[id].text);
         text->setVisible(true);
       }
     }
@@ -372,6 +388,12 @@ namespace sdl {
         m_closedBox.w(),
         m_closedBox.h() * scaling
       );
+    }
+
+    void
+    ComboBox::onElementClicked(const std::string& name) {
+      // TODO: Connect this to the selection of anew element and on the close event.
+      log("Clicked on element " + name);
     }
 
   }

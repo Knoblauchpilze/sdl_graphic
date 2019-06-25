@@ -212,6 +212,15 @@ namespace sdl {
         std::string
         getTextNameFromID(const int& id) const noexcept;
 
+        /**
+         * @brief - Used to connect this method as receiver of the elements inserted
+         *          in the combobox so that we can update the widget displayed when
+         *          the user clicks on an element of the combobox when it is dropped.
+         * @param name - the name of the widget which has been clicked.
+         */
+        void
+        onElementClicked(const std::string& name);
+
       private:
 
         /**
