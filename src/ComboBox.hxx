@@ -95,6 +95,52 @@ namespace sdl {
       return std::string("text_widget_") + std::to_string(id);
     }
 
+    inline
+    int
+    ComboBox::getIDFromWidgetName(const std::string& name) const {
+      // First determine whether we have a name corresponding to the generated
+      // convention. The name should match something like `type_widget_ID` and
+      // thus contain exactly two '_' characters.
+      std::size_t count = std::count(name.cbegin(), name.cend(), '_');
+
+      if (count != 2) {
+        error(
+          std::string("Cannot retrieve id from name \"") + name + "\"",
+          std::string("Name does not match internal naming convention")
+        );
+      }
+
+      // Keep only the last part of the name (i.e. the part of the string after
+      // the second occurrence of the '_' character): this should correspond to
+      // the identifier.
+      const std::size_t pos = name.find_last_of('_');
+      std::string idAsStr = name.substr(pos + 1);
+
+      // Try to convert this string into a valid identifier.
+      int val = 0;
+      try {
+        val = std::stoi(idAsStr);
+      }
+      catch (const std::invalid_argument& e) {
+        error(
+          std::string("Could not determine id from name \"") + name + "\"",
+          std::string("Identifier \"") + idAsStr + "\" could not be converted to int (err: " + e.what() + ")"
+        );
+      }
+
+      // Check whether this item is valid (i.e. is within the acceptable id
+      // range).
+      if (val < 0 || val >= getItemsCount()) {
+        error(
+          std::string("Could not determine id from name \"") + name + "\"",
+          std::string("Identifier ") + std::to_string(val) + " is not in acceptable range [0; " + std::to_string(getItemsCount()) + "]"
+        );
+      }
+
+      // The value is valid as no exception was raised.
+      return val;
+    }
+
   }
 }
 

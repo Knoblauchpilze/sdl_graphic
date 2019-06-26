@@ -107,7 +107,7 @@ namespace sdl {
          * @return - true if the event was recognized, false otherwise.
          */
         bool
-        resizeEvent(const core::engine::ResizeEvent& e) override;
+        resizeEvent(core::engine::ResizeEvent& e) override;
 
       private:
 
@@ -220,6 +220,24 @@ namespace sdl {
          */
         void
         onElementClicked(const std::string& name);
+
+        /**
+         * @brief - Retrieves the identifier of the item corresponding to the widget's
+         *          name. We assume that the name comes from one of the children that
+         *          has been inserted in this combobox and should look something like
+         *          `icon_widget_ID` or `text_widget_ID`.
+         *          Error is raised if the name does not seem to match this convention
+         *          otherwise the id is returned.
+         *          Note that if the name matches the convention but the retrieved id
+         *          is not valid for some reason (negative or larger than the avilable
+         *          count for example) an error is raised as well.
+         * @param name - the name of the widget from which the identifier should be
+         *               retrieved.
+         * @return - the index of the widget to retrieve. An error is raised if an error
+         *           occurs so the value is always valid.
+         */
+        int
+        getIDFromWidgetName(const std::string& name) const;
 
       private:
 
