@@ -22,7 +22,10 @@ namespace sdl {
     }
 
     void
-    PictureWidget::drawContentPrivate(const utils::Uuid& uuid) const {
+    PictureWidget::drawContentPrivate(const utils::Uuid& uuid,
+                                      const utils::Boxf& /*area*/) const
+    {
+      // TODO: Handle `area`.
       // Load the picture.
       if (pictureChanged()) {
         loadPicture();

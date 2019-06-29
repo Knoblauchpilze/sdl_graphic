@@ -55,8 +55,16 @@ namespace sdl {
         bool
         leaveEvent(const core::engine::Event& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `SdlWidget` method. A texture representing
+         *          the text associated to this label widget will be drawn on the provided
+         *          canvas. Only the specified part is updated by this function.
+         * @param uuid - the identifier of the canvas which we can use to draw a text overlay.
+         * @param area - the area of the canvas to update.
+         */
         void
-        drawContentPrivate(const utils::Uuid& uuid) const override;
+        drawContentPrivate(const utils::Uuid& uuid,
+                           const utils::Boxf& area) const override;
 
       private:
 

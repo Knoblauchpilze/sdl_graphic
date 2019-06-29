@@ -36,7 +36,10 @@ namespace sdl {
     }
 
     void
-    LabelWidget::drawContentPrivate(const utils::Uuid& uuid) const {
+    LabelWidget::drawContentPrivate(const utils::Uuid& uuid,
+                                    const utils::Boxf& /*area*/) const
+    {
+      // TODO: Handle `area`.
       // Load the text.
       if (textChanged()) {
         loadText();
