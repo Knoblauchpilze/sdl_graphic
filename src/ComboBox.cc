@@ -67,10 +67,10 @@ namespace sdl {
       }
 
       // Check whether we need to modify the display for this combobox. This
-      // can be the case if:
-      // 1. there is no an item in the combo box.
-      // 2. there was only one item in the combo box and it was selected.
-      if (getItemsCount() == 1 || (getItemsCount() == 2 && hasActiveItem())) {
+      // can only be the case if the combobox is dropped, in which case the
+      // new item will be displayed. Otherwise nothing changes in the combobox
+      // so we can skip the update part.
+      if (isDropped()) {
         makeContentDirty();
       }
     }
@@ -88,6 +88,8 @@ namespace sdl {
       // Perform the deletion.
       m_items.erase(m_items.cbegin() + index);
 
+      bool removedActive = false;
+
       // Check whether this was the active item.
       if (m_activeItem == index) {
         // We need to make the next item active if it is still possible.
@@ -96,10 +98,17 @@ namespace sdl {
         if (m_activeItem >= getItemsCount()) {
           m_activeItem = getItemsCount() - 1;
         }
+
+        removedActive = true;
       }
 
-      // We need to update the content.
-      makeContentDirty();
+      // We need to update the content if needed. This can happen either is the
+      // deleted item was the active one or if the combobox is dropped: in this
+      // case as all items are displayed the removal of the item will be directly
+      // visible.
+      if (isDropped() || removedActive) {
+        makeContentDirty();
+      }
     }
 
     bool
