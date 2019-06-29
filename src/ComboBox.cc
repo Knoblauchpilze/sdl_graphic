@@ -71,7 +71,7 @@ namespace sdl {
       // new item will be displayed. Otherwise nothing changes in the combobox
       // so we can skip the update part.
       if (isDropped()) {
-        makeContentDirty();
+        requestRepaint();
       }
     }
 
@@ -107,7 +107,7 @@ namespace sdl {
       // case as all items are displayed the removal of the item will be directly
       // visible.
       if (isDropped() || removedActive) {
-        makeContentDirty();
+        requestRepaint();
       }
     }
 
