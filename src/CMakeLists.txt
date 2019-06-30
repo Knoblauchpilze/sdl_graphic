@@ -16,6 +16,7 @@ set (SOURCES
   SelectorWidget.cc
   ComboBox.cc
   TabWidget.cc
+  TextBox.cc
   )
 
 add_library (sdl_graphic SHARED
