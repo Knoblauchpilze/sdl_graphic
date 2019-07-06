@@ -84,7 +84,7 @@ namespace sdl {
             break;
         }
 
-        getEngine().drawTexture(m_label, &uuid, &dstRect);
+        getEngine().drawTexture(m_label, nullptr, &uuid, &dstRect);
       }
     }
 
