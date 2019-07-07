@@ -37,55 +37,105 @@ namespace sdl {
 
     void
     LabelWidget::drawContentPrivate(const utils::Uuid& uuid,
-                                    const utils::Boxf& /*area*/) const
+                                    const utils::Boxf& area) const
     {
-      // TODO: Handle `area`.
-      // Load the text.
+      // Load the text: this should happen only if the text has changed since
+      // last draw operation. This can either mean that the text itself has
+      // been modified or that the font to used has been updated.
       if (textChanged()) {
         loadText();
         m_textChanged = false;
       }
 
-      // Compute the blit position of the text so that it is centered.
-      if (m_label.valid()) {
-        // Perform the copy operation according to the alignment.
-        utils::Sizei sizeText = getEngine().queryTexture(m_label);
-        utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
-
-        utils::Boxf dstRect;
-
-        // Dimension of the dst area are known.
-        dstRect.w() = sizeText.w();
-        dstRect.h() = sizeText.h();
-
-        switch (m_hAlignment) {
-          case HorizontalAlignment::Left:
-            dstRect.x() = dstRect.w() / 2.0f;
-            break;
-          case HorizontalAlignment::Right:
-            dstRect.x() = sizeEnv.w() - sizeText.w() / 2.0f;
-            break;
-          case HorizontalAlignment::Center:
-          default:
-            dstRect.x() = sizeEnv.w() / 2.0f;
-            break;
-        }
-
-        switch (m_vAlignment) {
-          case VerticalAlignment::Top:
-            dstRect.y() = dstRect.h() / 2.0f;
-            break;
-          case VerticalAlignment::Bottom:
-            dstRect.y() = sizeEnv.h() - sizeText.h() / 2.0f;
-            break;
-          case VerticalAlignment::Center:
-          default:
-            dstRect.y() = sizeEnv.h() / 2.0f;
-            break;
-        }
-
-        getEngine().drawTexture(m_label, nullptr, &uuid, &dstRect);
+      // If we don't have any text to display, return early, nothing more to
+      // do for the drawing operation.
+      if (!m_label.valid()) {
+        return;
       }
+
+      // There's a double goal to this function: it must determine where the
+      // text should be displayed but also which part of it should be drawn.
+      // These tasks are not exactly independent. More precisely to determine
+      // which part of the text should be displayed one must first determine
+      // where the text will be displayed.
+      // Indeed we can find out where the text will be displayed only using
+      // its dimension and the internal alignment.
+      // Once this is done it gives us a box in local coordinate frame which
+      // represents the position at which the whole text will be displayed.
+      // This might not be exactly what we want in the end but it is a start.
+      //
+      // Once we have that we can found out whether this area includes part
+      // of the `area` to update. From there, two possible scenari:
+      // a. the text does not overlap with the input `area`.
+      // b. the text does overlap with the input `area`.
+      //
+      // If the text does not overlap we can return early: nothing can be
+      // done from here and all the job should be done by the other internal
+      // 'clearContentPrivate' method.
+      //
+      // If the text does overlap we need to figure out which part is visible
+      // in the input `area`. This can be computed as both the area where the
+      // text should be blit and the input `area` are expressed in the local
+      // coordinate frame.
+
+      // Determine the position where the text should be blit, not considering
+      // the input `area` nor the available space.
+      utils::Sizei sizeText = getEngine().queryTexture(m_label);
+      utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
+
+      utils::Vector2f center;
+
+      switch (m_hAlignment) {
+        case HorizontalAlignment::Left:
+          center.x() = -sizeEnv.w() / 2.0f + sizeText.w() / 2.0f;
+          break;
+        case HorizontalAlignment::Right:
+          center.x() = sizeEnv.w() / 2.0f - sizeText.w() / 2.0f;
+          break;
+        case HorizontalAlignment::Center:
+        default:
+          center.x() = 0.0f;
+          break;
+      }
+
+      switch (m_vAlignment) {
+        case VerticalAlignment::Top:
+          center.y() = sizeEnv.w() / 2.0f - sizeText.h() / 2.0f;
+          break;
+        case VerticalAlignment::Bottom:
+          center.y() = -sizeEnv.h() / 2.0f + sizeText.h() / 2.0f;
+          break;
+        case VerticalAlignment::Center:
+        default:
+          center.y() = 0.0f;
+          break;
+      }
+
+      utils::Boxf dstRect(center, static_cast<float>(sizeText.w()), static_cast<float>(sizeText.h()));
+
+      // Compute the intersection between the input `area` and this `dstRect`
+      // area. If both overlaps it means that part of the text is visible.
+      utils::Boxf dstRectToUpdate = dstRect.intersect(area);
+
+      if (!dstRectToUpdate.valid()) {
+        return;
+      }
+
+      // Some part of the text is visible. We now need to determine which part.
+      // In order to do so we need to convert the `dstRectToUpdate` into the
+      // coordinate frame of the text to display. This can be done by expressing
+      // this area relatively to the `dstRect` itself as this area has the same
+      // scale as the text itself.
+      utils::Boxf srcRect = convertToLocal(dstRectToUpdate, dstRect);
+
+      // Convert both area to areas usable by the engine.
+      utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
+
+      utils::Boxf srcRectEngine  = convertToEngineFormat(srcRect, utils::Boxf::fromSize(sizeText, true));
+      utils::Boxf dstRectEngine  = convertToEngineFormat(dstRectToUpdate, env);
+
+      // Repaint the needed part of the text.
+      getEngine().drawTexture(m_label, &srcRectEngine, &uuid, &dstRectEngine);
     }
 
   }
