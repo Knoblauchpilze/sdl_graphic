@@ -115,7 +115,7 @@ namespace sdl {
         achievedSize = computeSizeOfItems(outputBoxes);
 
         // Check whether all the space have been used.
-        if (achievedSize.fuzzyEqual(internalSize, 0.5f)) {
+        if (achievedSize.compareWithTolerance(internalSize, 0.5f)) {
           // We used up all the available space, no more adjustments to perform.
           allSpaceUsed = true;
           continue;

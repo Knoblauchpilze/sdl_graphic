@@ -776,7 +776,7 @@ namespace sdl {
         const utils::Sizef achievedSize(achievedWidth, window.h());
 
         // Check whether all the space have been used.
-        if (achievedSize.fuzzyEqual(window, 1.0f)) {
+        if (achievedSize.compareWithTolerance(window, 1.0f)) {
           // We used up all the available space, no more adjustments to perform.
           allSpaceUsed = true;
           continue;
@@ -1212,7 +1212,7 @@ namespace sdl {
         const utils::Sizef achievedSize(window.w(), achievedHeight);
 
         // Check whether all the space have been used.
-        if (achievedSize.fuzzyEqual(window, 1.0f)) {
+        if (achievedSize.compareWithTolerance(window, 1.0f)) {
           // We used up all the available space, no more adjustments to perform.
           allSpaceUsed = true;
           continue;
