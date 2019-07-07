@@ -46,63 +46,109 @@ namespace sdl {
       // We also need to handle the `area` of the picture which should be drawn
       // so that we only handle the intersection of the area provided in input
       // and the area spanned by the picture.
+      //
+      // In any of the available mode an important part of the process is to
+      // determine which part of the image should be blit if the area spans the
+      // entire area available in the `uuid` texture.
+      // This area will be then intersected with the actual `area` to be drawn
+      // in order to only repaint the needed bits.
+      // So a first preliminary step is to determine these values.
+
+      // In a first approach let's consider that the entire picture can be drawn.
+      utils::Sizei sizePic = getEngine().queryTexture(m_picture);
+      utils::Boxf srcRect = utils::Boxf::fromSize(sizePic, true);
+
+      // Handle the area where the picture should be drawn. The input `area` is
+      // expected to be expressed in local coordinates so we can directly compute
+      // the engine usable equivalent.
+      utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
+      utils::Boxf dstRect = area;
 
       // Handle `Fit` mode.
       if (m_mode == Mode::Fit) {
-        // The picture should be drawn at the position specified by the area.
-        // We need to convert the input area to a format which can be used by
-        // the engine.
-        utils::Boxf converted = convertToEngineFormat(area);
-        log("Drawing picture while updating region " + area.toString() + " (converted: " + converted.toString() + ")");
+        // In this mode the picture is automatically resized in order to fit the
+        // available space. It is thus much harder to exactly determine which
+        // part of the image will be drawn in the input `area`.
+        // To do so, we know that the whole `srcRect` gets mapped to a `sizeEnv`
+        // area upon drawing. From this we can deduce the initial area which gets
+        // mapped to `area` in the final drawing.
+        // Once we have this information we can use ti to draw the initial area
+        // and map it to the desired `area` part of the final image.
 
-        // TODO: We should care about updating only part of the texture: indeed
-        // imagine that the root widget is a picture widget: if a child get updated
-        // the folliwing call will draw the entire texture behind the widget which
-        // is not what we want. We want to copy only the part of the picture which
-        // would effectively be blitted at this position.
-        getEngine().drawTexture(m_picture, nullptr, &uuid, &converted);
+        // Determine the initial location of the input `area` in the initial image.
+        const float wScale = static_cast<float>(sizeEnv.w()) / srcRect.w();
+        const float hScale = static_cast<float>(sizeEnv.h()) / srcRect.h();
+
+        const utils::Vector2f center = utils::Vector2f(area.x() / wScale, area.y() / hScale);
+
+        utils::Boxf areaAsSrc(center, area.w() / wScale, area.h() / hScale);
+
+        // The output `area` corresponds to the `areaAsSrc` portion of the initial
+        // image. We now need to intersect this with the image area and see if
+        // this makes sense. The only restriction is if the input `area` is larger
+        // than the available `sizeEnv`: this is the only case where the `srcRect`
+        // will perform any intersection on the `areaAsSrc`. Otherwise as we're
+        // performing a fit operation we can only draw subparts of the picture.
+        utils::Boxf srcAreaToDraw = srcRect.intersect(areaAsSrc);
+
+        // Convert this area to engine format.
+        utils::Boxf srcAreaToDrawEngine = convertToEngineFormat(srcAreaToDraw, srcRect);
+
+        // The final blit area can be directly converted into engine usable format.
+        utils::Boxf dstRectEngine = convertToEngineFormat(dstRect, LayoutItem::getRenderingArea());
+
+        // Repaint the picture.
+        getEngine().drawTexture(m_picture, &srcAreaToDrawEngine, &uuid, &dstRectEngine);
       }
 
       // Handle `Crop` mode.
       if (m_mode == Mode::Crop) {
-        // In crop mode, the final area corresponds to a position where the image
-        // will be centered, and the dimensions are consistent with the internal
-        // image dimensions. Due to how we use the position of textures, the final
-        // rect is always set to `[0; 0]` because the picture is centered in the
-        // parent widget.
-        // The convert method will set it to the middle of the widget as expected
-        // by the engine.
+        // In crop mode, the picture is displayed with no scaling and just takes
+        // the maximum amount of space between what's available and its internal
+        // size.
+        // In the case where the image is smaller than the available area it will
+        // be centered and if it is larger only its center will be displayed so
+        // that we get a partial representation of it.
+        // Depending on these consideration and the position of the `area` to
+        // update, it might happen that we actually don't draw anything. If for
+        // example the picture is really small and the `area` refers to the top
+        // left corner of this widget, the picture does not span this area and
+        // thus we won't do anything.
         //
-        // In order to crop the picture, we need to select the area of the picture
-        // which corresponds to its center. This center will be displayed on all
-        // the available space.
-        // We can note that either the picture is smaller than the available space
-        // in which case the image will be centered, or the picture is larger than
-        // the available space, in which case the center of the image will be
-        // displayed.
-        // Two steps are required to determine which part of the image should be
-        // drawn in the input `area`:
-        // 1. The part of the image which should be displayed needs to be computed.
-        // 2. The actual blit part needs to be computed both from the part of the
-        //    image displayed and the area to update.
+        // Just like the `Fit` mode, we will determine the part of the input image
+        // coordinate frame which corresponds to the input `area` and then perform
+        // the intersection between both to determine which part of the image needs
+        // to be drawn.
+        // It is simpler that in the `Fit` mode because there's a 1 to 1 matching
+        // between an area in the widget's space and in the picture space.
+        // Considering this the input `area` corresponds exactly to the same area
+        // in picture space.
 
-        // First, proceed to the determination of the part of the image which is
-        // drawn: in a first approach, the whole image can be displayed.
-        utils::Sizei sizePic = getEngine().queryTexture(m_picture);
-        utils::Boxf srcRect = utils::Boxf::fromSize(sizePic, true);
+        utils::Boxf srcAreaToDraw = srcRect.intersect(area);
 
-        // Now we actually need to restrain the area to the available space.
-        utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
-        utils::Boxf dstRect = utils::Boxf::fromSize(sizeEnv, true);
+        // If this area is not valid, it means that no part of the image are drawn
+        // on the input `area` to update. The `clearContentPrivate` should have
+        // handled this and we have nothing more to do in here.
+        if (!srcAreaToDraw.valid()) {
+          return;
+        }
 
-        srcRect = srcRect.intersect(dstRect);
-        utils::Boxf srcRectEngine = utils::Boxf(sizePic.w() / 2.0f, sizePic.h() / 2.0f, srcRect.w(), srcRect.h());
+        // The intersection between the area to repaint and the picture is not empty:
+        // convert it to engine semantic and perform the repaint.
+        utils::Boxf srcAreaToDrawEngine = convertToEngineFormat(srcAreaToDraw, srcRect);
 
-        // Now determine the blit coordinates by converting the `dstRect`.
-        utils::Boxf dstRectEngine = convertToEngineFormat(dstRect);
+        // Now let's compute the final blit area. Most of the time it will corresponds
+        // to the input `area` converted so that it can be used by the engine. One notable
+        // exception to this is when the input `area` is larger than the picture or spans
+        // areas which do not belong to the picture. In this case we need to restrict the
+        // destination area to its portion where it intersects the area of the picture.
+        utils::Boxf dstRectMatched = dstRect.intersect(srcAreaToDraw);
+
+        // The final blit area can be directly converted into engine usable format.
+        utils::Boxf dstRectEngine = convertToEngineFormat(dstRectMatched, LayoutItem::getRenderingArea());
 
         // Draw the texture with specified rects.
-        getEngine().drawTexture(m_picture, &srcRectEngine, &uuid, &dstRectEngine);
+        getEngine().drawTexture(m_picture, &srcAreaToDrawEngine, &uuid, &dstRectEngine);
       }
     }
 
