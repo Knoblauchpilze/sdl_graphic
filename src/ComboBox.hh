@@ -35,7 +35,7 @@ namespace sdl {
                  const InsertPolicy& policy,
                  core::SdlWidget* parent = nullptr,
                  const utils::Sizef& area = utils::Sizef(),
-                 const int maxVisibleItems = 10);
+                 const int maxVisibleItems = 5);
 
         virtual ~ComboBox();
 
@@ -161,7 +161,7 @@ namespace sdl {
         /**
          * @brief - Equivalent to `!isDropped()`. Returns true if the combobox is true and false
          *          otherwise.
-         * @¶eturn - true if the combobox is closed, false otherwise.
+         * @return - true if the combobox is closed, false otherwise.
          */
         bool
         isClosed() const noexcept;
