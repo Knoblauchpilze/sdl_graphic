@@ -351,7 +351,6 @@ namespace sdl {
       }
 
       log("Old size is " + m_closedBox.toString() + ", new is " + newSize.toString());
-      // TODO: Handle repaint of the dropped area if any.
 
       // Update the internal state.
       m_state = state;
