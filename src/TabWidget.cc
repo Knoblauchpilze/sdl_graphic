@@ -194,7 +194,7 @@ namespace sdl {
             this,
             LinearLayout::Direction::Vertical,
             0.0f,
-            1.0f
+            0.0f
           );
           break;
         case TabPosition::West:
@@ -204,7 +204,7 @@ namespace sdl {
             this,
             LinearLayout::Direction::Horizontal,
             0.0f,
-            1.0f
+            0.0f
           );
           break;
         default:
