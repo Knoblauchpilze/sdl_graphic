@@ -435,9 +435,11 @@ namespace sdl {
       // We basically scale the closed size by the number of items to
       // display. We use either the minimum number of items available
       // or the count of items.
+      // We also need to account for the base item which is always
+      // displayed in the combobox.
       // We at least want to keep one element even though no elements
       // are registered in the combobox.
-      const int scaling = getVisibleItemsCount();
+      const int scaling = 1 + getVisibleItemsCount();
 
       // Compute the delta.
       const float delta = (scaling - 1) * m_closedBox.h();
