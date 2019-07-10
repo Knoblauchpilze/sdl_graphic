@@ -76,8 +76,8 @@ namespace sdl {
         // and map it to the desired `area` part of the final image.
 
         // Determine the initial location of the input `area` in the initial image.
-        const float wScale = static_cast<float>(sizeEnv.w()) / srcRect.w();
-        const float hScale = static_cast<float>(sizeEnv.h()) / srcRect.h();
+        const float wScale = sizeEnv.w() / srcRect.w();
+        const float hScale = sizeEnv.h() / srcRect.h();
 
         const utils::Vector2f center = utils::Vector2f(area.x() / wScale, area.y() / hScale);
 
