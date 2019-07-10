@@ -80,8 +80,8 @@ namespace sdl {
 
       // Determine the position where the text should be blit, not considering
       // the input `area` nor the available space.
-      utils::Sizei sizeText = getEngine().queryTexture(m_label);
-      utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
+      utils::Sizef sizeText = getEngine().queryTexture(m_label);
+      utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
 
       utils::Vector2f center;
 

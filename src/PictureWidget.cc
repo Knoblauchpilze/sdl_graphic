@@ -55,13 +55,13 @@ namespace sdl {
       // So a first preliminary step is to determine these values.
 
       // In a first approach let's consider that the entire picture can be drawn.
-      utils::Sizei sizePic = getEngine().queryTexture(m_picture);
+      utils::Sizef sizePic = getEngine().queryTexture(m_picture);
       utils::Boxf srcRect = utils::Boxf::fromSize(sizePic, true);
 
       // Handle the area where the picture should be drawn. The input `area` is
       // expected to be expressed in local coordinates so we can directly compute
       // the engine usable equivalent.
-      utils::Sizei sizeEnv = getEngine().queryTexture(uuid);
+      utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
       utils::Boxf dstRect = area;
 
       // Handle `Fit` mode.
