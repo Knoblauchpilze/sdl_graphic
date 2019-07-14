@@ -186,11 +186,13 @@ namespace sdl {
 
       LinearLayoutShPtr layout;
 
+      std::string layoutName = getName() + "_layout";
+
       switch (m_tabLayout) {
         case TabPosition::North:
         case TabPosition::South:
           layout = std::make_shared<LinearLayout>(
-            std::string("tabwidget_layout"),
+            layoutName,
             this,
             LinearLayout::Direction::Vertical,
             0.0f,
@@ -200,7 +202,7 @@ namespace sdl {
         case TabPosition::West:
         case TabPosition::East:
           layout = std::make_shared<LinearLayout>(
-            std::string("tabwidget_layout"),
+            layoutName,
             this,
             LinearLayout::Direction::Horizontal,
             0.0f,
@@ -220,11 +222,13 @@ namespace sdl {
 
       // Create the secondary layout which will handle positionning
       // of widgets' titles.
+      layoutName = getName() + "_titles_layout";
+
       switch (m_tabLayout) {
         case TabPosition::North:
         case TabPosition::South:
           m_titlesLayout = std::make_shared<LinearLayout>(
-            std::string("tabwidget_titles_layout"),
+            layoutName,
             nullptr,
             LinearLayout::Direction::Horizontal,
             0.0f,
@@ -234,7 +238,7 @@ namespace sdl {
         case TabPosition::West:
         case TabPosition::East:
           m_titlesLayout = std::make_shared<LinearLayout>(
-            std::string("tabwidget_layout"),
+            layoutName,
             this,
             LinearLayout::Direction::Vertical,
             0.0f,
@@ -254,7 +258,7 @@ namespace sdl {
       // Create the selector layout which will contain the various
       // widgets inserted into this component.
       SelectorWidget* selector = new SelectorWidget(
-        std::string("tabwidget_selector"),
+        getName() + "_selector",
         this,
         false,
         core::engine::Color::NamedColor::Olive
