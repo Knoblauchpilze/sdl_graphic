@@ -258,7 +258,7 @@ namespace sdl {
       // Create the selector layout which will contain the various
       // widgets inserted into this component.
       SelectorWidget* selector = new SelectorWidget(
-        getName() + "_selector",
+        getSelectorName(),
         this,
         false,
         core::engine::Color::NamedColor::Olive

@@ -15,7 +15,7 @@ namespace sdl {
     inline
     SelectorWidget&
     TabWidget::getSelector() {
-      SelectorWidget* selector = getChildAs<SelectorWidget>(std::string("tabwidget_selector"));
+      SelectorWidget* selector = getChildAs<SelectorWidget>(getSelectorName());
 
       if (selector == nullptr) {
         error(
@@ -35,6 +35,12 @@ namespace sdl {
       ++m_tabCount;
 
       return std::string("title_for_") + std::to_string(id);
+    }
+
+    inline
+    std::string
+    TabWidget::getSelectorName() const noexcept {
+      return getName() + "_selector";
     }
 
   }

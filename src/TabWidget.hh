@@ -131,6 +131,14 @@ namespace sdl {
         getTitleNameFromTabID();
 
         /**
+         * @brief - Retrieves the name of the selector to use either to create it or retrieve
+         *          it when needed.
+         * @return - the string representing the selector's name.
+         */
+        std::string
+        getSelectorName() const noexcept;
+
+        /**
          * @brief - Removes the specified `index` from the internal `m_tabs` list. No controls
          *          are performed to verify whether the `index` is valid.
          * @param index - the index to remove from the internal list.
