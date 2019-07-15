@@ -164,18 +164,18 @@ namespace sdl {
           {
             // Check whether this item can expand.
             if (getDirection() == Direction::Horizontal && itemsInfo[*item].policy.canExpandHorizontally()) {
-              std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded horizontally" << std::endl;
+              // std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded horizontally" << std::endl;
               itemsToExpand.insert(*item);
             }
             if (getDirection() == Direction::Vertical && itemsInfo[*item].policy.canExpandVertically()) {
-              std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded vertically" << std::endl;
+              // std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded vertically" << std::endl;
               itemsToExpand.insert(*item);
             }
           }
 
-          std::cout << "[LAY] Saved " << itemsToExpand.size() << " which can expand compared to "
-                    << itemsToUse.size() << " which can extend"
-                    << std::endl;
+          // std::cout << "[LAY] Saved " << itemsToExpand.size() << " which can expand compared to "
+          //           << itemsToUse.size() << " which can extend"
+          //           << std::endl;
           // Check whether we could select at least one item to expand: if this is not the
           // case we can proceed to extend the items with only a `Grow` flag.
           if (!itemsToExpand.empty()) {
@@ -241,13 +241,13 @@ namespace sdl {
         }
       }
 
-      for (unsigned index = 0u ; index < outputBoxes.size() ; ++index) {
-        std::cout << "[WIG] Item \"" << getItemAt(index)->getName() << "\" has: "
-                  << outputBoxes[index].x() << ", " << outputBoxes[index].y()
-                  << ", dims: "
-                  << outputBoxes[index].w() << ", " << outputBoxes[index].h()
-                  << std::endl;
-      }
+      // for (unsigned index = 0u ; index < outputBoxes.size() ; ++index) {
+      //   std::cout << "[WIG] Item \"" << getItemAt(index)->getName() << "\" has: "
+      //             << outputBoxes[index].x() << ", " << outputBoxes[index].y()
+      //             << ", dims: "
+      //             << outputBoxes[index].w() << ", " << outputBoxes[index].h()
+      //             << std::endl;
+      // }
 
       // Assign the rendering area to items.
       assignRenderingAreas(outputBoxes, window);
