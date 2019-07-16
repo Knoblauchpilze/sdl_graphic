@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setImagePath(const std::string& path) {
-      std::lock_guard<SdlWidget::LockerType> guard(getLocker());
+      Guard guard(m_propsLocker);
       m_file = path;
       setPictureChanged();
     }
@@ -17,7 +17,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setMode(const Mode& mode) {
-      std::lock_guard<SdlWidget::LockerType> guard(getLocker());
+      Guard guard(m_propsLocker);
       m_mode = mode;
     }
 

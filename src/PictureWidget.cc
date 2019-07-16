@@ -14,7 +14,9 @@ namespace sdl {
       m_file(picture),
       m_mode(mode),
       m_picture(),
-      m_picChanged(true)
+      m_picChanged(true),
+
+      m_propsLocker()
     {}
 
     PictureWidget::~PictureWidget() {
@@ -25,6 +27,9 @@ namespace sdl {
     PictureWidget::drawContentPrivate(const utils::Uuid& uuid,
                                       const utils::Boxf& area) const
     {
+      // Lock the content using the locker provided by the parent class.
+      Guard guard(m_propsLocker);
+
       // Load the picture: this should happen only if the picture has changed
       // since last draw operation.
       if (pictureChanged()) {

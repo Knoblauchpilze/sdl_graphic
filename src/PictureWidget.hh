@@ -70,6 +70,11 @@ namespace sdl {
         mutable utils::Uuid m_picture;
         mutable bool m_picChanged;
 
+        /**
+         * @brief - Used to protect concurrent accesses to the internal data of this label widget.
+         */
+        mutable std::mutex m_propsLocker;
+
     };
 
     using PictureWidgetShPtr = std::shared_ptr<PictureWidget>;
