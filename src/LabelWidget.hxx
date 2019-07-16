@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     LabelWidget::setText(const std::string& text) noexcept {
-      std::lock_guard<SdlWidget::LockerType> guard(getLocker());
+      Guard guard(m_propsLocker);
       m_text = text;
       setTextChanged();
     }
@@ -17,20 +17,22 @@ namespace sdl {
     inline
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
-      std::lock_guard<SdlWidget::LockerType> guard(getLocker());
+      Guard guard(m_propsLocker);
       m_hAlignment = alignment;
     }
 
     inline
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
-      std::lock_guard<SdlWidget::LockerType> guard(getLocker());
+      Guard guard(m_propsLocker);
       m_vAlignment = alignment;
     }
 
     inline
     bool
     LabelWidget::enterEvent(const core::engine::EnterEvent& e) {
+      Guard guard(m_propsLocker);
+
       // Update the role of the text texture.
       m_textRole = core::engine::Palette::ColorRole::HighlightedText;
 
@@ -44,6 +46,8 @@ namespace sdl {
     inline
     bool
     LabelWidget::leaveEvent(const core::engine::Event& e) {
+      Guard guard(m_propsLocker);
+
       // Update the role of the text texture.
       m_textRole = core::engine::Palette::ColorRole::WindowText;
 

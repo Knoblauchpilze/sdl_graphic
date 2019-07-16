@@ -86,6 +86,7 @@ namespace sdl {
         std::string m_fontName;
         unsigned m_fontSize;
         mutable utils::Uuid m_font;
+
         HorizontalAlignment m_hAlignment;
         VerticalAlignment m_vAlignment;
         mutable bool m_textChanged;
@@ -93,6 +94,11 @@ namespace sdl {
         core::engine::Palette::ColorRole m_textRole;
 
         mutable utils::Uuid m_label;
+
+        /**
+         * @brief - Used to protect concurrent accesses to the internal data of this label widget.
+         */
+        mutable std::mutex m_propsLocker;
 
     };
 

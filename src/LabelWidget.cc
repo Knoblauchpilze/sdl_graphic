@@ -22,7 +22,9 @@ namespace sdl {
       m_vAlignment(vAlignment),
       m_textChanged(true),
       m_textRole(core::engine::Palette::ColorRole::WindowText),
-      m_label()
+      m_label(),
+
+      m_propsLocker()
     {}
 
     LabelWidget::~LabelWidget() {
@@ -39,6 +41,9 @@ namespace sdl {
     LabelWidget::drawContentPrivate(const utils::Uuid& uuid,
                                     const utils::Boxf& area) const
     {
+      // Lock the content using the locker provided by the parent class.
+      Guard guard(m_propsLocker);
+
       // Load the text: this should happen only if the text has changed since
       // last draw operation. This can either mean that the text itself has
       // been modified or that the font to used has been updated.
