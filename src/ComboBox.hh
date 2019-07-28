@@ -97,6 +97,7 @@ namespace sdl {
          * @param e - the mouse event describing the click.
          * @return - true if the event was recognized, false otherwise.
          */
+        // TODO: We should check whether this plays nicely with the rest of the `SdlWidget` interface.
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 

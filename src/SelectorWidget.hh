@@ -67,6 +67,7 @@ namespace sdl {
 
       protected:
 
+        // TODO: We should check whether this plays nicely with the rest of the `SdlWidget` interface.
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
