@@ -47,7 +47,7 @@ namespace sdl {
          */
         void
         drawContentPrivate(const utils::Uuid& uuid,
-                           const utils::Boxf& area) const override;
+                           const utils::Boxf& area) override;
 
       private:
 

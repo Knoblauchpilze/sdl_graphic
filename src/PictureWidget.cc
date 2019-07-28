@@ -25,7 +25,7 @@ namespace sdl {
 
     void
     PictureWidget::drawContentPrivate(const utils::Uuid& uuid,
-                                      const utils::Boxf& area) const
+                                      const utils::Boxf& area)
     {
       // Lock the content using the locker provided by the parent class.
       Guard guard(m_propsLocker);
