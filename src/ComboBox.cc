@@ -112,49 +112,82 @@ namespace sdl {
     }
 
     bool
-    ComboBox::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
-      // Clicking on a combobox can have different effects based on its
-      // current state.
-      // Basically the comboxbox has two macro states: it can be dropped
-      // or closed. When the combobox is dropped, all the options in the
-      // limit of `m_maxVisibleItems` are displayed. In the closed state,
-      // only the currently selected option is displayed.
-      // When the macro state is closed, a click on the combobox will
-      // make it drop and display all the options. When the macro state
-      // is dropped, a click on the combobox will correspond to a click
-      // on an option and thus update the active item. It will also close
-      // the combobox as an option has been selected.
-      // Of course we first need to determine whether the click has been
-      // triggered inside the widget before doing anything.
-
-      // Check whether the click is inside the widget.
-      bool inside = isInsideWidget(e.getMousePosition());
-
-      // If the click was not in the widget, close the combobox.
-      if (!inside) {
-        setState(State::Closed);
+    ComboBox::focusInEvent(const core::engine::FocusEvent& e) {
+      // We want to set the state of this combo box to dropped
+      // if the focus event has a click as source. If this is
+      // not the case we will use the base handler to perform
+      // the job.
+      if (e.getReason() != core::engine::FocusEvent::Reason::MouseFocus) {
+        return core::SdlWidget::focusInEvent(e);
       }
 
-      // If the click occurred inside the widget, we need to determine
-      // the current state of ths combobox. If the combobox is closed
-      // the click will trigger a drop event. If the combobox is already
-      // dropped we need to handle the selection of a widget.
-
-      if (inside && isClosed()) {
+      // The reason of the focus gain is a mouse click. We now
+      // by design of the events system that the focus is valid
+      // and we just have to react to it by dropping the list
+      // of options if the combobox is still closed.
+      if (isClosed()) {
         // Create a drop event.
         setState(State::Dropped);
       }
 
-      // At this point we clicked on the combobox while it is dropped: we
-      // need to determine whether the click occurred on the base item (i.e.
-      // the one currently selected) or if a new item was selected.
-      // This is not handled in this method though, usually we should get
-      // a signal from the corresponding element in the `listItemClicked`
-      // slot.
-      // So we don't have anything more to do here.
+      // Use the base handler to provide the return value.
+      return core::SdlWidget::focusInEvent(e);
+    }
 
-      // Use base handler to determine whether the event was recognized.
-      return core::SdlWidget::mouseButtonReleaseEvent(e);
+    bool
+    ComboBox::focusOutEvent(const core::engine::FocusEvent& e) {
+      // The widget just lost focus: this means that we should close
+      // the list of options. Indeed there's two possible scenarii:
+      // either the focus have been triggered because one of the
+      // option of the combobox has been activated or the user clicked
+      // elsewhere.
+      // In both cases we need to close the combobox if it is opened.
+
+      // Of course this assumes the fact that the focus reason should
+      // be mouse click.
+      if (e.getReason() != core::engine::FocusEvent::Reason::MouseFocus) {
+        return core::SdlWidget::focusOutEvent(e);
+      }
+
+      // Close the combobox if needed.
+      if (isDropped()) {
+        setState(State::Closed);
+      }
+
+      // Use the base handler to provide the return value.
+      return core::SdlWidget::focusOutEvent(e);
+    }
+
+    bool
+    ComboBox::gainFocusEvent(const core::engine::FocusEvent& e) {
+      // We do want to open the combobox if:
+      // 1. the combobox is closed.
+      // 2. the focus reason is a click.
+      // 3. the source of the event is either the main combobox text
+      //    or icon.
+
+      if (isDropped() || e.getReason() != core::engine::FocusEvent::Reason::MouseFocus) {
+        // Use the base handler to perform the job.
+        return core::SdlWidget::gainFocusEvent(e);
+      }
+
+      // We are advanced enough that we can wonder whether the source is either the
+      // main combobox icon or text.
+      PictureWidget* icon = getChildAs<PictureWidget>(std::string("combobox_icon"));
+      LabelWidget* text = getChildAs<LabelWidget>(std::string("combobox_text"));
+      if (e.getEmitter() == icon || e.getEmitter() == text) {
+        // Set the state of this combobox to dropped.
+        setState(State::Dropped);
+      }
+
+      // Use the base handler to provide the return value.
+      return core::SdlWidget::gainFocusEvent(e);
+    }
+
+    bool
+    ComboBox::lostFocusEvent(const core::engine::FocusEvent& e) {
+      // TODO: For some reason we cannot open twice a combobox.
+      return core::SdlWidget::lostFocusEvent(e);
     }
 
     bool
@@ -209,7 +242,7 @@ namespace sdl {
         e.setNewSize(getDroppedSize());
       }
 
-      // USe the base method to provide the return value.
+      // Use the base method to provide the return value.
       return SdlWidget::resizeEvent(e);
     }
 

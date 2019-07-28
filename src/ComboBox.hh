@@ -92,14 +92,36 @@ namespace sdl {
       protected:
 
         /**
-         * @brief - Reimplementation of the base `EngineObject` method which allows to react
-         *          on the click of the mouse on this widget to select a new active item.
-         * @param e - the mouse event describing the click.
-         * @return - true if the event was recognized, false otherwise.
+         * @brief - Reimplementation of the base `SdlWidget` method to handle open/close the combobox
+         *          based on whether it (in this case) gain focus.
+         * @param e - the focus in event to process.
+         * @return - `true` if the focus in event was recognized, `false`otherwise.
          */
-        // TODO: We should check whether this plays nicely with the rest of the `SdlWidget` interface.
         bool
-        mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
+        focusInEvent(const core::engine::FocusEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `SdlWidget` method to handle open/close the combobox
+         *          based on whether it (in this case) lost focus.
+         * @param e - the focus out event to process.
+         * @return - `true` if the focus in event was recognized, `false` otherwise.
+         */
+        bool
+        focusOutEvent(const core::engine::FocusEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `SdlWidget` method to handle open/close the combobox
+         *          whenever the combobox is closed and a click occurs on one of the main icon or text
+         *          widget.
+         * @param e - the focus in event to process.
+         * @return - `true` if the gain focus event was recognized.
+         */
+        bool
+        gainFocusEvent(const core::engine::FocusEvent& e) override;
+
+        // TODO: Do we need this ?
+        bool
+        lostFocusEvent(const core::engine::FocusEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `LayoutItem` method to allow saving of the
