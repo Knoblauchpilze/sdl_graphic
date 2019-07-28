@@ -29,36 +29,6 @@ namespace sdl {
     }
 
     inline
-    bool
-    LabelWidget::enterEvent(const core::engine::EnterEvent& e) {
-      Guard guard(m_propsLocker);
-
-      // Update the role of the text texture.
-      m_textRole = core::engine::Palette::ColorRole::HighlightedText;
-
-      // Mark the text as dirty.
-      setTextChanged();
-
-      // Apply the base handler and use it to determine the return value.
-      return core::SdlWidget::enterEvent(e);
-    }
-
-    inline
-    bool
-    LabelWidget::leaveEvent(const core::engine::Event& e) {
-      Guard guard(m_propsLocker);
-
-      // Update the role of the text texture.
-      m_textRole = core::engine::Palette::ColorRole::WindowText;
-
-      // Mark the text as dirty.
-      setTextChanged();
-
-      // Apply the base handler and use it to determine the return value.
-      return core::SdlWidget::leaveEvent(e);
-    }
-
-    inline
     void
     LabelWidget::loadText() const {
       // Clear existing label if any.
@@ -101,6 +71,33 @@ namespace sdl {
     void
     LabelWidget::setTextChanged() const noexcept {
       m_textChanged = true;
+    }
+
+    inline
+    void
+    LabelWidget::updateTextRole(const utils::Uuid& base) {
+      // Check whether the input `base` texture is valid.
+      if (!base.valid()) {
+        log("Cannot update text role using invalid base texture identifier", utils::Level::Warning);
+
+        // Return early.
+        return;
+      }
+
+      // Retrieve the current role for the base texture.
+      const core::engine::Palette::ColorRole baseRole = getEngine().getTextureRole(base);
+
+      // Determine the text's role from the base role.
+      switch (baseRole) {
+        case core::engine::Palette::ColorRole::Highlight:
+        case core::engine::Palette::ColorRole::Dark:
+          m_textRole = core::engine::Palette::ColorRole::HighlightedText;
+          break;
+        default:
+        case core::engine::Palette::ColorRole::Background:
+          m_textRole = core::engine::Palette::ColorRole::WindowText;
+          break;
+      }
     }
 
   }

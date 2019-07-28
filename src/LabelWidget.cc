@@ -15,13 +15,18 @@ namespace sdl {
                              const utils::Sizef& area):
       core::SdlWidget(name, area, parent, color),
       m_text(text),
+
       m_fontName(font),
       m_fontSize(size),
       m_font(),
+
       m_hAlignment(hAlignment),
       m_vAlignment(vAlignment),
-      m_textChanged(true),
+
       m_textRole(core::engine::Palette::ColorRole::WindowText),
+
+      m_textChanged(true),
+
       m_label(),
 
       m_propsLocker()
@@ -39,16 +44,23 @@ namespace sdl {
 
     void
     LabelWidget::drawContentPrivate(const utils::Uuid& uuid,
-                                    const utils::Boxf& area) const
+                                    const utils::Boxf& area)
     {
       // Lock the content using the locker provided by the parent class.
       Guard guard(m_propsLocker);
 
       // Load the text: this should happen only if the text has changed since
       // last draw operation. This can either mean that the text itself has
-      // been modified or that the font to used has been updated.
+      // been modified or that one of the rendering properties to use to draw
+      // the text has been updated.
       if (textChanged()) {
+        // Update the text's role.
+        updateTextRole(uuid);
+
+        // Load the text.
         loadText();
+
+        // The text has been updated.
         m_textChanged = false;
       }
 
@@ -141,6 +153,27 @@ namespace sdl {
 
       // Repaint the needed part of the text.
       getEngine().drawTexture(m_label, &srcRectEngine, &uuid, &dstRectEngine);
+    }
+
+    bool
+    LabelWidget::updateStateFromFocus(const core::engine::FocusEvent::Reason& reason,
+                                      const bool gainedFocus)
+    {
+      // First apply the base class handler to determine we should update the
+      // text's role at all.
+      const bool updated = core::SdlWidget::updateStateFromFocus(reason, gainedFocus);
+
+      // In case the base handler updated the widget's content, we need to follow
+      // by updating the text's role. As we don't have an idea of the actual role
+      // of the texture we will just mark the text as dirty and wait for the next
+      // `drawContentPrivate` operation to update the text's role.
+      if (updated) {
+        Guard guard(m_propsLocker);
+        setTextChanged();
+      }
+
+      // Return the value provided by the base handler.
+      return updated;
     }
 
   }
