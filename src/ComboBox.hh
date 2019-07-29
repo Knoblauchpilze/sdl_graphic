@@ -119,10 +119,6 @@ namespace sdl {
         bool
         gainFocusEvent(const core::engine::FocusEvent& e) override;
 
-        // TODO: Do we need this ?
-        bool
-        lostFocusEvent(const core::engine::FocusEvent& e) override;
-
         /**
          * @brief - Reimplementation of the base `LayoutItem` method to allow saving of the
          *          area to assign so that it can be used to open/close the combobox.

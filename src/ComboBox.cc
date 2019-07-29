@@ -160,34 +160,78 @@ namespace sdl {
 
     bool
     ComboBox::gainFocusEvent(const core::engine::FocusEvent& e) {
-      // We do want to open the combobox if:
+      // This method is called whenever a child widget has gained the
+      // focus. The corresponding event is given in argument and we
+      // can retrieve the focus reason from there.
+      // From a combobox standpoint, only the case of a `MouseFocus`
+      // is really worth it because it indicates that one child widget
+      // has been clicked.
+      //
+      // A click can either trigger the combobox to display the options
+      // available or close the list. In order to choose between both
+      // options we refer to the internal state and the emitter.
+      //
+      // So first case: the combobox is closed. We do want to open it
+      // if:
       // 1. the combobox is closed.
       // 2. the focus reason is a click.
       // 3. the source of the event is either the main combobox text
       //    or icon.
+      // If all these conditions are verified we should set the state
+      // of the combobox to `Dropped` so that we display all the
+      // available options.
+      //
+      // Now to the second case: the combobox is opened. We want to
+      // close it if:
+      // 1. the combobox is dropped.
+      // 2. the focus reason is a click.
+      // 3. the source of the event is a child different from the main
+      //    icon or text.
+      // If all these conditions are verified we should set the state
+      // of the combobox to `Closed` so that we only display the
+      // selected option.
 
-      if (isDropped() || e.getReason() != core::engine::FocusEvent::Reason::MouseFocus) {
-        // Use the base handler to perform the job.
-        return core::SdlWidget::gainFocusEvent(e);
-      }
+      // We can see that the focus reason needs to be clicked for
+      // anything to happen in here so let's handle that first.
+      if (e.getReason() == core::engine::FocusEvent::Reason::MouseFocus) {
+        // Retrieve the main icon and text widgets: both scenarii use
+        // them.
+        PictureWidget* icon = getChildAs<PictureWidget>(std::string("combobox_icon"));
+        LabelWidget* text = getChildAs<LabelWidget>(std::string("combobox_text"));
 
-      // We are advanced enough that we can wonder whether the source is either the
-      // main combobox icon or text.
-      PictureWidget* icon = getChildAs<PictureWidget>(std::string("combobox_icon"));
-      LabelWidget* text = getChildAs<LabelWidget>(std::string("combobox_text"));
-      if (e.getEmitter() == icon || e.getEmitter() == text) {
-        // Set the state of this combobox to dropped.
-        setState(State::Dropped);
+        // Check whether the combobox is closed: we will try to open the
+        // combobox.
+        if (isClosed()) {
+          // If the emitter is either the icon or the text we can set the
+          // state to `Dropped`.
+          if (e.getEmitter() == icon || e.getEmitter() == text) {
+            // Set the state of this combobox to dropped.
+            setState(State::Dropped);
+
+            // Also, deactivate the corresponding child so that we don't
+            // keep it selected.
+            core::engine::FocusEventShPtr foe = std::make_shared<core::engine::FocusEvent>(false, e.getReason(), e.getEmitter());
+            postEvent(foe, false, true);
+          }
+        }
+
+        // Check whether the combobox is opened: we will try to close the
+        // combobox.
+        if (isDropped()) {
+          // If the emitter is a child different from the main icon or text
+          // but still one of the widget, we have a valid click so let's
+          // close the box.
+          core::SdlWidget* child = getChildOrNull<core::SdlWidget>(e.getEmitter()->getName());
+
+          if (child != icon && child != text && child != nullptr) {
+            // Set the state of this combobox to closed.
+            setState(State::Closed);
+          }
+        }
       }
 
       // Use the base handler to provide the return value.
       return core::SdlWidget::gainFocusEvent(e);
-    }
-
-    bool
-    ComboBox::lostFocusEvent(const core::engine::FocusEvent& e) {
-      // TODO: For some reason we cannot open twice a combobox.
-      return core::SdlWidget::lostFocusEvent(e);
     }
 
     bool
@@ -496,8 +540,10 @@ namespace sdl {
       // which is already active nothing will happen.
       setActiveItem(id);
 
-      // Also close the combo box.
-      setState(State::Closed);
+      // We do not need to close the combobox here (i.e. set its state to
+      // `Closed`): indeed as the child widget has been clicked it will
+      // get the focus and thus we will receive a gain focus event. The
+      // close option will be handled there.
     }
 
   }
