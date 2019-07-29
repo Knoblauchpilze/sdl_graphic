@@ -290,6 +290,42 @@ namespace sdl {
       return SdlWidget::resizeEvent(e);
     }
 
+    bool
+    ComboBox::filterMouseEvents(const core::engine::EngineObject* watched,
+                                const core::engine::MouseEventShPtr e) const noexcept
+    {
+      // Perform the filtering using the base class: if it already filters the
+      // event we won't do anything more.
+      const bool filtered = core::SdlWidget::filterMouseEvents(watched, e);
+      if (filtered) {
+        return filtered;
+      }
+
+      // The event is not filtered. Let's check whether the `watched` object
+      // is either the main icon or text and the associated state of `this`
+      // combobox.
+      if (isClosed()) {
+        // The combobox is closed, we don't filter anything more than the
+        // base method in this case.
+        return filtered;
+      }
+
+      // Retrieve both the main icon and text.
+      PictureWidget* icon = getChildAs<PictureWidget>(std::string("combobox_icon"));
+      LabelWidget* text = getChildAs<LabelWidget>(std::string("combobox_text"));
+
+      // If the `watched` object is either of those, filter the event: we know
+      // that the event is already a mouse event so it's acceptable to filter
+      // out all these events.
+      if (watched == icon || watched == text) {
+        return true;
+      }
+
+      // The object for which the events should be filtered does not match
+      // neither the main icon nor the text: return the base class value.
+      return filtered;
+    }
+
     void
     ComboBox::build() {
       // Assign a linear layout which will allow positionning items and icons.

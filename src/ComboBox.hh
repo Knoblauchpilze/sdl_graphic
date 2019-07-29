@@ -128,6 +128,29 @@ namespace sdl {
         bool
         resizeEvent(core::engine::ResizeEvent& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `SdlWidget` method to provide custom behavior
+         *          upon clicking on the main icon and text element when the combobox has a
+         *          `Dropped` state. Indeed these areas are mostly sensitive to allow switching
+         *          the state of the combobox from `Dropped` to `Closed` and vice-versa.
+         *          Apart from that the options displayed here are not available for selection.
+         *          The specialization aims at providing this custom layer of behavior on top
+         *          of the base class behavior.
+         *          Note that this function filters at least as many events as the base class.
+         *          We do not consider part of its purpose to allow events which may have been
+         *          filtered by the base class.
+         * @param watched - the element for which the mouse event should be filtered. If
+         *                  this method returns  `false` the event `e` will be transmitted
+         *                  to the `watched` object.
+         * @param e - the generic event which should be filtered if it is an instance of
+         *            a mouse event. If it is not the case this method returns false.
+         * @return - `true` if this event should be filtered (should only happen if the event
+         *           is some kind of instance of a mous event) and `false` otherwise.
+         */
+        bool
+        filterMouseEvents(const core::engine::EngineObject* watched,
+                          const core::engine::MouseEventShPtr e) const noexcept override;
+
       private:
 
         /**
