@@ -67,7 +67,17 @@ namespace sdl {
 
       protected:
 
-        // TODO: We should check whether this plays nicely with the rest of the `SdlWidget` interface.
+        /**
+         * @brief - Redefnition of the base `SdlWidget` method to provide a custom behavior
+         *          upon clicking on the widget. We want to provide a custom behavior when
+         *          the selector is clicked and the internal `m_switchOnLeftClick` boolean
+         *          is set to true.
+         *          In order to do so we need to trigger the change of active item in addition
+         *          to the behavior provided by the base class.
+         * @param e - the mouse button event to process.
+         * @return - `true` if the event has been recognized, `false` otherwise.
+         */
+        // TODO: Determine whether the children widgets are unfocused when switching.
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
