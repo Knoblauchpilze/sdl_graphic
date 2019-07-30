@@ -77,7 +77,6 @@ namespace sdl {
          * @param e - the mouse button event to process.
          * @return - `true` if the event has been recognized, `false` otherwise.
          */
-        // TODO: Determine whether the children widgets are unfocused when switching.
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 

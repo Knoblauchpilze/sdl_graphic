@@ -33,6 +33,13 @@ namespace sdl {
       // widget is not enough to perform a switch.
       // In addition to that we have to verify that the location of the click is
       // inside of this widget.
+      //
+      // Note that this process does not clear any existing focus on the chidlren
+      // being switched which means that they will appear as they where before the
+      // switch when displayed again (i.e. probably with their highlight color as
+      // the user needed to reach to the widget to select it). We consider it okay
+      // as we want to keep the state of the hidden widgets as close as it was upon
+      // hiding them.
 
       // Determine whether the position of the click is inside the widget.
       if (isBlockedByChild(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1) {
