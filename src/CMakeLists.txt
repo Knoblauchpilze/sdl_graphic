@@ -1,4 +1,3 @@
-project (sdl_graphic)
 
 set (CMAKE_CXX_STANDARD 14)
 
