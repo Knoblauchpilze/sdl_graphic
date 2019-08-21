@@ -44,6 +44,8 @@ namespace sdl {
       // Determine whether the position of the click is inside the widget.
       if (isBlockedByChild(e.getMousePosition()) && switchOnClick() && getChildrenCount() > 1) {
         // Switch to the next widget.
+        // TODO: As we are hiding the child which has gain focus, the focus in event is discarded and
+        // the keyboard focus is not switched.
         switchToNext();
       }
 
