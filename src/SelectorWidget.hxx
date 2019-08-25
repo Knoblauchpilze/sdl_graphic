@@ -48,6 +48,7 @@ namespace sdl {
         // the keyboard focus is not switched.
         // TODO: Same goes for the lost focus to send to other widgets: as it's not triggered because
         // the widget goes hidden we're not unselecting previously seleccted elements.
+        // TODO: We could probably use `gainFocusEvent` instead of the `mouseButtonReleaseEvent` ?
         switchToNext();
       }
 
