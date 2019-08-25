@@ -46,6 +46,8 @@ namespace sdl {
         // Switch to the next widget.
         // TODO: As we are hiding the child which has gain focus, the focus in event is discarded and
         // the keyboard focus is not switched.
+        // TODO: Same goes for the lost focus to send to other widgets: as it's not triggered because
+        // the widget goes hidden we're not unselecting previously seleccted elements.
         switchToNext();
       }
 
