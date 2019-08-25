@@ -57,18 +57,13 @@ namespace sdl {
          *          on the widget we want to make a cursor appear at the end of the text
          *          currently displayed in the text box. This cursor will indicate to
          *          the user that the text box is ready to accept focus.
-         *          This method returns `true` or `false` based on whether the input
-         *          focus has been handled or not. The return value for this class is
-         *          identical to the value provided by the base class.
-         * @param reason - the focus reason which triggered the update of the state in
-         *                 the first place.
-         * @param gainedFocus - `true` if this widget just gained focus, `false` if it
-         *                      just lost the focus.
-         * @return - `true` if the base texture role has been updated, `false` otherwise.
+         * @param reason - the focus reason which triggered the state update.
+         * @param gainedFocus - `true` if `this` widget just gained focus, `false` if it
+         *                      lost the focus.
          */
-        bool
-        updateStateFromFocus(const core::engine::FocusEvent::Reason& reason,
-                             const bool gainedFocus) override;
+        void
+        stateUpdatedFromFocus(const core::FocusState& state,
+                              const bool gainedFocus) override;
 
       private:
 

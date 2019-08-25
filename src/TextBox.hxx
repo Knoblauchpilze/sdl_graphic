@@ -15,22 +15,17 @@ namespace sdl {
     }
 
     inline
-    bool
-    TextBox::updateStateFromFocus(const core::engine::FocusEvent::Reason& reason,
-                                  const bool gainedFocus)
+    void
+    TextBox::stateUpdatedFromFocus(const core::FocusState& state,
+                                   const bool gainedFocus)
     {
-      // First apply the base class handler to determine we should update the
-      // text's role at all.
-      const bool updated = core::SdlWidget::updateStateFromFocus(reason, gainedFocus);
+      // First apply the base class handler so that the base texture's role is set
+      // to a value consistent with the current state.
+      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
 
-      // If the base class has handled the focus reason, we can display the cursor
-      // at the end of the text or hide it if the focus was lost.
-      if (updated) {
-        updateCursorState(gainedFocus);
-      }
-
-      // Return the value provided by the base handler.
-      return updated;
+      // Follow up by displaying the cursor at the end of the text or hide it if
+      // the focus was lost.
+      updateCursorState(gainedFocus);
     }
 
     inline

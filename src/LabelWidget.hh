@@ -62,17 +62,16 @@ namespace sdl {
 
         /**
          * @brief - Reimplementation of the base `SdlWidget` method to handle the highlight
-         *          of the text associated to this label. Performs the same modification on
-         *          the widget's content as the base handler in addition to updating the
-         *          text's role.
-         * @param reason - the focus reason for the update.
-         * @param gainedFocus - `true` if the widget just gained focues, `false` otherwise.
-         * @return - `true` if any of the role of the textures associated to `this` widget
-         *           have been updated, false otherwise.
+         *          of the text associated to this label. Performs the same mofification on
+         *          the widget's content as the base handler in addition to update text's
+         *          role.
+         * @param reason - the focus reason which triggered the state update.
+         * @param gainedFocus - `true` if `this` widget just gained focus, `false` if it
+         *                      lost the focus.
          */
-        bool
-        updateStateFromFocus(const core::engine::FocusEvent::Reason& reason,
-                             const bool gainedFocus) override;
+        void
+        stateUpdatedFromFocus(const core::FocusState& state,
+                              const bool gainedFocus) override;
 
       private:
 

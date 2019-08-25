@@ -155,25 +155,19 @@ namespace sdl {
       getEngine().drawTexture(m_label, &srcRectEngine, &uuid, &dstRectEngine);
     }
 
-    bool
-    LabelWidget::updateStateFromFocus(const core::engine::FocusEvent::Reason& reason,
-                                      const bool gainedFocus)
+    void
+    LabelWidget::stateUpdatedFromFocus(const core::FocusState& state,
+                                       const bool gainedFocus)
     {
-      // First apply the base class handler to determine we should update the
-      // text's role at all.
-      const bool updated = core::SdlWidget::updateStateFromFocus(reason, gainedFocus);
+      // First apply the base class handler so that the base texture's role is set
+      // to a value consistent with the current state.
+      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
 
-      // In case the base handler updated the widget's content, we need to follow
-      // by updating the text's role. As we don't have an idea of the actual role
-      // of the texture we will just mark the text as dirty and wait for the next
-      // `drawContentPrivate` operation to update the text's role.
-      if (updated) {
-        Guard guard(m_propsLocker);
-        setTextChanged();
-      }
-
-      // Return the value provided by the base handler.
-      return updated;
+      // Follow up by updating the text's role. As we don't have an idea of the
+      // actual role of the texture we will just mark the text as dirty and wait
+      // for the next `drawContentPrivate` operation to update the text's role.
+      Guard guard(m_propsLocker);
+      setTextChanged();
     }
 
   }
