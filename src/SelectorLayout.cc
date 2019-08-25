@@ -65,6 +65,9 @@ namespace sdl {
       // Compute the available space for the active child.
       const utils::Sizef componentSize = computeAvailableSize(window);
 
+      // Compute item's properties.
+      std::vector<WidgetInfo> itemsInfo = computeItemsInfo();
+
       // Assign the space for the active child: as this is the only
       // child, use all the available space.
       std::vector<utils::Boxf> bboxes(getItemsCount(), utils::Boxf());
@@ -73,12 +76,23 @@ namespace sdl {
       // internal array.
       const int realID = m_idsToPosition[m_activeItem];
 
-      bboxes[realID] = utils::Boxf(
-        getMargin().w(),
-        getMargin().h(),
-        componentSize.w(),
-        componentSize.h()
-      );
+      // Assign the maximum size for this item based on its internal
+      // size policy. We also account for the offset to apply in case
+      // the size does not occupy fully the available space.
+      utils::Sizef area = computeSizeFromPolicy(bboxes[realID], componentSize, itemsInfo[realID]);
+
+      if (!area.compareWithTolerance(componentSize, 0.5f)) {
+        log(
+          std::string("Could only achieve size of ") + area.toString() +
+          " but available space is " + componentSize.toString(),
+          utils::Level::Error
+        );
+      }
+
+      const float x = getMargin().w() + (componentSize.w() - area.w()) / 2.0f;
+      const float y = getMargin().h() + (componentSize.h() - area.h()) / 2.0f;
+
+      bboxes[realID] = utils::Boxf(x, y, area.w(), area.h());
 
       // Use the base handler to assign bbox.
       assignRenderingAreas(bboxes, window);
