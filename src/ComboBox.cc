@@ -204,7 +204,7 @@ namespace sdl {
         if (isClosed()) {
           // If the emitter is either the icon or the text we can set the
           // state to `Dropped`.
-          if (e.getEmitter() == icon || e.getEmitter() == text) {
+          if (e.isEmittedBy(icon) || e.isEmittedBy(text)) {
             // Set the state of this combobox to dropped.
             setState(State::Dropped);
 
