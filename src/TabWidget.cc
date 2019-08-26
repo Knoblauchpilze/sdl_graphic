@@ -253,7 +253,7 @@ namespace sdl {
           break;
       }
 
-      m_titlesLayout->setNested(true);
+      m_titlesLayout->setNesting(core::Layout::Nesting::Deep);
 
       // Create the selector layout which will contain the various
       // widgets inserted into this component.
