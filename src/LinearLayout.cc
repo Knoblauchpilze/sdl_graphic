@@ -84,8 +84,6 @@ namespace sdl {
         // among all the available items.
         const utils::Sizef defaultBox = computeDefaultItemBox(spaceToUse, itemsToAdjust.size());
 
-        log(std::string("Default box is ") + defaultBox.toString(), utils::Level::Info);
-
         // Loop on all the items that can still be used to adjust the space used by
         // this layout and perform the size adjustements.
         for (std::unordered_set<unsigned>::const_iterator item = itemsToAdjust.cbegin() ;
@@ -99,8 +97,6 @@ namespace sdl {
           utils::Sizef area = computeSizeFromPolicy(outputBoxes[*item], defaultBox, itemsInfo[*item]);
           outputBoxes[*item].w() = area.w();
           outputBoxes[*item].h() = area.h();
-
-          log(std::string("Item \"") + getItemAt(*item)->getName() + "\" reach size " + outputBoxes[*item].toString());
         }
 
         // We have tried to apply the `defaultBox` to all the items. This might have fail
@@ -128,19 +124,16 @@ namespace sdl {
         // Determine the policy to apply based on the achieved size.
         const core::SizePolicy action = shrinkOrGrow(internalSize, achievedSize, 0.5f);
 
-        log(std::string("Desired ") + window.toString() + ", achieved: " + achievedSize.toString() + ", space: " + spaceToUse.toString(), utils::Level::Info);
-
         // We now know what should be done to make the `achievedSize` closer to `desiredSize`.
         // Based on the `policy` provided by the base class method, we can now determine which
         // item should be used to perform the needed adjustments.
         std::unordered_set<unsigned> itemsToUse;
         for (unsigned index = 0u ; index < itemsInfo.size() ; ++index) {
           // Check whether this item can be used to grow/shrink.
-          std::pair<bool, bool> usable = canBeUsedTo(getItemAt(index)->getName(), itemsInfo[index], outputBoxes[index], action);
+          std::pair<bool, bool> usable = canBeUsedTo(itemsInfo[index], outputBoxes[index], action);
           if ((usable.first && getDirection() == Direction::Horizontal) ||
               (usable.second && getDirection() == Direction::Vertical))
           {
-            log("Item " + getItemAt(index)->getName() + " can be used to " + action.toString());
             itemsToUse.insert(index);
           }
         }
@@ -164,18 +157,13 @@ namespace sdl {
           {
             // Check whether this item can expand.
             if (getDirection() == Direction::Horizontal && itemsInfo[*item].policy.canExpandHorizontally()) {
-              // std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded horizontally" << std::endl;
               itemsToExpand.insert(*item);
             }
             if (getDirection() == Direction::Vertical && itemsInfo[*item].policy.canExpandVertically()) {
-              // std::cout << "[LAY] " << getItemAt(*item)->getName() << " can be expanded vertically" << std::endl;
               itemsToExpand.insert(*item);
             }
           }
 
-          // std::cout << "[LAY] Saved " << itemsToExpand.size() << " which can expand compared to "
-          //           << itemsToUse.size() << " which can extend"
-          //           << std::endl;
           // Check whether we could select at least one item to expand: if this is not the
           // case we can proceed to extend the items with only a `Grow` flag.
           if (!itemsToExpand.empty()) {
@@ -241,14 +229,6 @@ namespace sdl {
         }
       }
 
-      // for (unsigned index = 0u ; index < outputBoxes.size() ; ++index) {
-      //   std::cout << "[WIG] Item \"" << getItemAt(index)->getName() << "\" has: "
-      //             << outputBoxes[index].x() << ", " << outputBoxes[index].y()
-      //             << ", dims: "
-      //             << outputBoxes[index].w() << ", " << outputBoxes[index].h()
-      //             << std::endl;
-      // }
-
       // Assign the rendering area to items.
       assignRenderingAreas(outputBoxes, window);
     }
@@ -308,8 +288,6 @@ namespace sdl {
     LinearLayout::onIndexRemoved(const int logicID,
                                  const int /*physID*/)
     {
-      log("Removing item " + std::to_string(logicID) + " from linear layout");
-
       // Now update the local information by removing the input item from the internal
       // table. We basically copy all the information except for the deleted item.
       // Note that the internal `m_idsToPosition` will be left unchanged for values
