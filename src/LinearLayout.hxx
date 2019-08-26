@@ -20,7 +20,7 @@ namespace sdl {
     }
 
     inline
-    const core::Layout::Direction&
+    const LinearLayout::Direction&
     LinearLayout::getDirection() const noexcept {
       return m_direction;
     }

@@ -13,6 +13,18 @@ namespace sdl {
     class LinearLayout: public core::Layout {
       public:
 
+        /**
+         * @brief - Used to determine the direction in which the widgets flow in a
+         *          linear layout. The direction also indicates which dimension of
+         *          the widgets will be adjusted by the layout.
+         */
+        enum class Direction {
+          Horizontal,  //<!- The items in this layout are aligned horizontally.
+          Vertical     //<!- The items in this layout are aligned vertically.
+        };
+
+      public:
+
         LinearLayout(const std::string& name,
                      core::SdlWidget* widget,
                      const Direction& direction,
