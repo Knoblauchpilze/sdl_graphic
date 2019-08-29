@@ -510,6 +510,7 @@ namespace sdl {
         // already existed. We can assign properties to the picture widget.
         icon->setImagePath(m_items[id].icon);
         icon->setVisible(visible);
+        // TODO: The options stays selected even after hidden has been processed.
 
         // Try to set the text and the visible status for the label widget.
         LabelWidget* text = getChildOrNull<LabelWidget>(getTextNameFromID(id));
