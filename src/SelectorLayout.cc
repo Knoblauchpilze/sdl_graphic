@@ -98,6 +98,7 @@ namespace sdl {
       assignRenderingAreas(bboxes, window);
 
       // Disable other items.
+      // TODO: We should maybe do that before assigning rendering areas ???
       std::vector<bool> visible(getItemsCount(), false);
       visible[realID] = true;
       assignVisibilityStatus(visible);

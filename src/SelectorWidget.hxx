@@ -49,7 +49,9 @@ namespace sdl {
         // TODO: Same goes for the lost focus to send to other widgets: as it's not triggered because
         // the widget goes hidden we're not unselecting previously seleccted elements.
         // TODO: We could probably use `gainFocusEvent` instead of the `mouseButtonReleaseEvent` ?
-        // TODO: Seems to break when switching widgets: failure to redraw.
+        // TODO: Seems to break when switching widgets: failure to redraw. Indeed we're setting the
+        // resize for this event after the activation status.
+        log("Switching active child after click");
         switchToNext();
       }
 
