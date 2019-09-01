@@ -62,6 +62,15 @@ namespace sdl {
         return;
       }
 
+      // Retrieve the realID of the desired active item from the
+      // internal array.
+      const int realID = m_idsToPosition[m_activeItem];
+
+      // Disable other items.
+      std::vector<bool> visible(getItemsCount(), false);
+      visible[realID] = true;
+      assignVisibilityStatus(visible);
+
       // Compute the available space for the active child.
       const utils::Sizef componentSize = computeAvailableSize(window);
 
@@ -71,10 +80,6 @@ namespace sdl {
       // Assign the space for the active child: as this is the only
       // child, use all the available space.
       std::vector<utils::Boxf> bboxes(getItemsCount(), utils::Boxf());
-
-      // Retrieve the realID of the desired active item from the
-      // internal array.
-      const int realID = m_idsToPosition[m_activeItem];
 
       // Assign the maximum size for this item based on its internal
       // size policy. We also account for the offset to apply in case
@@ -96,12 +101,6 @@ namespace sdl {
 
       // Use the base handler to assign bbox.
       assignRenderingAreas(bboxes, window);
-
-      // Disable other items.
-      // TODO: We should maybe do that before assigning rendering areas ???
-      std::vector<bool> visible(getItemsCount(), false);
-      visible[realID] = true;
-      assignVisibilityStatus(visible);
     }
 
     bool
