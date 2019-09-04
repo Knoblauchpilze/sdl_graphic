@@ -68,17 +68,24 @@ namespace sdl {
       protected:
 
         /**
-         * @brief - Redefnition of the base `SdlWidget` method to provide a custom behavior
-         *          upon clicking on the widget. We want to provide a custom behavior when
-         *          the selector is clicked and the internal `m_switchOnLeftClick` boolean
-         *          is set to true.
-         *          In order to do so we need to trigger the change of active item in addition
-         *          to the behavior provided by the base class.
-         * @param e - the mouse button event to process.
+         * @brief - Redefinition of the base `SdlWidget` method to provide a custom behavior
+         *          upon clicking on any child of this widget. Basically when the user clicks
+         *          on a child of this widget it triggers a gain focus chain which can be
+         *          intercepted by this widget in order to switch to another registered child
+         *          if activated. This allows to effectively provide some kind of carousel
+         *          behavior really easily.
+         *          Note that this interfere with the standard processing and the rest of the
+         *          widgets hierarchy will not be notified from any focus events if the gain
+         *          focus produce a switch to the next child. This is intended and perfectly
+         *          expected behavior.
+         *          In case the gain focus event cannot be turned into a switch to the next
+         *          active child the behavior is similar to the existing one defined in the
+         *          base class (i.e. `SdlWidget`).
+         * @param e - the gain focus event to process.
          * @return - `true` if the event has been recognized, `false` otherwise.
          */
         bool
-        mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
+        gainFocusEvent(const core::engine::FocusEvent& e) override;
 
       private:
 
