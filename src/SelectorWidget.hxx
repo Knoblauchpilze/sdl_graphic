@@ -73,7 +73,7 @@ namespace sdl {
 
       // Post a focus out event for this widget.
       log("Posting focus out event for " + child->getName() + " in order to switch active child");
-      core::engine::FocusEventShPtr lfe = std::make_shared<core::engine::FocusEvent>(false, e.getReason(), child);
+      core::engine::FocusEventShPtr lfe = core::engine::FocusEvent::createFocusOutEvent(e.getReason(), child);
       postEvent(lfe, false, true);
 
       // Trigger the call to switch to the next child.

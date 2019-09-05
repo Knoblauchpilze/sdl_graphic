@@ -210,7 +210,7 @@ namespace sdl {
 
             // Also, deactivate the corresponding child so that we don't
             // keep it selected.
-            core::engine::FocusEventShPtr foe = std::make_shared<core::engine::FocusEvent>(false, e.getReason(), e.getEmitter());
+            core::engine::FocusEventShPtr foe = core::engine::FocusEvent::createFocusOutEvent(e.getReason(), e.getEmitter());
             postEvent(foe, false, true);
           }
         }
