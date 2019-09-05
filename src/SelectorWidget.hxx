@@ -39,13 +39,9 @@ namespace sdl {
       // from one of the children of this widget we can activate the switch to next
       // behavior if internal conditions are met. Such conditions include checking
       // that at least two children are registered and things like that.
-      // TODO: We should probably handle some kind of mechanism allowing to determine
-      // whether the focus event is a primary event (meaning that the source is directly
-      // the item that has received focus) or a secondary event (meaning that we are
-      // only receiving the event because we're in the hierarchy of the item that
-      // received focus). This would help for example only switching when the child
-      // itself has been focused and not another item deeper in the hierarchy (which
-      // might be weird).
+      // Also we want to only trigger the switch if the event originated in the
+      // child: indeed we do not want to consider a focus event from deep in the
+      // hierarchy as requesting the switch to the next child.
 
       // First thing to verify is that the `switchOnClick` behavior is activated.
       // It can be deactivated for various reasons, either because it is really
@@ -56,6 +52,7 @@ namespace sdl {
         !switchOnClick() ||
         getChildrenCount() < 2 ||
         isEmitter(e) ||
+        !e.isPrimary() ||
         e.getReason() != core::engine::FocusEvent::Reason::MouseFocus ||
         e.isSpontaneous() ||
         !hasChild(e.getEmitter()->getName())
