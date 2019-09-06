@@ -157,21 +157,18 @@ namespace sdl {
 
     void
     LabelWidget::stateUpdatedFromFocus(const core::FocusState& state,
-                                       const bool gainedFocus,
-                                       const bool primaryFocus)
+                                       const bool gainedFocus)
     {
       // First apply the base class handler so that the base texture's role is set
       // to a value consistent with the current state.
-      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus, primaryFocus);
+      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
 
       // Follow up by updating the text's role. As we don't have an idea of the
       // actual role of the texture we will just mark the text as dirty and wait
       // for the next `drawContentPrivate` operation to update the text's role.
       // This can only occur if this widget is the source of the focus change.
-      if (primaryFocus || !gainedFocus) {
-        Guard guard(m_propsLocker);
-        setTextChanged();
-      }
+      Guard guard(m_propsLocker);
+      setTextChanged();
     }
 
   }

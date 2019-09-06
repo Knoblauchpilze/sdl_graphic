@@ -17,19 +17,16 @@ namespace sdl {
     inline
     void
     TextBox::stateUpdatedFromFocus(const core::FocusState& state,
-                                   const bool gainedFocus,
-                                   const bool primaryFocus)
+                                   const bool gainedFocus)
     {
       // First apply the base class handler so that the base texture's role is set
       // to a value consistent with the current state.
-      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus, primaryFocus);
+      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
 
       // Follow up by displaying the cursor at the end of the text or hide it if
       // the focus was lost. This can only occur if this widget is the source of
       // the focus event.
-      if (primaryFocus || !gainedFocus) {
-        updateCursorState(gainedFocus);
-      }
+      updateCursorState(gainedFocus);
     }
 
     inline
