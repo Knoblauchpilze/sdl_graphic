@@ -30,7 +30,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::loadText() const {
+    LabelWidget::loadText() {
       // Clear existing label if any.
       clearText();
 
@@ -54,7 +54,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::clearText() const {
+    LabelWidget::clearText() {
       if (m_label.valid()) {
         getEngine().destroyTexture(m_label);
         m_label.invalidate();
@@ -69,7 +69,7 @@ namespace sdl {
 
     inline
     void
-    LabelWidget::setTextChanged() const noexcept {
+    LabelWidget::setTextChanged() noexcept {
       m_textChanged = true;
     }
 

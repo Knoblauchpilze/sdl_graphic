@@ -76,7 +76,7 @@ namespace sdl {
       private:
 
         void
-        loadText() const;
+        loadText();
 
         /**
          * @brief - Destroys the texture contained in the `m_label` identifier if it is valid
@@ -85,7 +85,7 @@ namespace sdl {
          *          the rendering mode.
          */
         void
-        clearText() const;
+        clearText();
 
         /**
          * @brief - Used to determine whether any of the endering properties of the text has
@@ -103,7 +103,7 @@ namespace sdl {
          *          method. Assumes that the `m_propsLocker` is already locked.
          */
         void
-        setTextChanged() const noexcept;
+        setTextChanged() noexcept;
 
         /**
          * @brief - Used to update the internal value of the `m_textRole` value based on the role
@@ -142,7 +142,7 @@ namespace sdl {
          */
         std::string m_fontName;
         unsigned m_fontSize;
-        mutable utils::Uuid m_font;
+        utils::Uuid m_font;
 
         /**
          * @brief - Describes the alignment of the text in the space available for this widget. Note
@@ -171,19 +171,19 @@ namespace sdl {
          *          up-to-date with the content of the other attributes.
          *          This is corrected upon calling the `drawContentPrivate` method.
          */
-        mutable bool m_textChanged;
+        bool m_textChanged;
 
         /**
          * @brief - An identifier provided by the engine and representing the texture containing the
          *          rendered text for this label. As long as the `m_textChanged` boolean is set to
          *          `false` this value can be cached and used as is.
          */
-        mutable utils::Uuid m_label;
+        utils::Uuid m_label;
 
         /**
          * @brief - Used to protect concurrent accesses to the internal data of this label widget.
          */
-        mutable std::mutex m_propsLocker;
+        std::mutex m_propsLocker;
 
     };
 
