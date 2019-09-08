@@ -48,6 +48,7 @@ namespace sdl {
                                 const utils::Boxf& /*area*/)
     {
       // TODO: Implement.
+      // This could be useful: https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_39.html
     }
 
     void
