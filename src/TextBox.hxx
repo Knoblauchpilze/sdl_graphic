@@ -8,6 +8,30 @@ namespace sdl {
 
     inline
     bool
+    TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
+      // Update the cursor visible status, considering that as we just grabbed the
+      // keyboard focus we are ready to make some modifications on the textbox and
+      // thus we should display the cursor.
+      updateCursorState(true);
+
+      // Use the base handler method to provide a return value.
+      return core::SdlWidget::keyboardGrabbedEvent(e);
+    }
+
+    inline
+    bool
+    TextBox::keyboardReleasedEvent(const core::engine::Event& e) {
+      // Update the cursor visible status, considering that as we just lost the
+      // keyboard focus the user does not want to perform modifications on the
+      // textbox anymore and thus we can hide the cursor.
+      updateCursorState(false);
+
+      // Use the base handler method to provide a return value.
+      return core::SdlWidget::keyboardReleasedEvent(e);
+    }
+
+    inline
+    bool
     TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
       // TODO: Handle this.
       log("Should handle key " + std::to_string(e.getKey()) + " released", utils::Level::Warning);
@@ -16,22 +40,11 @@ namespace sdl {
 
     inline
     void
-    TextBox::stateUpdatedFromFocus(const core::FocusState& state,
-                                   const bool gainedFocus)
-    {
-      // First apply the base class handler so that the base texture's role is set
-      // to a value consistent with the current state.
-      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
-
-      // Follow up by displaying the cursor at the end of the text or hide it if
-      // the focus was lost. This can only occur if this widget is the source of
-      // the focus event.
-      updateCursorState(gainedFocus);
-    }
-
-    inline
-    void
     TextBox::updateCursorState(const bool visible) {
+      // Update the cursor's internal state.
+      m_cursorVisible = visible;
+
+      // Request a repaint.
       // TODO: Implement this probably through some addition texture displayed at the
       // end of the text's texture.
       log(std::string("Should make cursor ") + (visible ? "visible" : "hidden"), utils::Level::Warning);
@@ -39,7 +52,7 @@ namespace sdl {
 
     inline
     void
-    TextBox::loadText() const {
+    TextBox::loadText() {
       // Clear existing text if any.
       clearText();
 
@@ -57,16 +70,36 @@ namespace sdl {
           }
         }
 
-        m_textTex = getEngine().createTextureFromText(m_text, m_font, m_textRole);
+        // We need to render both the left and right part of the text. The left part
+        // corresponds to the part of the internal `m_text` before the `m_cursorIndex`
+        // value while the right part corresponds to the part that is after that.
+        // Depending on the value of the `m_cursorIndex` one of the part might be
+        // empty.
+
+        // The left part is not empty if the `m_cursorIndex` is greater than `0`.
+        if (m_cursorIndex > 0u) {
+          m_leftText = getEngine().createTextureFromText(m_text.substr(0u, m_cursorIndex), m_font, m_textRole);
+        }
+
+        // The right part is not empty as long as the `m_cursorIndex` is smaller than
+        // `m_text.size()`.
+        if (m_cursorIndex < m_text.size()) {
+          m_rightText = getEngine().createTextureFromText(m_text.substr(m_cursorIndex), m_font, m_textRole);
+        }
       }
     }
 
     inline
     void
-    TextBox::clearText() const {
-      if (m_textTex.valid()) {
-        getEngine().destroyTexture(m_textTex);
-        m_textTex.invalidate();
+    TextBox::clearText() {
+      if (m_leftText.valid()) {
+        getEngine().destroyTexture(m_leftText);
+        m_leftText.invalidate();
+      }
+
+      if (m_rightText.valid()) {
+        getEngine().destroyTexture(m_rightText);
+        m_rightText.invalidate();
       }
     }
 
@@ -78,7 +111,7 @@ namespace sdl {
 
     inline
     void
-    TextBox::setTextChanged() const noexcept {
+    TextBox::setTextChanged() noexcept {
       m_textChanged = true;
     }
 

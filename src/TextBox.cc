@@ -12,6 +12,8 @@ namespace sdl {
                      const utils::Sizef& area):
       core::SdlWidget(name, area, parent),
       m_text(text),
+      m_cursorIndex(0u),
+      m_cursorVisible(false),
 
       m_fontName(font),
       m_fontSize(size),
@@ -21,7 +23,9 @@ namespace sdl {
 
       m_textChanged(true),
 
-      m_textTex(),
+      m_leftText(),
+      m_cursor(),
+      m_rightText(),
 
       m_propsLocker()
     {
@@ -37,6 +41,13 @@ namespace sdl {
       if (m_font.valid()) {
         getEngine().destroyColoredFont(m_font);
       }
+    }
+
+    void
+    TextBox::drawContentPrivate(const utils::Uuid& /*uuid*/,
+                                const utils::Boxf& /*area*/)
+    {
+      // TODO: Implement.
     }
 
     void

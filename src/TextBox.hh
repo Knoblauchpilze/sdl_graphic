@@ -33,7 +33,26 @@ namespace sdl {
         virtual ~TextBox();
 
       protected:
+      
+        /**
+         * @brief - Specialization of the base `SdlWidget` method in order to handle keyboard focus
+         *          update. Compared to the base method this class only adds the update of the cursor
+         *          display.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardGrabbedEvent(const core::engine::Event& e) override;
 
+        /**
+         * @brief - Specialization of the base `SdlWidget` method in order to handle keyboard focus
+         *          update. Compared to the base method this class only adds the update of the cursor
+         *          display.
+         * @param e - the keyboard focus event to process.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyboardReleasedEvent(const core::engine::Event& e) override;
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method to provide
@@ -49,21 +68,19 @@ namespace sdl {
         bool
         keyReleaseEvent(const core::engine::KeyEvent& e) override;
 
+      protected:
+
         /**
-         * @brief - Reimplementation of the base `SdlWidget` method in order to provide
-         *          custom behavior when this widget receives focus.
-         *          We set the policy to only accept click focus upon building `this`
-         *          widget but it's only part of the job: indeed when the user clicks
-         *          on the widget we want to make a cursor appear at the end of the text
-         *          currently displayed in the text box. This cursor will indicate to
-         *          the user that the text box is ready to accept focus.
-         * @param state - the current state of this widget.
-         * @param gainedFocus - `true` if `this` widget just gained focus, `false` if it
-         *                      lost the focus.
+         * @brief - Reimplementation of the base `SdlWidget` method. A texture representing
+         *          the text associated to this textbox along with a visual representation of
+         *          the cursor indicating the current character being edited should be drawn
+         *          on the provided canvas. Only the specified part is updated by this function.
+         * @param uuid - the identifier of the canvas which we can use to draw a text overlay.
+         * @param area - the area of the canvas to update.
          */
         void
-        stateUpdatedFromFocus(const core::FocusState& state,
-                              const bool gainedFocus) override;
+        drawContentPrivate(const utils::Uuid& uuid,
+                           const utils::Boxf& area) override;
 
       private:
 
@@ -90,7 +107,7 @@ namespace sdl {
          *          texture representing the text if needed.
          */
         void
-        loadText() const;
+        loadText();
 
         /**
          * @brief - Destroys the texture contained in the `m_label` identifier if it is valid
@@ -99,7 +116,7 @@ namespace sdl {
          *          the rendering mode.
          */
         void
-        clearText() const;
+        clearText();
 
         /**
          * @brief - Used to determine whether any of the endering properties of the text has
@@ -117,7 +134,7 @@ namespace sdl {
          *          method. Assumes that the `m_propsLocker` is already locked.
          */
         void
-        setTextChanged() const noexcept;
+        setTextChanged() noexcept;
 
       private:
 
@@ -133,6 +150,24 @@ namespace sdl {
         std::string m_text;
 
         /**
+         * @brief - Indicates the current position of the cursor. The position indicates the
+         *          first index which is right to the cursor. For example if this value is `0`
+         *          it indicates that the cursor is at the left of the first character of the
+         *          string representing the text of this textbox.
+         *          The valid range is thus `[0; m_text.size()]`.
+         */
+        unsigned m_cursorIndex;
+
+        /**
+         * @brief - Indicates whether the cursor is visible. We display the cursor only when
+         *          this textbox has keyboard focus, which is likely to indicate that the user
+         *          is ready to make some modifications on the internal text. The cursor is a
+         *          visual aid to indicate which character will be affected by the next update
+         *          to the textbox.
+         */
+        bool m_cursorVisible;
+
+        /**
          * @brief - Information about the font to use to render the text. We use the `m_fontName`
          *          and `m_fontSize` to store information while the font is not loaded yet. The
          *          `m_font` itself holds an identifier returned by the engine which allows to
@@ -144,7 +179,7 @@ namespace sdl {
          */
         std::string m_fontName;
         unsigned m_fontSize;
-        mutable utils::Uuid m_font;
+        utils::Uuid m_font;
 
         /**
          * @brief - Describes the role of the text's texture to use. Various roles usually implies
@@ -163,19 +198,29 @@ namespace sdl {
          *          up-to-date with the content of the other attributes.
          *          This is corrected upon calling the `drawContentPrivate` method.
          */
-        mutable bool m_textChanged;
+        bool m_textChanged;
 
         /**
-         * @brief - An identifier provided by the engine and representing the texture containing the
-         *          rendered text for this textbox. As long as the `m_textChanged` boolean is set to
-         *          `false` this value can be cached and used as is.
+         * @brief - Used to perform some caching of the data for this textbox. In order to account for
+         *          the possible positions of the cursor when editing the text of the text box we need
+         *          three separate textures to represent the text:
+         *            - a texture to represent the text on the left of the cursor
+         *            - a texture to represent the cursor itself
+         *            - a texture to represent the text on the right of the cursor
+         * Not all of them are always valid, and the caching only holds until a character is added to
+         * the text of this box or until the cursor is moved.
+         * These values are also invalidated whenever the font or the text size is modified.
+         * Note that unless the `m_textChanged` is set to `true` the content of these textures can be
+         * used without modifications.
          */
-        mutable utils::Uuid m_textTex;
+        utils::Uuid m_leftText;
+        utils::Uuid m_cursor;
+        utils::Uuid m_rightText;
 
         /**
          * @brief - Used to protect concurrent accesses to the internal data of this textbox.
          */
-        mutable std::mutex m_propsLocker;
+        std::mutex m_propsLocker;
     };
 
     using TextBoxShPtr = std::shared_ptr<TextBox>;
