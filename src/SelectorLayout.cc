@@ -97,7 +97,7 @@ namespace sdl {
       const float x = getMargin().w() + (componentSize.w() - area.w()) / 2.0f;
       const float y = getMargin().h() + (componentSize.h() - area.h()) / 2.0f;
 
-      bboxes[realID] = utils::Boxf(x, y, area.w(), area.h());
+      bboxes[realID] = utils::Boxf(x, y, area);
 
       // Use the base handler to assign bbox.
       assignRenderingAreas(bboxes, window);

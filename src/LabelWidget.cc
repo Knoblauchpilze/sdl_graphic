@@ -128,7 +128,7 @@ namespace sdl {
           break;
       }
 
-      utils::Boxf dstRect(center, sizeText.w(), sizeText.h());
+      utils::Boxf dstRect(center, sizeText);
 
       // Compute the intersection between the input `area` and this `dstRect`
       // area. If both overlaps it means that part of the text is visible.
