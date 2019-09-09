@@ -68,8 +68,6 @@ namespace sdl {
         bool
         keyReleaseEvent(const core::engine::KeyEvent& e) override;
 
-      protected:
-
         /**
          * @brief - Reimplementation of the base `SdlWidget` method. A texture representing
          *          the text associated to this textbox along with a visual representation of
@@ -135,6 +133,52 @@ namespace sdl {
          */
         void
         setTextChanged() noexcept;
+
+        /**
+         * @brief - Used to compute the position in the parent area for the left part of the text
+         *          displayed in this text box. The left part is most of the times on the left most
+         *          part of the widget except when the cursor is set to be before the first letter
+         *          of the text. In which case though the left part of the text should be invalid
+         *          so it should not happen.
+         *          In order to provide accurate computation of the position relatively to a parent
+         *          area the user needs to provide a size indicating the available space on said
+         *          parent area. The position will be returned as if centered in this parent space.
+         * @param env - a description of the available space in the parent area.
+         * @return - a box indicating both the dimensions of the left part of the text and its
+         *           position on the parent area.
+         */
+        utils::Boxf
+        computeLeftTextPosition(const utils::Sizef& env) const noexcept;
+
+        /**
+         * @brief - Used to compute the position in the parent area for the cursor displayed to help
+         *          determine where the edition is being made in this textbox. Note that the cursor
+         *          is only displayed when this widget has the keyboard focus.
+         *          In order to provide accurate computation of the position relatively to a parent
+         *          area the user needs to provide a size indicating the available space on said
+         *          parent area. The position will be returned as if centered in this parent space.
+         * @param env - a description of the available space in the parent area.
+         * @return - a box indicating both the dimensions of the cursor and its position on the parent
+         *           area.
+         */
+        utils::Boxf
+        computeCursorPosition(const utils::Sizef& env) const noexcept;
+
+        /**
+         * @brief - Used to compute the position in the parent area for the right part of the text
+         *          displayed in this text box. The right part comes after the left part and usually
+         *          after the cursor. The only exception is when the cursor is set to be displayed
+         *          after the last character. In which case though the right part of the text should
+         *          be invalid so it should not happen.
+         *          In order to provide accurate computation of the position relatively to a parent
+         *          area the user needs to provide a size indicating the available space on said
+         *          parent area. The position will be returned as if centered in this parent space.
+         * @param env - a description of the available space in the parent area.
+         * @return - a box indicating both the dimensions of the right part of the text and its
+         *           position on the parent area.
+         */
+        utils::Boxf
+        computeRightTextPosition(const utils::Sizef& env) const noexcept;
 
       private:
 
