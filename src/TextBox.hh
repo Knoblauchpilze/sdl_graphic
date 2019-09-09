@@ -33,7 +33,7 @@ namespace sdl {
         virtual ~TextBox();
 
       protected:
-      
+
         /**
          * @brief - Specialization of the base `SdlWidget` method in order to handle keyboard focus
          *          update. Compared to the base method this class only adds the update of the cursor
