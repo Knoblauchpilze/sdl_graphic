@@ -33,9 +33,52 @@ namespace sdl {
     inline
     bool
     TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
-      // TODO: Handle this.
-      log("Should handle key " + std::to_string(e.getKey()) + " released", utils::Level::Warning);
-      return core::SdlWidget::keyReleaseEvent(e);
+      // Depending on the type of key pressed by the user we might:
+      // - add a new character to the text displayed
+      // - move the position of the cursor
+      // - remove a character from the text displayed.
+      // - do nothing if the key is not handled.
+      const bool toReturn = core::SdlWidget::keyReleaseEvent(e);
+
+      // We will handle first the motion of the cursor. It is triggered by using
+      // the left and right arrows. The position is updated until no more move is
+      // possible in the corresponding direction.
+      // TODO: We should probably not use the SDL values here.
+      if (e.getKey() == SDLK_LEFT || e.getKey() == SDLK_RIGHT) {
+        const CursorMotion motion = (
+          e.getKey() == SDLK_LEFT ?
+          CursorMotion::Left :
+          CursorMotion::Right
+        );
+
+        updateCursorPosition(motion);
+
+        // Use the base handler to provide the return value.
+        return toReturn;
+      }
+
+      // Handle the removal of a character.
+      if (e.getKey() == SDLK_BACKSPACE) {
+        removeCharFromText();
+
+        log("Text is now \"" + m_text + "\")", utils::Level::Notice);
+
+        return toReturn;
+      }
+
+      // Check whether the key is alphanumeric: if this is not the case we can't do much
+      // so we will just trash the event for now.
+      if (!e.isAlphaNumeric()) {
+        // Use the return value provided by the base handler.
+        return toReturn;
+      }
+
+      // Add the corresponding char to the internal text.
+      addCharToText(e.getChar());
+
+      log("Text is now \"" + m_text + "\")", utils::Level::Notice);
+
+      return toReturn;
     }
 
     inline
@@ -48,6 +91,68 @@ namespace sdl {
       // TODO: Implement this probably through some addition texture displayed at the
       // end of the text's texture.
       log(std::string("Should make cursor ") + (visible ? "visible" : "hidden"), utils::Level::Warning);
+    }
+
+    inline
+    void
+    TextBox::updateCursorPosition(const CursorMotion& motion) {
+      // Based on the input direction, try to update the index at which the cursor
+      // should be displayed.
+      // Detect whether some text is visible in the textbox.
+      if (m_text.empty()) {
+        return;
+      }
+
+      // Depending on the motion direction update the position of the cursor.
+      if (motion == CursorMotion::Left) {
+        if (m_cursorIndex > 0) {
+          --m_cursorIndex;
+        }
+      }
+      else {
+        if (m_cursorIndex < m_text.size() - 1u) {
+          ++m_cursorIndex;
+        }
+      }
+    }
+
+    inline
+    void
+    TextBox::addCharToText(const char c) {
+      // Insert the char at the position specified by the cursor index.
+      m_text.insert(m_text.begin() + m_cursorIndex, c);
+
+      // Update the position of the cursor index so that it stays at the
+      // same position.
+      ++m_cursorIndex;
+
+      // Mark the text as dirty.
+      setTextChanged();
+    }
+
+    void
+    TextBox::removeCharFromText() {
+      // Check whether we can remove anything at all: this is always possible
+      // except if:
+      // - the string is empty
+      // - the cursor index is before the first character of the string.
+      // Both conditions can be merged into a single one though because if
+      // the text is empty the cursor index will also be set to `0`.
+      if (m_cursorIndex == 0) {
+        // Not possible to remove anything, do not mark the text as dirty as
+        // nothing changed.
+        return;
+      }
+
+      // Erase the corresponding character.
+      m_text.erase(m_text.begin() + m_cursorIndex);
+
+      // The cursor index should be decremented so that it keeps indicating
+      // the same character.
+      --m_cursorIndex;
+
+      // Also we need to trigger a repaint as the text has changed.
+      setTextChanged();
     }
 
     inline
@@ -130,7 +235,11 @@ namespace sdl {
     inline
     void
     TextBox::setTextChanged() noexcept {
+      // Mark the text as dirty.
       m_textChanged = true;
+
+      // Request a repaint.
+      requestRepaint();
     }
 
     inline

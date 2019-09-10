@@ -83,6 +83,15 @@ namespace sdl {
       private:
 
         /**
+         * @brief - Used to specify the direction of a cursor motion. The directions allow to
+         *          move the position of the cursor in the text displayed in the textbox.
+         */
+        enum class CursorMotion {
+          Left,  //<!- A motion of the cursor on the left of its current position.
+          Right  //<!- A motion of the cursor on the right of its current position.
+        };
+
+        /**
          * @brief - Used internally upon constructing the text box to initialize internal
          *          states.
          */
@@ -98,6 +107,35 @@ namespace sdl {
          */
         void
         updateCursorState(const bool visible);
+
+        /**
+         * @brief - Used to update the position of the cursor given the specified motion. This
+         *          function does not check that the cursor is actually visible before performing
+         *          the motion.
+         *          The cursor is advanced by one step in the correct direction if possible. If
+         *          no motion in the specified direction is possible nothing happens.
+         * @param motion - the direction into which the cursor should be moved.
+         */
+        void
+        updateCursorPosition(const CursorMotion& motion);
+
+        /**
+         * @brief - Add the specified character to the internal text at the position specified
+         *          according to the cursor position.
+         *          Triggers a repaint upon completing the operation.
+         * @param c - the character to add to the internal text.
+         */
+        void
+        addCharToText(const char c);
+
+        /**
+         * @brief - Remove a character from the internal text according to the position pointed
+         *          by the cursor index. Note that if no character can be removed nothing happens.
+         *          Note that a repaint event is triggered only if the removal of the character
+         *          succeeds.
+         */
+        void
+        removeCharFromText();
 
         /**
          * @brief - Used to performt he loading of the text into the `m_textTex` texture. This
