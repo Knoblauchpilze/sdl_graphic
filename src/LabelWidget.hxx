@@ -70,7 +70,11 @@ namespace sdl {
     inline
     void
     LabelWidget::setTextChanged() noexcept {
+      // The test is now dirty.
       m_textChanged = true;
+
+      // Request a repaint.
+      requestRepaint();
     }
 
     inline
