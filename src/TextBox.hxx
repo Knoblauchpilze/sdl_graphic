@@ -120,6 +120,7 @@ namespace sdl {
     void
     TextBox::addCharToText(const char c) {
       // Insert the char at the position specified by the cursor index.
+      // TODO: It seems to be a problem with where the char is inserted.
       m_text.insert(m_text.begin() + m_cursorIndex, c);
 
       // Update the position of the cursor index so that it stays at the
@@ -145,7 +146,7 @@ namespace sdl {
       }
 
       // Erase the corresponding character.
-      m_text.erase(m_text.begin() + m_cursorIndex);
+      m_text.erase(m_text.begin() + m_cursorIndex - 1);
 
       // The cursor index should be decremented so that it keeps indicating
       // the same character.
