@@ -117,6 +117,37 @@ namespace sdl {
         clearText();
 
         /**
+         * @brief - Used to determine whether the cursor is visible. This is a convenience wrapper
+         *          around the internal `m_cursorVisible` attribute to allow for easy modification
+         *          of the behavior.
+         * @return - `true` if the cursor is visible and `false` otherwise.
+         */
+        bool
+        isCursorVisible() const noexcept;
+
+        /**
+         * @bvrief - Used to determine whether a left text part is active for this textbox. We
+         *           check whether the cursor index is set to be located before the first character
+         *           of this textbox.
+         *           Note that this does not tell whether the cursor is visible or not.
+         * @return - `true` if the cursor index is set to at least after the first character of
+         *           this textbox and `false` otherwise.
+         */
+        bool
+        hasLeftTextPart() const noexcept;
+
+        /**
+         * @bvrief - Used to determine whether a right text part is active for this textbox. We
+         *           check whether the cursor index is set to be located after the last character
+         *           of this textbox.
+         *           Note that this does not tell whether the cursor is visible or not.
+         * @return - `true` if the cursor index is set to at least before the last character of
+         *           this textbox and `false` otherwise.
+         */
+        bool
+        hasRightTextPart() const noexcept;
+
+        /**
          * @brief - Used to determine whether any of the endering properties of the text has
          *          been modified since the last `drawContentPrivate` operation.
          *          Internally uses the `m_textChanged` status to perform the check.

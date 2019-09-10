@@ -105,6 +105,24 @@ namespace sdl {
 
     inline
     bool
+    TextBox::isCursorVisible() const noexcept {
+      return m_cursorVisible;
+    }
+
+    inline
+    bool
+    TextBox::hasLeftTextPart() const noexcept {
+      return m_cursorIndex == 0;
+    }
+
+    inline
+    bool
+    TextBox::hasRightTextPart() const noexcept {
+      return m_cursorIndex >= m_text.size();
+    }
+
+    inline
+    bool
     TextBox::textChanged() const noexcept {
       return m_textChanged;
     }
@@ -132,46 +150,50 @@ namespace sdl {
 
       utils::Sizef sizeLeft = getEngine().queryTexture(m_leftText);
 
-      return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() / 2.0f, 0.0f, sizeLeft);
+      return utils::Boxf(
+        -env.w() / 2.0f + sizeLeft.w() / 2.0f,
+        0.0f,
+        sizeLeft
+      );
     }
 
     utils::Boxf
     TextBox::computeCursorPosition(const utils::Sizef& env) const noexcept {
-      // We assume here that the keyboard focus state is checked elsewhere. In other terms
-      // we're not determining whether this position is actually meaningful given the whole
-      // state of this text box.
-
       // The cursor should be placed right after the left part of the text. To do se we
       // obviously need to retrieve the dimensions of the left part of the text. If this
-      // can't be done we're screwed.
-      if (!m_leftText.valid()) {
-        error(
-          std::string("Could not compute cursor position located at index ") + std::to_string(m_cursorIndex),
-          std::string("Invalid text texture")
-        );
+      // can't be done it means that the cursor is probably set to be located before the
+      // first character displayed in the textbox.
+      utils::Sizef sizeLeft;
+
+      if (m_leftText.valid()) {
+        sizeLeft = getEngine().queryTexture(m_leftText);
       }
 
-      utils::Sizef sizeLeft = getEngine().queryTexture(m_leftText);
-
       // Retrieve the dimensions of the cursor so that we can create an accurate position.
+      // We need to ensure both that the cursor is valid and that it's visible.
       if (!m_cursor.valid()) {
         error(
           std::string("Could not compute cursor position in textbox"),
           std::string("Invalid cursor texture")
         );
       }
+      if (!isCursorVisible()) {
+        error(
+          std::string("Could not compute cursor position in textbox"),
+          std::string("Cursor is not visible")
+        );
+      }
 
       utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
 
-      // Use the cursor index to determine whether the cursor can be placed after the left
-      // part of the text.
-      if (m_cursorIndex == 0) {
-        // The cursor position is completely on the left of the widget.
-        return utils::Boxf(-env.w() / 2.0f + sizeCursor.w() / 2.0f, 0.0f, sizeCursor);
-      }
-
-      // Locate the cursor on the right of the left part of the text.
-      return utils::Boxf(-env.w() - 2.0f + sizeLeft.w() + sizeCursor.w() / 2.0f, 0.0f, sizeCursor);
+      // Locate the cursor on the right of the left part of the text. If there's no left part
+      // of the text (i.e. the cursor is located before the first character) the `sizeLeft`
+      // value will be null so we can use it the same way.
+      return utils::Boxf(
+        -env.w() - 2.0f + sizeLeft.w() + sizeCursor.w() / 2.0f,
+        0.0f,
+        sizeCursor
+      );
     }
 
     utils::Boxf

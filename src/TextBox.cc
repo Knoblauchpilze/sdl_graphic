@@ -71,7 +71,7 @@ namespace sdl {
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
 
       // Render the left part of the text if it is valid.
-      if (m_leftText.valid()) {
+      if (m_leftText.valid() && hasLeftTextPart()) {
         // Use the base handler to determine the position of the text and to
         // determine whether it's valid.
         utils::Boxf dstRect = computeLeftTextPosition(sizeEnv);
@@ -86,14 +86,13 @@ namespace sdl {
       }
 
       // Render the cursor if needed (i.e. if the keyboard focus is active).
-      if (m_cursor.valid()) {
-        // TODO: Implement repaint. Note that we need to define more precisely
-        // what happens when the keyboard focus is not assigned to this widget.
+      if (m_cursor.valid() && isCursorVisible()) {
+        // TODO: Implement repaint.
       }
 
       // Render the right part of the text if it is valid.
-      if (m_rightText.valid()) {
-        // TODO: Implement repaint. What happens when this is not valid ?
+      if (m_rightText.valid() && hasRightTextPart()) {
+        // TODO: Implement repaint.
       }
 
       // TODO: Implement.
