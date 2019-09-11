@@ -110,7 +110,7 @@ namespace sdl {
         }
       }
       else {
-        if (m_cursorIndex < m_text.size() - 1u) {
+        if (m_cursorIndex < m_text.size()) {
           ++m_cursorIndex;
         }
       }
@@ -120,7 +120,6 @@ namespace sdl {
     void
     TextBox::addCharToText(const char c) {
       // Insert the char at the position specified by the cursor index.
-      // TODO: It seems to be a problem with where the char is inserted.
       m_text.insert(m_text.begin() + m_cursorIndex, c);
 
       // Update the position of the cursor index so that it stays at the
