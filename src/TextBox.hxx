@@ -80,7 +80,7 @@ namespace sdl {
       // Add the corresponding char to the internal text.
       addCharToText(e.getChar());
 
-      log("Text is now \"" + m_text + "\")", utils::Level::Notice);
+      log("Text is now \"" + m_text + "\"", utils::Level::Notice);
 
       return toReturn;
     }
