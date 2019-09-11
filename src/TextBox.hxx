@@ -43,22 +43,26 @@ namespace sdl {
       // We will handle first the motion of the cursor. It is triggered by using
       // the left and right arrows. The position is updated until no more move is
       // possible in the corresponding direction.
-      // TODO: We should probably not use the SDL values here.
-      if (e.getKey() == SDLK_LEFT || e.getKey() == SDLK_RIGHT) {
-        const CursorMotion motion = (
-          e.getKey() == SDLK_LEFT ?
-          CursorMotion::Left :
-          CursorMotion::Right
+      // TODO: We should handle `Home` and `End` button.
+      if (canTriggerCursorMotion(e.getKey())) {
+        // Assume left motion and change if needed.
+        CursorMotion motion = CursorMotion::Left;
+        if (e.getKey() == core::engine::Key::Right || e.getKey() == core::engine::Key::End) {
+          motion = CursorMotion::Right;
+        }
+        const bool fastForward = (
+          e.getKey() == core::engine::Key::Home ||
+          e.getKey() == core::engine::Key::End
         );
 
-        updateCursorPosition(motion);
+        updateCursorPosition(motion, fastForward);
 
         // Use the base handler to provide the return value.
         return toReturn;
       }
 
       // Handle the removal of a character.
-      if (e.getKey() == SDLK_BACKSPACE) {
+      if (e.getKey() == core::engine::Key::BackSpace) {
         removeCharFromText();
 
         log("Text is now \"" + m_text + "\")", utils::Level::Notice);
@@ -82,6 +86,17 @@ namespace sdl {
     }
 
     inline
+    bool
+    TextBox::canTriggerCursorMotion(const core::engine::Key& k) const noexcept {
+      return
+        k == core::engine::Key::Left ||
+        k == core::engine::Key::Right ||
+        k == core::engine::Key::Home ||
+        k == core::engine::Key::End
+      ;
+    }
+
+    inline
     void
     TextBox::updateCursorState(const bool visible) {
       // Update the cursor's internal state.
@@ -95,23 +110,37 @@ namespace sdl {
 
     inline
     void
-    TextBox::updateCursorPosition(const CursorMotion& motion) {
+    TextBox::updateCursorPosition(const CursorMotion& motion, bool fastForward) {
       // Based on the input direction, try to update the index at which the cursor
       // should be displayed.
       // Detect whether some text is visible in the textbox.
       if (m_text.empty()) {
+        // Set the cursor position to `0` to be on the safe side.
+        m_cursorIndex = 0;
+
         return;
       }
 
       // Depending on the motion direction update the position of the cursor.
       if (motion == CursorMotion::Left) {
-        if (m_cursorIndex > 0) {
-          --m_cursorIndex;
+        // Check for fast forward.
+        if (fastForward) {
+          m_cursorIndex = 0;
+        }
+        else {
+          if (m_cursorIndex > 0) {
+            --m_cursorIndex;
+          }
         }
       }
       else {
-        if (m_cursorIndex < m_text.size()) {
-          ++m_cursorIndex;
+        if (fastForward) {
+          m_cursorIndex = m_text.size();
+        }
+        else {
+          if (m_cursorIndex < m_text.size()) {
+            ++m_cursorIndex;
+          }
         }
       }
     }

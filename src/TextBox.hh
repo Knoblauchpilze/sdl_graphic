@@ -99,6 +99,17 @@ namespace sdl {
         build();
 
         /**
+         * @brief - Used to determine whether the input key can trigger a cursor motion inside
+         *          the textbox. This is basically used to pin point keys which can update the
+         *          position of the cursor in the internal text.
+         * @param k - the key which should be checked for cursor motion trigger.
+         * @return - `true` if the input key triggers a cursor position update and `false` in
+         *           any other case.
+         */
+        bool
+        canTriggerCursorMotion(const core::engine::Key& k) const noexcept;
+
+        /**
          * @brief - Used to trigger the needed events and internal states so that the cursor
          *          indicating the position where the user is entering text is made visible
          *          or hidden based on the value of the input boolean. This boolean is set to
@@ -114,10 +125,17 @@ namespace sdl {
          *          the motion.
          *          The cursor is advanced by one step in the correct direction if possible. If
          *          no motion in the specified direction is possible nothing happens.
+         *          The `fastForward` attribute defines whether the motiion should fastforward
+         *          until no more motion of this type is possible. Typically it indicates in the
+         *          case of a left motion for example that the new position of the cursor should
+         *          be set to the beginning of the text.
          * @param motion - the direction into which the cursor should be moved.
+         * @param fastForward - `true` if the motion should be applied until it can't be applied
+         *                      anymore and `false` otherwise.
          */
         void
-        updateCursorPosition(const CursorMotion& motion);
+        updateCursorPosition(const CursorMotion& motion,
+                             bool fastForward = false);
 
         /**
          * @brief - Add the specified character to the internal text at the position specified
