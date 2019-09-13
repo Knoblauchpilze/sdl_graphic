@@ -37,6 +37,9 @@ namespace sdl {
       // Clear text.
       clearText();
 
+      // Clear cursor.
+      clearCursor();
+
       // Clear font.
       if (m_font.valid()) {
         getEngine().destroyColoredFont(m_font);
@@ -62,6 +65,11 @@ namespace sdl {
         m_textChanged = false;
       }
 
+      // Load the cursor if it is visible (otherwise no need to do so).
+      if (isCursorVisible()) {
+        loadCursor();
+      }
+
       // Render each part of the text displayed in this text box: depending on
       // the actual content and position of the cursor some parts might be left
       // empty and thus should not be rendered.
@@ -69,34 +77,55 @@ namespace sdl {
       // and we perform the intersection with the input `area` which indicates
       // the rectangle to update.
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
+      utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
 
       // Render the left part of the text if it is valid.
       if (m_leftText.valid() && hasLeftTextPart()) {
-        // Use the base handler to determine the position of the text and to
-        // determine whether it's valid.
+        // Determine the position of the left part of the text.
         utils::Boxf dstRect = computeLeftTextPosition(sizeEnv);
 
-        // Compute the intersection between the input `area` and this `dstRect`
-        // area. If both overlaps it means that part of the text is visible.
+        // Determine whether some part of the left text should be repainted.
         utils::Boxf dstRectToUpdate = dstRect.intersect(area);
 
         if (dstRectToUpdate.valid()) {
-          // TODO: Implement repaint.
+          utils::Sizef sizeLeft = getEngine().queryTexture(m_leftText);
+
+          // Use the dedicated handler to perform the repaint.
+          drawPartOnCanvas(m_leftText, dstRectToUpdate, sizeLeft, dstRect, uuid, env);
         }
       }
 
       // Render the cursor if needed (i.e. if the keyboard focus is active).
       if (m_cursor.valid() && isCursorVisible()) {
-        // TODO: Implement repaint.
+        // Determine the position of the cursor.
+        utils::Boxf dstRect = computeCursorPosition(sizeEnv);
+
+        // Determine whether some part of the cursor should be repainted.
+        utils::Boxf dstRectToUpdate = dstRect.intersect(area);
+
+        if (dstRectToUpdate.valid()) {
+          utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
+
+          // Use the dedicated handler to perform the repaint.
+          drawPartOnCanvas(m_cursor, dstRectToUpdate, sizeCursor, dstRect, uuid, env);
+        }
       }
 
       // Render the right part of the text if it is valid.
       if (m_rightText.valid() && hasRightTextPart()) {
-        // TODO: Implement repaint.
-      }
+        // Determine the position of the right part of the text.
+        utils::Boxf dstRect = computeRightTextPosition(sizeEnv);
 
-      // TODO: Implement.
-      // This could be useful: https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_39.html
+        // Determine whether some part of the right text should be repainted.
+        utils::Boxf dstRectToUpdate = dstRect.intersect(area);
+
+        if (dstRectToUpdate.valid()) {
+          utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
+
+          // Use the dedicated handler to perform the repaint.
+          drawPartOnCanvas(m_rightText, dstRectToUpdate, sizeRight, dstRect, uuid, env);
+        }
+      }
     }
 
     void
@@ -113,6 +142,36 @@ namespace sdl {
       palette.setColorForRole(core::engine::Palette::ColorRole::Dark, core::engine::Color::NamedColor::White);
 
       setPalette(palette);
+    }
+
+    void
+    TextBox::drawPartOnCanvas(const utils::Uuid& text,
+                              const utils::Boxf& localDst,
+                              const utils::Sizef& textSize,
+                              const utils::Boxf& toRepaint,
+                              const utils::Uuid& canvas,
+                              const utils::Boxf& env)
+    {
+      // We want to render the area of the input `text` which should be drawn at
+      // the position `localDst` on the parent if it were to be drawn.
+      // In order to find the actual area to repaint in `text` coordinate frame
+      // we can use the provided `toRepaint` which represents in parent frame
+      // (which is, in the same coordinate frame than the `localDst`) the area
+      // which actually needs to be repainted.
+      //
+      // The `env` represents the area of the parent canvas and allows to figure
+      // how the `localDst` should be expressed (it basically transforms the area
+      // into a top left corner based one).
+
+      // First retrieve the source area to repaint from the `text` texture.
+      utils::Boxf srcRect = convertToLocal(localDst, toRepaint);
+
+      // Convert both the source and destination areas to engine format.
+      utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(textSize, true));
+      utils::Boxf dstRectEngine = convertToEngineFormat(localDst, env);
+
+      // Draw the `text` onto the `canvas` at last.
+      getEngine().drawTexture(text, &srcRectEngine, &canvas, &dstRectEngine);
     }
 
   }

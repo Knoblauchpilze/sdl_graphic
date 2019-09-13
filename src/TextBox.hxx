@@ -43,9 +43,10 @@ namespace sdl {
       // We will handle first the motion of the cursor. It is triggered by using
       // the left and right arrows. The position is updated until no more move is
       // possible in the corresponding direction.
-      // TODO: We should handle `Home` and `End` button.
       if (canTriggerCursorMotion(e.getKey())) {
         // Assume left motion and change if needed.
+        // TODO: Because the repeat events are processed as `KeyPress` we don't handle
+        // them in the text box. Maybe we want to modify this ?
         CursorMotion motion = CursorMotion::Left;
         if (e.getKey() == core::engine::Key::Right || e.getKey() == core::engine::Key::End) {
           motion = CursorMotion::Right;
@@ -62,10 +63,8 @@ namespace sdl {
       }
 
       // Handle the removal of a character.
-      if (e.getKey() == core::engine::Key::BackSpace) {
-        removeCharFromText();
-
-        log("Text is now \"" + m_text + "\")", utils::Level::Notice);
+      if (e.getKey() == core::engine::Key::BackSpace || e.getKey() == core::engine::Key::Delete) {
+        removeCharFromText(e.getKey() == core::engine::Key::Delete);
 
         return toReturn;
       }
@@ -79,8 +78,6 @@ namespace sdl {
 
       // Add the corresponding char to the internal text.
       addCharToText(e.getChar());
-
-      log("Text is now \"" + m_text + "\"", utils::Level::Notice);
 
       return toReturn;
     }
@@ -99,18 +96,22 @@ namespace sdl {
     inline
     void
     TextBox::updateCursorState(const bool visible) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
       // Update the cursor's internal state.
       m_cursorVisible = visible;
 
-      // Request a repaint.
-      // TODO: Implement this probably through some addition texture displayed at the
-      // end of the text's texture.
-      log(std::string("Should make cursor ") + (visible ? "visible" : "hidden"), utils::Level::Warning);
+      // Request a repaint event.
+      requestRepaint();
     }
 
     inline
     void
     TextBox::updateCursorPosition(const CursorMotion& motion, bool fastForward) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
       // Based on the input direction, try to update the index at which the cursor
       // should be displayed.
       // Detect whether some text is visible in the textbox.
@@ -151,6 +152,9 @@ namespace sdl {
     inline
     void
     TextBox::addCharToText(const char c) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
       // Insert the char at the position specified by the cursor index.
       m_text.insert(m_text.begin() + m_cursorIndex, c);
 
@@ -162,29 +166,82 @@ namespace sdl {
       setTextChanged();
     }
 
+    inline
     void
-    TextBox::removeCharFromText() {
-      // Check whether we can remove anything at all: this is always possible
-      // except if:
-      // - the string is empty
-      // - the cursor index is before the first character of the string.
-      // Both conditions can be merged into a single one though because if
-      // the text is empty the cursor index will also be set to `0`.
-      if (m_cursorIndex == 0) {
-        // Not possible to remove anything, do not mark the text as dirty as
-        // nothing changed.
+    TextBox::removeCharFromText(bool forward) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // Check whether we can remove anything at all. Depending on the value
+      // of the `forward` boolean the conditions are not always the same and
+      // some configuration might be valid in one case and not in another.
+      // In the case of a `forward` suppression, we need to make sure that
+      // the cursor is not at the end of the string. On the other hand a non
+      // `forward` suppression is only possible when the cursor in not at the
+      // beginning of the string.
+      // In both cases, the text should not be empty, otherwise we can't do
+      // much removal.
+
+      // Check whether the text is empty.
+      if (m_text.empty()) {
+        // Nothing to be done.
         return;
       }
 
-      // Erase the corresponding character.
-      m_text.erase(m_text.begin() + m_cursorIndex - 1);
+      // Check trivial cases where the removal is not possible.
+      if (forward && m_cursorIndex >= m_text.size()) {
+        return;
+      }
+      if (!forward && m_cursorIndex == 0) {
+        return;
+      }
 
-      // The cursor index should be decremented so that it keeps indicating
-      // the same character.
-      --m_cursorIndex;
+      // Compute the index of the character to remove:
+      // - in the case of a `forward` suppression we want to remove the character
+      //   which is right in front of the current `m_cursorIndex`.
+      // - in the case of a `backward` suppression we want to remove a character
+      //   right behind the `m_cursorIndex`.
+      unsigned toRemove = 0u;
+
+      if (forward) {
+        toRemove = m_cursorIndex;
+      }
+      else {
+        toRemove = m_cursorIndex - 1u;
+      }
+
+      // Erase the corresponding character.
+      m_text.erase(m_text.begin() + toRemove);
+
+      // Now we need to update the cursor position so that it stays at the same
+      // position no matter the deletion. In case of a forward deletion we don't
+      // actually modify anything before the cursor's position so there's nothing
+      // more to do.
+      // In the case of a backward suppression we need to decrement the cursor's
+      // position in order to keep indicating the same position.
+      if (!forward) {
+        --m_cursorIndex;
+      }
 
       // Also we need to trigger a repaint as the text has changed.
       setTextChanged();
+    }
+
+    inline
+    void
+    TextBox::loadFont() {
+      // Only load the font if it has not yet been done.
+      if (!m_font.valid()) {
+        // Load the font.
+        m_font = getEngine().createColoredFont(m_fontName, getPalette(), m_fontSize);
+
+        if (!m_font.valid()) {
+          error(
+            std::string("Cannot create text \"") + m_text + "\"",
+            std::string("Invalid null font")
+          );
+        }
+      }
     }
 
     inline
@@ -193,19 +250,10 @@ namespace sdl {
       // Clear existing text if any.
       clearText();
 
-      // Load the text
+      // Load the text.
       if (!m_text.empty()) {
-        if (!m_font.valid()) {
-          // Load the font.
-          m_font = getEngine().createColoredFont(m_fontName, getPalette(), m_fontSize);
-
-          if (!m_font.valid()) {
-            error(
-              std::string("Cannot create text \"") + m_text + "\"",
-              std::string("Invalid null font")
-            );
-          }
-        }
+        // Load the font.
+        loadFont();
 
         // We need to render both the left and right part of the text. The left part
         // corresponds to the part of the internal `m_text` before the `m_cursorIndex`
@@ -228,6 +276,22 @@ namespace sdl {
 
     inline
     void
+    TextBox::loadCursor() {
+      // Clear existing cursor if any.
+      clearCursor();
+
+      // Load the cursor if needed.
+      if (!m_cursor.valid()) {
+        // Load the font.
+        loadFont();
+
+        // The cursor is actually represented with a '|' character.
+        m_cursor = getEngine().createTextureFromText(std::string("|"), m_font, m_textRole);
+      }
+    }
+
+    inline
+    void
     TextBox::clearText() {
       if (m_leftText.valid()) {
         getEngine().destroyTexture(m_leftText);
@@ -241,6 +305,15 @@ namespace sdl {
     }
 
     inline
+    void
+    TextBox::clearCursor() {
+      if (m_cursor.valid()) {
+        getEngine().destroyTexture(m_cursor);
+        m_cursor.invalidate();
+      }
+    }
+
+    inline
     bool
     TextBox::isCursorVisible() const noexcept {
       return m_cursorVisible;
@@ -249,13 +322,13 @@ namespace sdl {
     inline
     bool
     TextBox::hasLeftTextPart() const noexcept {
-      return m_cursorIndex == 0;
+      return m_cursorIndex != 0u;
     }
 
     inline
     bool
     TextBox::hasRightTextPart() const noexcept {
-      return m_cursorIndex >= m_text.size();
+      return m_cursorIndex < m_text.size();
     }
 
     inline
@@ -298,6 +371,7 @@ namespace sdl {
       );
     }
 
+    inline
     utils::Boxf
     TextBox::computeCursorPosition(const utils::Sizef& env) const noexcept {
       // The cursor should be placed right after the left part of the text. To do se we
@@ -331,12 +405,13 @@ namespace sdl {
       // of the text (i.e. the cursor is located before the first character) the `sizeLeft`
       // value will be null so we can use it the same way.
       return utils::Boxf(
-        -env.w() - 2.0f + sizeLeft.w() + sizeCursor.w() / 2.0f,
+        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() / 2.0f,
         0.0f,
         sizeCursor
       );
     }
 
+    inline
     utils::Boxf
     TextBox::computeRightTextPosition(const utils::Sizef& env) const noexcept {
       // The right part always comes after the left part and the cursor. Unlike the other
@@ -347,15 +422,23 @@ namespace sdl {
         sizeLeft = getEngine().queryTexture(m_leftText);
       }
 
-      // It is a problem if the cursor is not valid though.
-      if (!m_cursor.valid()) {
-        error(
-          std::string("Could not compute position of the right part of the text in textbox"),
-          std::string("Invalid cursor texture")
-        );
-      }
+      // If the cursor is not valid it might mean that we never actually displayed it. We
+      // can check that before failing. Also, no matter whether the texture is valid we
+      // only want to use it if the cursor is visible.
+      utils::Sizef sizeCursor;
 
-      utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
+      if (isCursorVisible()) {
+        if (!m_cursor.valid()) {
+          error(
+            std::string("Could not compute position of the right part of the text in textbox"),
+            std::string("Invalid cursor texture")
+          );
+        }
+
+        if (m_cursor.valid()) {
+          sizeCursor = getEngine().queryTexture(m_cursor);
+        }
+      }
 
       // It is also a problem if the right part is not valid.
       if (!m_rightText.valid()) {
@@ -365,7 +448,7 @@ namespace sdl {
         );
       }
 
-      utils::Sizef sizeRight = getEngine().queryTexture(m_cursor);
+      utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
 
       // Locate the right part of the text after the left and cursor part.
       return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeRight.w() / 2.0f, 0.0f, sizeRight);

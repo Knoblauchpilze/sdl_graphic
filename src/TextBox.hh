@@ -151,26 +151,51 @@ namespace sdl {
          *          by the cursor index. Note that if no character can be removed nothing happens.
          *          Note that a repaint event is triggered only if the removal of the character
          *          succeeds.
+         *          The input boolean allows to determine whether the character to remove should
+         *          be removed from the front of the cursor or behind it.
+         * @param forward - `true` if the character should be removed in front of the cursor's
+         *                  position and `false` if the character should be removed behind of the
+         *                  cursor's position.
          */
         void
-        removeCharFromText();
+        removeCharFromText(bool forward);
 
         /**
-         * @brief - Used to performt he loading of the text into the `m_textTex` texture. This
-         *          method handles the loading of the font if needed and the recreation of the
-         *          texture representing the text if needed.
+         * @brief - Used to perform the loading of the font to use to render the text.
+         */
+        void
+        loadFont();
+
+        /**
+         * @brief - Used to perform the loading of the text into the various textures used to
+         *          represent the text. This method handles the loading of the font if needed
+         *          and the recreation of the texture representing the text if needed.
          */
         void
         loadText();
 
         /**
-         * @brief - Destroys the texture contained in the `m_label` identifier if it is valid
-         *          and invalidate it.
+         * @brief - Used to perform the loading of the cursor into the `m_cursor` texture. This
+         *          method handles the loading of the font if needed even though we should hardly
+         *          ever need it in this function because the `loadText` method should handle it.
+         */
+        void
+        loadCursor();
+
+        /**
+         * @brief - Destroys the texture contained in the various textures used to represent the
+         *          text in thie box. Invalidate each one of them when the clearing is done.
          *          Should typically be used when recreating the text after a modification of
          *          the rendering mode.
          */
         void
         clearText();
+
+        /**
+         * @brief - Destroys the texture contained in the `m_cursor` and invalidates it.
+         */
+        void
+        clearCursor();
 
         /**
          * @brief - Used to determine whether the cursor is visible. This is a convenience wrapper
@@ -266,6 +291,30 @@ namespace sdl {
          */
         utils::Boxf
         computeRightTextPosition(const utils::Sizef& env) const noexcept;
+
+        /**
+         * @brief - Used to perform the drawing of the input part of the texture onto the specified
+         *          canvas. This allows to factor some of the code needed to draw each part of the
+         *          text displayed in this box as it's pretty similar.
+         *          Perform the computation to find out which part of the input texture should be
+         *          drawn to match the dst requirements.
+         * @param text - an identifier to draw on the canvas.
+         * @param localDst - the area expressed in parent coordinate frame of the area of the `text`
+         *                   to display.
+         * @param textSize - a description of the dimensions of the text to repaint.
+         * @param toRepaint - the area expressed in parent coordinate frame of the part which need
+         *                    to be repainted.
+         * @param canvas - an identifier of the canvas onto which the texture should be drawn.
+         * @param env - a box representing the dimensions of the canvas where the `text` is to be
+         *              drawn.
+         */
+        void
+        drawPartOnCanvas(const utils::Uuid& text,
+                         const utils::Boxf& localDst,
+                         const utils::Sizef& textSize,
+                         const utils::Boxf& toRepaint,
+                         const utils::Uuid& canvas,
+                         const utils::Boxf& env);
 
       private:
 
