@@ -143,6 +143,9 @@ namespace sdl {
           }
         }
       }
+
+      // Request a repaint as we modified the position of the cursor.
+      setTextChanged();
     }
 
     inline
