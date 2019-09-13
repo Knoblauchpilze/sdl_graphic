@@ -148,8 +148,8 @@ namespace sdl {
       // Convert both area to areas usable by the engine.
       utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
 
-      utils::Boxf srcRectEngine  = convertToEngineFormat(srcRect, utils::Boxf::fromSize(sizeText, true));
-      utils::Boxf dstRectEngine  = convertToEngineFormat(dstRectToUpdate, env);
+      utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(sizeText, true));
+      utils::Boxf dstRectEngine = convertToEngineFormat(dstRectToUpdate, env);
 
       // Repaint the needed part of the text.
       getEngine().drawTexture(m_label, &srcRectEngine, &uuid, &dstRectEngine);
