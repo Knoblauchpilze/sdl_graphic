@@ -161,6 +161,15 @@ namespace sdl {
         removeCharFromText(bool forward);
 
         /**
+         * @brief - Used to start a selection from the internal position of the cursor. This will
+         *          set the `m_selectionStarted` boolean to `true` and register the current cursor's
+         *          position in order to correctly select the part of the text which needs
+         *          selection.
+         */
+        void
+        startSelection() noexcept;
+
+        /**
          * @brief - Used to perform the loading of the font to use to render the text.
          */
         void
@@ -207,26 +216,75 @@ namespace sdl {
         isCursorVisible() const noexcept;
 
         /**
-         * @bvrief - Used to determine whether a left text part is active for this textbox. We
-         *           check whether the cursor index is set to be located before the first character
-         *           of this textbox.
-         *           Note that this does not tell whether the cursor is visible or not.
-         * @return - `true` if the cursor index is set to at least after the first character of
-         *           this textbox and `false` otherwise.
+         * *@brief - Used to determine whether the user is currently performing a text selection
+         *           operation.
+         * @return - `true` if a text selection operation is being performed and `false` otherwise.
+         */
+        bool
+        selectionStarted() const noexcept;
+
+        /**
+         * @brief - Used to determine whether a left text part is active for this textbox. We
+         *          check whether the cursor's position and the selection start allow for a
+         *          part of the internal text to remain visible.
+         *          Note that this does not tell whether the cursor is visible or not.
+         * @return - `true` if a left text part exist for this box.
          */
         bool
         hasLeftTextPart() const noexcept;
 
         /**
-         * @bvrief - Used to determine whether a right text part is active for this textbox. We
-         *           check whether the cursor index is set to be located after the last character
-         *           of this textbox.
-         *           Note that this does not tell whether the cursor is visible or not.
-         * @return - `true` if the cursor index is set to at least before the last character of
-         *           this textbox and `false` otherwise.
+         * @brief - Used to retrieve a string describing the content of the left part of the
+         *          text based on the internal cursor's position and text.
+         *          Note that if `hasLeftTextPart` returns `false` the returned string will
+         *          be empty.
+         * @return - a string representing the part of the internal `m_text` which is assigned
+         *           to the left part of the text. Can be empty.
+         */
+        std::string
+        getLeftText() const noexcept;
+
+        /**
+         * @brief - Used to determine whether a selected text part is active for this textbox. We
+         *           check whether the selection is started and if the cursor's position has been
+         *           changed to produce a valid interval between the value `m_cursorIndex` and the
+         *           value `m_selectionStart`.
+         * @return - `true` if a selected text part exist for this box.
+         */
+        bool
+        hasSelectedTextPart() const noexcept;
+
+        /**
+         * @brief - Used to retrieve a string describing the content of the selected part the text
+         *          based on the internal cursor's position and text.
+         *          Note that if `hasSelectedTextPart` returns `false` the returned string will
+         *          be empty.
+         * @return - a string representing the part of the internal `m_text` which is assigned
+         *           to the selected part of the text. Can be empty.
+         */
+        std::string
+        getSelectedText() const noexcept;
+
+        /**
+         * @brief - Used to determine whether a right text part is active for this textbox. We
+         *          check whether the cursor's position and the selection start allow for a
+         *          part of the internal text to remain visible.
+         *          Note that this does not tell whether the cursor is visible or not.
+         * @return - `true` if a right text part exist for this box.
          */
         bool
         hasRightTextPart() const noexcept;
+
+        /**
+         * @brief - Used to retrieve a string describing the content of the right part the text
+         *          based on the internal cursor's position and text.
+         *          Note that if `hasRightTextPart` returns `false` the returned string will
+         *          be empty.
+         * @return - a string representing the part of the internal `m_text` which is assigned
+         *           to the right part of the text. Can be empty.
+         */
+        std::string
+        getRightText() const noexcept;
 
         /**
          * @brief - Used to determine whether any of the endering properties of the text has
@@ -250,8 +308,9 @@ namespace sdl {
          * @brief - Used to compute the position in the parent area for the left part of the text
          *          displayed in this text box. The left part is most of the times on the left most
          *          part of the widget except when the cursor is set to be before the first letter
-         *          of the text. In which case though the left part of the text should be invalid
-         *          so it should not happen.
+         *          of the text or if a selection makes this part inexistant. In which case though
+         *          the left part of the text should be invalid and this function should not be
+         *          called anyways.
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
@@ -261,6 +320,21 @@ namespace sdl {
          */
         utils::Boxf
         computeLeftTextPosition(const utils::Sizef& env) const noexcept;
+
+        /**
+         * @brief - Used to compute the position in the parent area for the part of the text which
+         *          is selected for modifications. This part of the text is usually displayed with
+         *          a different background and color. In order to be displayed we obviously need
+         *          to have a valid selection started.
+         *          In order to provide accurate computation of the position relatively to a parent
+         *          area the user needs to provide a size indicating the available space on said
+         *          parent area. The position will be returned as if centered in this parent space.
+         * @param env - a description of the available space in the parent area.
+         * @return - a box indicating both the dimensions of the selected part of the text and its
+         *           position on the parent area.
+         */
+        utils::Boxf
+        computeSelectedTextPosition(const utils::Sizef& env) const noexcept;
 
         /**
          * @brief - Used to compute the position in the parent area for the cursor displayed to help
@@ -279,9 +353,9 @@ namespace sdl {
         /**
          * @brief - Used to compute the position in the parent area for the right part of the text
          *          displayed in this text box. The right part comes after the left part and usually
-         *          after the cursor. The only exception is when the cursor is set to be displayed
-         *          after the last character. In which case though the right part of the text should
-         *          be invalid so it should not happen.
+         *          after the cursor and selection. The only exception is when the cursor is set to
+         *          be displayed after the last character. In which case though the right part of
+         *          the text should be invalid and this function should not be called anyways.
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
@@ -347,6 +421,24 @@ namespace sdl {
          */
         bool m_cursorVisible;
 
+
+        /**
+         * @brief - Describes the starting index of the selected text. Basically we consider that
+         *          the text ocated between the `m_cursorIndex` and the `m_selectionStart` is to
+         *          be rendered as selected text. Note that depending on the actions of the user
+         *          after starting the selection the `m_selectionStart` can either be larger or
+         *          smaller than the `m_cursorIndex`.
+         *          The value contained in this attribute is only relevant if the boolean named
+         *          `m_selectionStarted` is `true`.
+         */
+        unsigned m_selectionStart;
+
+        /**
+         * @brief - This value is `true` whenever a text selection operation is running and `false`
+         *          otherwise.
+         */
+        bool m_selectionStarted;
+
         /**
          * @brief - Information about the font to use to render the text. We use the `m_fontName`
          *          and `m_fontSize` to store information while the font is not loaded yet. The
@@ -383,18 +475,25 @@ namespace sdl {
         /**
          * @brief - Used to perform some caching of the data for this textbox. In order to account for
          *          the possible positions of the cursor when editing the text of the text box we need
-         *          three separate textures to represent the text:
+         *          four separate textures to represent the text:
          *            - a texture to represent the text on the left of the cursor
          *            - a texture to represent the cursor itself
          *            - a texture to represent the text on the right of the cursor
+         *            - a texture to represent the text currently selected
          * Not all of them are always valid, and the caching only holds until a character is added to
          * the text of this box or until the cursor is moved.
          * These values are also invalidated whenever the font or the text size is modified.
          * Note that unless the `m_textChanged` is set to `true` the content of these textures can be
          * used without modifications.
+         * A general rule of thumb is that on screen the various textures are represented in an order
+         * as follows:
+         *  - the left part (`m_leftText`).
+         *  - the cursor (`m_cursor`) or the selected text (`m_selectedText`).
+         *  - the right part (`m_rightText`).
          */
         utils::Uuid m_leftText;
         utils::Uuid m_cursor;
+        utils::Uuid m_selectedText;
         utils::Uuid m_rightText;
 
         /**

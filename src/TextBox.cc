@@ -15,6 +15,9 @@ namespace sdl {
       m_cursorIndex(0u),
       m_cursorVisible(false),
 
+      m_selectionStart(m_cursorIndex),
+      m_selectionStarted(false),
+
       m_fontName(font),
       m_fontSize(size),
       m_font(),
@@ -95,6 +98,22 @@ namespace sdl {
         }
       }
 
+      // Render the selected part of the text if it is valid.
+      if (m_selectedText.valid() && hasSelectedTextPart()) {
+        // Determine the position of the selected part of the text.
+        utils::Boxf dstRect = computeSelectedTextPosition(sizeEnv);
+
+        // Determine whether some part of the selected text should be repainted.
+        utils::Boxf dstRectToUpdate = dstRect.intersect(area);
+
+        if (dstRectToUpdate.valid()) {
+          utils::Sizef sizeSelected = getEngine().queryTexture(m_selectedText);
+
+          // Use the dedicated handler to perform the repaint.
+          drawPartOnCanvas(m_selectedText, dstRectToUpdate, sizeSelected, dstRect, uuid, env);
+        }
+      }
+
       // Render the cursor if needed (i.e. if the keyboard focus is active).
       if (m_cursor.valid() && isCursorVisible()) {
         // Determine the position of the cursor.
@@ -142,6 +161,107 @@ namespace sdl {
       palette.setColorForRole(core::engine::Palette::ColorRole::Dark, core::engine::Color::NamedColor::White);
 
       setPalette(palette);
+    }
+
+    void
+    TextBox::removeCharFromText(bool forward) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // Check whether we can remove anything at all. Depending on the value
+      // of the `forward` boolean the conditions are not always the same and
+      // some configuration might be valid in one case and not in another.
+      // In the case of a `forward` suppression, we need to make sure that
+      // the cursor is not at the end of the string. On the other hand a non
+      // `forward` suppression is only possible when the cursor in not at the
+      // beginning of the string.
+      // In both cases, the text should not be empty, otherwise we can't do
+      // much removal.
+      // Another aspect to consider is whether a selection is started when
+      // entering this function. In this case it means that we might need to
+      // remove more than one char from the internal text.
+
+      // Check whether the text is empty.
+      if (m_text.empty()) {
+        // Nothing to be done.
+        return;
+      }
+
+      // Check trivial cases where the removal is not possible.
+      // Such cases are described below:
+      // - no selection is active, a forward removal is asked but the cursor
+      //   is at the end of the text.
+      // - no selection is active, a backward removal is asked but the
+      //   cursor is at the beginning of the text.
+      // - the selection is active but no text is actually selected.
+      if (selectionStarted()) {
+        if (m_cursorIndex == m_selectionStart) {
+          return;
+        }
+      }
+      else {
+        // Handle cases where no selection is active.
+        if (forward && m_cursorIndex >= m_text.size()) {
+          return;
+        }
+        if (!forward && m_cursorIndex == 0) {
+          return;
+        }
+      }
+
+      // Compute the index of the character(s) to remove:
+      // - in the case of a `forward` suppression we want to remove the character
+      //   which is right in front of the current `m_cursorIndex`.
+      // - in the case of a `backward` suppression we want to remove a character
+      //   right behind the `m_cursorIndex`.
+      // - in the case of an active selection we want to remove all the characters
+      //   between the `m_selectionStart` and the `m_cursorIndex`.
+      //
+      // In order to provide some kind of generic behqvior we will rely on providing
+      // two iterators representing the character to erase. This allows to seamlessly
+      // handle both the selection and the single character deletion.
+      unsigned toRemoveBegin = 0u;
+      unsigned toRemoveEnd = 0u;
+
+      if (selectionStarted()) {
+        toRemoveBegin = std::min(m_cursorIndex, m_selectionStart);
+        toRemoveEnd = std::max(m_cursorIndex, m_selectionStart);
+      }
+      else {
+        if (forward) {
+          toRemoveBegin = m_cursorIndex;
+          toRemoveEnd = m_cursorIndex + 1u;
+        }
+        else {
+          toRemoveBegin = m_cursorIndex - 1u;
+          toRemoveEnd = m_cursorIndex;
+        }
+      }
+
+      // Erase the corresponding character.
+      m_text.erase(m_text.begin() + toRemoveBegin, m_text.begin() + toRemoveEnd);
+
+      // Now we need to update the cursor position so that it stays at the same
+      // position no matter the deletion.
+      // The first big variation is whether we removed a whole block of text by
+      // using a selection or if we just removed a single character. In this
+      // mode the `forward` does not mean much because the entire selection is
+      // deleted no matter its value. We actually want to move the cursor to the
+      // start of the selection.
+      // In case of a forward deletion we don't actually modify anything before
+      // the cursor's position so there's nothing more to do.
+      // In the case of a backward suppression we need to decrement the cursor's
+      // position in order to keep indicating the same position.
+      if (selectionStarted()) {
+        // Put back the cursor after the first character before the deleted part.
+        m_cursorIndex = toRemoveBegin;
+      }
+      else if (!forward) {
+        --m_cursorIndex;
+      }
+
+      // Also we need to trigger a repaint as the text has changed.
+      setTextChanged();
     }
 
     void

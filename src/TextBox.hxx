@@ -34,9 +34,10 @@ namespace sdl {
     bool
     TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
       // Depending on the type of key pressed by the user we might:
-      // - add a new character to the text displayed
-      // - move the position of the cursor
+      // - add a new character to the text displayed.
+      // - move the position of the cursor.
       // - remove a character from the text displayed.
+      // - stop processing selection.
       // - do nothing if the key is not handled.
       const bool toReturn = core::SdlWidget::keyReleaseEvent(e);
 
@@ -56,10 +57,24 @@ namespace sdl {
           e.getKey() == core::engine::Key::End
         );
 
+        // Before updating the cursor position we need to detect when the user
+        // starts a selection: this is triggered by using the shift modifier and
+        // then moving the cursor.
+        if (e.getModifiers().shiftEnabled()) {
+          startSelection();
+        }
+
         updateCursorPosition(motion, fastForward);
 
         // Use the base handler to provide the return value.
         return toReturn;
+      }
+
+      // Handle the end of the selection.
+      if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
+        m_selectionStarted = false;
+
+        requestRepaint();
       }
 
       // Handle the removal of a character.
@@ -168,63 +183,12 @@ namespace sdl {
 
     inline
     void
-    TextBox::removeCharFromText(bool forward) {
-      // Lock this object.
-      Guard guard(m_propsLocker);
+    TextBox::startSelection() noexcept {
+      // Set the selection has started.
+      m_selectionStarted = true;
 
-      // Check whether we can remove anything at all. Depending on the value
-      // of the `forward` boolean the conditions are not always the same and
-      // some configuration might be valid in one case and not in another.
-      // In the case of a `forward` suppression, we need to make sure that
-      // the cursor is not at the end of the string. On the other hand a non
-      // `forward` suppression is only possible when the cursor in not at the
-      // beginning of the string.
-      // In both cases, the text should not be empty, otherwise we can't do
-      // much removal.
-
-      // Check whether the text is empty.
-      if (m_text.empty()) {
-        // Nothing to be done.
-        return;
-      }
-
-      // Check trivial cases where the removal is not possible.
-      if (forward && m_cursorIndex >= m_text.size()) {
-        return;
-      }
-      if (!forward && m_cursorIndex == 0) {
-        return;
-      }
-
-      // Compute the index of the character to remove:
-      // - in the case of a `forward` suppression we want to remove the character
-      //   which is right in front of the current `m_cursorIndex`.
-      // - in the case of a `backward` suppression we want to remove a character
-      //   right behind the `m_cursorIndex`.
-      unsigned toRemove = 0u;
-
-      if (forward) {
-        toRemove = m_cursorIndex;
-      }
-      else {
-        toRemove = m_cursorIndex - 1u;
-      }
-
-      // Erase the corresponding character.
-      m_text.erase(m_text.begin() + toRemove);
-
-      // Now we need to update the cursor position so that it stays at the same
-      // position no matter the deletion. In case of a forward deletion we don't
-      // actually modify anything before the cursor's position so there's nothing
-      // more to do.
-      // In the case of a backward suppression we need to decrement the cursor's
-      // position in order to keep indicating the same position.
-      if (!forward) {
-        --m_cursorIndex;
-      }
-
-      // Also we need to trigger a repaint as the text has changed.
-      setTextChanged();
+      // Register the current cursor's index in order to perform the selection.
+      m_selectionStart = m_cursorIndex;
     }
 
     inline
@@ -255,21 +219,31 @@ namespace sdl {
         // Load the font.
         loadFont();
 
-        // We need to render both the left and right part of the text. The left part
-        // corresponds to the part of the internal `m_text` before the `m_cursorIndex`
-        // value while the right part corresponds to the part that is after that.
-        // Depending on the value of the `m_cursorIndex` one of the part might be
-        // empty.
+        // We need to render each part of the text: this include the left part of
+        // the text, the selected part and the right part of it.
+        // The left part corresponds to the part of the internal text which is both
+        // before the cursor and the start of the selection part.
+        // The selection part corresponds to the area defined between the cursor's
+        // position and the start of the selection.
+        // The right part corresponds to the part of the internal text which is both
+        // after the cursor and the start of the selection part.
+        // Depending on the combination of values for the cursor's position and the
+        // selection start some part might be empty.
 
-        // The left part is not empty if the `m_cursorIndex` is greater than `0`.
-        if (m_cursorIndex > 0u) {
-          m_leftText = getEngine().createTextureFromText(m_text.substr(0u, m_cursorIndex), m_font, m_textRole);
+        // Render each part.
+        if (hasLeftTextPart()) {
+          // TODO: Update this.
+          m_leftText = getEngine().createTextureFromText(getLeftText(), m_font, m_textRole);
         }
 
-        // The right part is not empty as long as the `m_cursorIndex` is smaller than
-        // `m_text.size()`.
-        if (m_cursorIndex < m_text.size()) {
-          m_rightText = getEngine().createTextureFromText(m_text.substr(m_cursorIndex), m_font, m_textRole);
+        if (hasSelectedTextPart()) {
+          // TODO: Update this.
+          m_selectedText = getEngine().createTextureFromText(getSelectedText(), m_font, m_textRole);
+        }
+
+        if (hasRightTextPart()) {
+          // TODO: Update this.
+          m_rightText = getEngine().createTextureFromText(getRightText(), m_font, m_textRole);
         }
       }
     }
@@ -302,6 +276,11 @@ namespace sdl {
         getEngine().destroyTexture(m_rightText);
         m_rightText.invalidate();
       }
+
+      if (m_selectedText.valid()) {
+        getEngine().destroyTexture(m_selectedText);
+        m_selectedText.invalidate();
+      }
     }
 
     inline
@@ -321,14 +300,80 @@ namespace sdl {
 
     inline
     bool
+    TextBox::selectionStarted() const noexcept {
+      return m_selectionStarted;
+    }
+
+    inline
+    bool
     TextBox::hasLeftTextPart() const noexcept {
-      return m_cursorIndex != 0u;
+      // Basically we have to verify that both the cursor's index and the selection start
+      // are greater than `0` which means that a part of the text should still be displayed
+      // normally.
+      // If no selection is started only the cursor's position is relevant.
+      const unsigned lowerBound = (
+        selectionStarted() ?
+        std::min(m_cursorIndex, m_selectionStart) :
+        m_cursorIndex
+      );
+
+      // A left part exist if the lower bound is larger than `0`.
+      return lowerBound > 0u;
+    }
+
+    inline
+    std::string
+    TextBox::getLeftText() const noexcept {
+      // TODO: Handle selection this.
+      return m_text.substr(0u, m_cursorIndex);
+    }
+
+    inline
+    bool
+    TextBox::hasSelectedTextPart() const noexcept {
+      // A selected text part exist if the selection is active and if the interval defined
+      // by `[min(cursor position, selection start), max(cursor position, selection start)]`
+      // is valid.
+
+      if (!selectionStarted()) {
+        return false;
+      }
+
+      const unsigned lowerBound = std::min(m_cursorIndex, m_selectionStart);
+      const unsigned upperBound = std::max(m_cursorIndex, m_selectionStart);
+
+      return lowerBound != upperBound;
+    }
+
+    inline
+    std::string
+    TextBox::getSelectedText() const noexcept {
+      // TODO: Implement this.
+      return std::string();
     }
 
     inline
     bool
     TextBox::hasRightTextPart() const noexcept {
-      return m_cursorIndex < m_text.size();
+      // Basically we have to verify that both the cursor's index and the selection start
+      // are smaller than the length of the internal text which means that a part of the
+      // text should still be displayed normally.
+      // If no selection is started only the cursor's position is relevant.
+      const unsigned upperBound = (
+        selectionStarted() ?
+        std::max(m_cursorIndex, m_selectionStart) :
+        m_cursorIndex
+      );
+
+      // A right part exist if the upper bound is smaller than the internal text's size.
+      return upperBound < m_text.size();
+    }
+
+    inline
+    std::string
+    TextBox::getRightText() const noexcept {
+      // TODO: Handle selection.
+      return m_text.substr(m_cursorIndex);
     }
 
     inline
@@ -369,6 +414,13 @@ namespace sdl {
         0.0f,
         sizeLeft
       );
+    }
+
+    inline
+    utils::Boxf
+    TextBox::computeSelectedTextPosition(const utils::Sizef& /*env*/) const noexcept {
+      // TODO: Implement this.
+      return utils::Boxf();
     }
 
     inline
