@@ -59,6 +59,11 @@ namespace sdl {
       // TODO: Because the repeat events are processed as `KeyPress` we don't handle
       // them in the text box. Maybe we want to modify this ?
       // TODO: We might also want to allow selection with the mouse ?
+      // TODO: Both problems could be partly resolved if we were to refactor the events
+      // system by creating a `MouseClick` and a `KeyPressed` both regrouping the mouse
+      // button down and mouse button release and same for the key. This would allow more
+      // complex events to be built like `Drag` and would overall allow for easier semantic
+      // than the current `keyPressed` and `keyReleased`.
 
       // Depending on the type of key pressed by the user we might:
       // - add a new character to the text displayed.
@@ -193,6 +198,7 @@ namespace sdl {
         if (dstRectToUpdate.valid()) {
           utils::Sizef sizeSelectedBg = getEngine().queryTexture(m_selectionBackground);
 
+          // TODO: We should probably prevent the filling of the texture at each repaint.
           log("Should fill selection bg with " + getPalette().getColorForRole(getEngine().getTextureRole(m_selectionBackground)).toString());
           getEngine().fillTexture(m_selectionBackground, getPalette(), nullptr);
 
