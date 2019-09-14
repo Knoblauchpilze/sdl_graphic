@@ -91,12 +91,14 @@ namespace sdl {
         }
 
         // We should also stop the selection in case a motion key is pressed while
-        // the shift modifier is not pressed.
+        // the shift modifier is not pressed. This actually cancels the update of
+        // the cursor position.
         if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
           stopSelection();
         }
-
-        updateCursorPosition(motion, fastForward);
+        else {
+          updateCursorPosition(motion, fastForward);
+        }
 
         // Use the base handler to provide the return value.
         return toReturn;
@@ -397,18 +399,21 @@ namespace sdl {
       }
 
       // Retrieve the size of the cursor text: this is only the case if the current cursor's
-      // position is smaller than the starting index of the selection.
+      // position is smaller than the starting index of the selection and if the cursor is
+      // visible.
       utils::Sizef sizeCursor;
       if (selectionStarted() && m_cursorIndex < m_selectionStart) {
         // Check whether the cursor is valid.
-        if (!m_cursor.valid()) {
+        if (!m_cursor.valid() && isCursorVisible()) {
           error(
             std::string("Could not compute selected text position in textbox"),
             std::string("Invalid cursor texture")
           );
         }
 
-        sizeCursor = getEngine().queryTexture(m_cursor);
+        if (isCursorVisible()) {
+          sizeCursor = getEngine().queryTexture(m_cursor);
+        }
       }
 
       // Retrieve the size of the selected text.
@@ -440,18 +445,21 @@ namespace sdl {
       }
 
       // Retrieve the size of the cursor text: this is only the case if the current cursor's
-      // position is smaller than the starting index of the selection.
+      // position is smaller than the starting index of the selection and if the cursor is
+      // visible.
       utils::Sizef sizeCursor;
       if (selectionStarted() && m_cursorIndex < m_selectionStart) {
         // Check whether the cursor is valid.
-        if (!m_cursor.valid()) {
+        if (!m_cursor.valid() && isCursorVisible()) {
           error(
             std::string("Could not compute selected text position in textbox"),
             std::string("Invalid cursor texture")
           );
         }
 
-        sizeCursor = getEngine().queryTexture(m_cursor);
+        if (isCursorVisible()) {
+          sizeCursor = getEngine().queryTexture(m_cursor);
+        }
       }
 
       // Retrieve the size of the selected text.
