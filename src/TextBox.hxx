@@ -136,9 +136,11 @@ namespace sdl {
       // Stop the selection.
       m_selectionStarted = false;
 
-      // Request a repaint if the selection contained at least one character.
+      // Request a repaint if the selection contained at least one character:
+      // indeed we can go on and request a text changed because the text is
+      // no longer selected.
       if (m_selectionStart != m_cursorIndex) {
-        requestRepaint();
+        setTextChanged();
       }
     }
 
