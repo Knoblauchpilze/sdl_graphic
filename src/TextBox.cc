@@ -30,6 +30,8 @@ namespace sdl {
       m_cursor(),
       m_rightText(),
 
+      m_selectionBackground(),
+
       m_propsLocker()
     {
       // Build the internal state of this box.
@@ -47,6 +49,86 @@ namespace sdl {
       if (m_font.valid()) {
         getEngine().destroyColoredFont(m_font);
       }
+    }
+
+    bool
+    TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // TODO: Because the repeat events are processed as `KeyPress` we don't handle
+      // them in the text box. Maybe we want to modify this ?
+      // TODO: We might also want to allow selection with the mouse ?
+
+      // Depending on the type of key pressed by the user we might:
+      // - add a new character to the text displayed.
+      // - move the position of the cursor.
+      // - remove a character from the text displayed.
+      // - stop processing selection.
+      // - do nothing if the key is not handled.
+      const bool toReturn = core::SdlWidget::keyReleaseEvent(e);
+
+      // We will handle first the motion of the cursor. It is triggered by using
+      // the left and right arrows. The position is updated until no more move is
+      // possible in the corresponding direction.
+      if (canTriggerCursorMotion(e.getKey())) {
+        // Assume left motion and change if needed.
+        CursorMotion motion = CursorMotion::Left;
+        if (e.getKey() == core::engine::Key::Right || e.getKey() == core::engine::Key::End) {
+          motion = CursorMotion::Right;
+        }
+        const bool fastForward = (
+          e.getKey() == core::engine::Key::Home ||
+          e.getKey() == core::engine::Key::End
+        );
+
+        // Before updating the cursor position we need to detect when the user
+        // starts a selection: this is triggered by using the shift modifier and
+        // then moving the cursor. We only want to start a selection if we're not
+        // already in the process of selected some text.
+        if (e.getModifiers().shiftEnabled() && !selectionStarted()) {
+          startSelection();
+        }
+
+        // We should also stop the selection in case a motion key is pressed while
+        // the shift modifier is not pressed.
+        if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
+          stopSelection();
+        }
+
+        updateCursorPosition(motion, fastForward);
+
+        // Use the base handler to provide the return value.
+        return toReturn;
+      }
+
+      // Handle the removal of a character.
+      if (e.getKey() == core::engine::Key::BackSpace || e.getKey() == core::engine::Key::Delete) {
+        // Perform the character removal.
+        removeCharFromText(e.getKey() == core::engine::Key::Delete);
+
+        // Handle the end of the selection if needed: we only want to handle it after
+        // performing the deletion of the character(s) because that's how most of the
+        // other tools handle it.
+        if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
+          stopSelection();
+        }
+
+        // Return the value provided by the base handler.
+        return toReturn;
+      }
+
+      // Check whether the key is alphanumeric: if this is not the case we can't do much
+      // so we will just trash the event for now.
+      if (!e.isAlphaNumeric()) {
+        // Use the return value provided by the base handler.
+        return toReturn;
+      }
+
+      // Add the corresponding char to the internal text.
+      addCharToText(e.getChar());
+
+      return toReturn;
     }
 
     void
@@ -95,6 +177,25 @@ namespace sdl {
 
           // Use the dedicated handler to perform the repaint.
           drawPartOnCanvas(m_leftText, dstRectToUpdate, sizeLeft, dstRect, uuid, env);
+        }
+      }
+
+      // Render the selected part of the text if it is valid.
+      if (m_selectionBackground.valid() && hasSelectedTextPart()) {
+        // Determine the position of the selected part of the text.
+        utils::Boxf dstRect = computeSelectedTextPosition(sizeEnv);
+
+        // Determine whether some part of the selected text should be repainted.
+        utils::Boxf dstRectToUpdate = dstRect.intersect(area);
+
+        if (dstRectToUpdate.valid()) {
+          utils::Sizef sizeSelectedBg = getEngine().queryTexture(m_selectionBackground);
+
+          log("Should fill selection bg with " + getPalette().getColorForRole(getEngine().getTextureRole(m_selectionBackground)).toString());
+          getEngine().fillTexture(m_selectionBackground, getPalette(), nullptr);
+
+          // Use the dedicated handler to perform the repaint.
+          drawPartOnCanvas(m_selectionBackground, dstRectToUpdate, sizeSelectedBg, dstRect, uuid, env);
         }
       }
 
@@ -165,9 +266,6 @@ namespace sdl {
 
     void
     TextBox::removeCharFromText(bool forward) {
-      // Lock this object.
-      Guard guard(m_propsLocker);
-
       // Check whether we can remove anything at all. Depending on the value
       // of the `forward` boolean the conditions are not always the same and
       // some configuration might be valid in one case and not in another.
@@ -262,6 +360,216 @@ namespace sdl {
 
       // Also we need to trigger a repaint as the text has changed.
       setTextChanged();
+    }
+
+    utils::Boxf
+    TextBox::computeLeftTextPosition(const utils::Sizef& env) const noexcept {
+      // The left part of the text is always on the left part of the widget. It cannot
+      // be offseted by the cursor because the whole point of the `left part` of the
+      // text is to be on the left of the cursor.
+      // We assume that this method should not be called if the `m_leftText` texture is
+      // not valid, otherwise we're not able to compute a valid position.
+      if (!m_leftText.valid()) {
+        error(
+          std::string("Could not compute position of the left part of the text in textbox"),
+          std::string("Invalid text texture")
+        );
+      }
+      utils::Sizef sizeLeft = getEngine().queryTexture(m_leftText);
+
+      return utils::Boxf(
+        -env.w() / 2.0f + sizeLeft.w() / 2.0f,
+        0.0f,
+        sizeLeft
+      );
+    }
+
+    utils::Boxf
+    TextBox::computeSelectedTextPosition(const utils::Sizef& env) const noexcept {
+      // The selected part of the text is on the right of the left part of the text,
+      // and might be before or after the cursor depending on the current position of
+      // the cursor compared to the selection start.
+
+      // Retrieve the size of the left part of the text if any.
+      utils::Sizef sizeLeft;
+      if (m_leftText.valid()) {
+        sizeLeft = getEngine().queryTexture(m_leftText);
+      }
+
+      // Retrieve the size of the cursor text: this is only the case if the current cursor's
+      // position is smaller than the starting index of the selection.
+      utils::Sizef sizeCursor;
+      if (selectionStarted() && m_cursorIndex < m_selectionStart) {
+        // Check whether the cursor is valid.
+        if (!m_cursor.valid()) {
+          error(
+            std::string("Could not compute selected text position in textbox"),
+            std::string("Invalid cursor texture")
+          );
+        }
+
+        sizeCursor = getEngine().queryTexture(m_cursor);
+      }
+
+      // Retrieve the size of the selected text.
+      if (!m_selectedText.valid()) {
+        error(
+          std::string("Could not compute position of the selected part of the text in textbox"),
+          std::string("Invalid text texture")
+        );
+      }
+      utils::Sizef sizeSelected = getEngine().queryTexture(m_selectedText);
+
+      return utils::Boxf(
+        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeSelected.w() / 2.0f,
+        0.0f,
+        sizeSelected
+      );
+    }
+
+    utils::Boxf
+    TextBox::computeSelectedBackgroundPosition(const utils::Sizef& env) const noexcept {
+      // The selected part of the text is on the right of the left part of the text,
+      // and might be before or after the cursor depending on the current position of
+      // the cursor compared to the selection start.
+
+      // Retrieve the size of the left part of the text if any.
+      utils::Sizef sizeLeft;
+      if (m_leftText.valid()) {
+        sizeLeft = getEngine().queryTexture(m_leftText);
+      }
+
+      // Retrieve the size of the cursor text: this is only the case if the current cursor's
+      // position is smaller than the starting index of the selection.
+      utils::Sizef sizeCursor;
+      if (selectionStarted() && m_cursorIndex < m_selectionStart) {
+        // Check whether the cursor is valid.
+        if (!m_cursor.valid()) {
+          error(
+            std::string("Could not compute selected text position in textbox"),
+            std::string("Invalid cursor texture")
+          );
+        }
+
+        sizeCursor = getEngine().queryTexture(m_cursor);
+      }
+
+      // Retrieve the size of the selected text.
+      if (!m_selectedText.valid()) {
+        error(
+          std::string("Could not compute position of the selected part of the text in textbox"),
+          std::string("Invalid text texture")
+        );
+      }
+      utils::Sizef sizeSelectedBg = getEngine().queryTexture(m_selectionBackground);
+
+      return utils::Boxf(
+        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeSelectedBg.w() / 2.0f,
+        0.0f,
+        sizeSelectedBg
+      );
+    }
+
+    utils::Boxf
+    TextBox::computeCursorPosition(const utils::Sizef& env) const noexcept {
+      // The cursor should be placed after the left part of the text, and after the selected
+      // part of the text if the current cursor's index is larger than the selection start.
+      // To provide a valid position we need to access the size of the left part of the text
+      // if any and also the size of the selected part if any.
+
+      // Retrieve the size of the left part of the text if any.
+      utils::Sizef sizeLeft;
+      if (m_leftText.valid()) {
+        sizeLeft = getEngine().queryTexture(m_leftText);
+      }
+
+      // Retrieve the size of the selected text: this is only the case if the current cursor's
+      // position is larger than the starting index of the selection.
+      utils::Sizef sizeSelected;
+      if (selectionStarted() && m_cursorIndex > m_selectionStart) {
+        // Check whether the selected text is valid.
+        if (!m_selectedText.valid()) {
+          error(
+            std::string("Could not compute cursor position in textbox"),
+            std::string("Invalid selected text texture")
+          );
+        }
+
+        sizeSelected = getEngine().queryTexture(m_selectedText);
+      }
+
+      // Retrieve the dimensions of the cursor so that we can create an accurate position.
+      // We need to ensure both that the cursor is valid and that it's visible.
+      if (!m_cursor.valid()) {
+        error(
+          std::string("Could not compute cursor position in textbox"),
+          std::string("Invalid cursor texture")
+        );
+      }
+      if (!isCursorVisible()) {
+        error(
+          std::string("Could not compute cursor position in textbox"),
+          std::string("Cursor is not visible")
+        );
+      }
+
+      utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
+
+      // Locate the cursor on the right of the left part of the text. If there's no left part
+      // of the text (i.e. the cursor is located before the first character) the `sizeLeft`
+      // value will be null so we can use it the same way.
+      return utils::Boxf(
+        -env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() + sizeCursor.w() / 2.0f,
+        0.0f,
+        sizeCursor
+      );
+    }
+
+    utils::Boxf
+    TextBox::computeRightTextPosition(const utils::Sizef& env) const noexcept {
+      // The right part always comes after the left part, the selected part and the cursor.
+      
+      // Retrieve the size of the left part if any.
+      utils::Sizef sizeLeft;
+      if (m_leftText.valid()) {
+        sizeLeft = getEngine().queryTexture(m_leftText);
+      }
+
+      // Retrieve the size of the selected part if any.
+      utils::Sizef sizeSelected;
+      if (m_selectedText.valid()) {
+        sizeSelected = getEngine().queryTexture(m_selectedText);
+      }
+
+      // If the cursor is not valid it might mean that we never actually displayed it. We
+      // can check that before failing. Also, no matter whether the texture is valid we
+      // only want to use it if the cursor is visible.
+      utils::Sizef sizeCursor;
+      if (isCursorVisible()) {
+        if (!m_cursor.valid()) {
+          error(
+            std::string("Could not compute position of the right part of the text in textbox"),
+            std::string("Invalid cursor texture")
+          );
+        }
+
+        if (m_cursor.valid()) {
+          sizeCursor = getEngine().queryTexture(m_cursor);
+        }
+      }
+
+      // It is also a problem if the right part is not valid.
+      if (!m_rightText.valid()) {
+        error(
+          std::string("Could not compute position of the right part of the text in textbox"),
+          std::string("Invalid text texture")
+        );
+      }
+
+      utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
+
+      // Locate the right part of the text after the left and cursor part.
+      return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() + sizeCursor.w() + sizeRight.w() / 2.0f, 0.0f, sizeRight);
     }
 
     void

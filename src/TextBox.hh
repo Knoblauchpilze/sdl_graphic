@@ -170,6 +170,16 @@ namespace sdl {
         startSelection() noexcept;
 
         /**
+         * @brief - Used to stop the selection of a text in this box. Note that this will invalidate
+         *          the cache for this box as we most likely have some text which should be rendered
+         *          in normal display again.
+         *          If the selection was not started nothing happens. Also note that a repaint event
+         *          is requested only if the selection contained at least one character.
+         */
+        void
+        stopSelection() noexcept;
+
+        /**
          * @brief - Used to perform the loading of the font to use to render the text.
          */
         void
@@ -337,6 +347,17 @@ namespace sdl {
         computeSelectedTextPosition(const utils::Sizef& env) const noexcept;
 
         /**
+         * @brief - Function very similar to the `computeSelectedTextPosition` except it is used to
+         *          determine a valid position of the background to associate to the selected text
+         *          so that it is visible.
+         * @param env - a description of the available space in the parent area.
+         * @return - a box indicating both the dimensions of the selection background and its
+         *           position on the parent area.
+         */
+        utils::Boxf
+        computeSelectedBackgroundPosition(const utils::Sizef& env) const noexcept;
+
+        /**
          * @brief - Used to compute the position in the parent area for the cursor displayed to help
          *          determine where the edition is being made in this textbox. Note that the cursor
          *          is only displayed when this widget has the keyboard focus.
@@ -495,6 +516,14 @@ namespace sdl {
         utils::Uuid m_cursor;
         utils::Uuid m_selectedText;
         utils::Uuid m_rightText;
+
+        /**
+         * @brief - Used to handle a darker area behind the selected text so that it stands out from
+         *          regular text.
+         *          This texture is updated upon modifying the selected text and is usually only used
+         *          in combination with the selection mechanism.
+         */
+        utils::Uuid m_selectionBackground;
 
         /**
          * @brief - Used to protect concurrent accesses to the internal data of this textbox.

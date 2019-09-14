@@ -32,73 +32,6 @@ namespace sdl {
 
     inline
     bool
-    TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
-      // Depending on the type of key pressed by the user we might:
-      // - add a new character to the text displayed.
-      // - move the position of the cursor.
-      // - remove a character from the text displayed.
-      // - stop processing selection.
-      // - do nothing if the key is not handled.
-      const bool toReturn = core::SdlWidget::keyReleaseEvent(e);
-
-      // We will handle first the motion of the cursor. It is triggered by using
-      // the left and right arrows. The position is updated until no more move is
-      // possible in the corresponding direction.
-      if (canTriggerCursorMotion(e.getKey())) {
-        // Assume left motion and change if needed.
-        // TODO: Because the repeat events are processed as `KeyPress` we don't handle
-        // them in the text box. Maybe we want to modify this ?
-        CursorMotion motion = CursorMotion::Left;
-        if (e.getKey() == core::engine::Key::Right || e.getKey() == core::engine::Key::End) {
-          motion = CursorMotion::Right;
-        }
-        const bool fastForward = (
-          e.getKey() == core::engine::Key::Home ||
-          e.getKey() == core::engine::Key::End
-        );
-
-        // Before updating the cursor position we need to detect when the user
-        // starts a selection: this is triggered by using the shift modifier and
-        // then moving the cursor.
-        if (e.getModifiers().shiftEnabled()) {
-          startSelection();
-        }
-
-        updateCursorPosition(motion, fastForward);
-
-        // Use the base handler to provide the return value.
-        return toReturn;
-      }
-
-      // Handle the end of the selection.
-      if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
-        m_selectionStarted = false;
-
-        requestRepaint();
-      }
-
-      // Handle the removal of a character.
-      if (e.getKey() == core::engine::Key::BackSpace || e.getKey() == core::engine::Key::Delete) {
-        removeCharFromText(e.getKey() == core::engine::Key::Delete);
-
-        return toReturn;
-      }
-
-      // Check whether the key is alphanumeric: if this is not the case we can't do much
-      // so we will just trash the event for now.
-      if (!e.isAlphaNumeric()) {
-        // Use the return value provided by the base handler.
-        return toReturn;
-      }
-
-      // Add the corresponding char to the internal text.
-      addCharToText(e.getChar());
-
-      return toReturn;
-    }
-
-    inline
-    bool
     TextBox::canTriggerCursorMotion(const core::engine::Key& k) const noexcept {
       return
         k == core::engine::Key::Left ||
@@ -124,9 +57,6 @@ namespace sdl {
     inline
     void
     TextBox::updateCursorPosition(const CursorMotion& motion, bool fastForward) {
-      // Lock this object.
-      Guard guard(m_propsLocker);
-
       // Based on the input direction, try to update the index at which the cursor
       // should be displayed.
       // Detect whether some text is visible in the textbox.
@@ -167,9 +97,6 @@ namespace sdl {
     inline
     void
     TextBox::addCharToText(const char c) {
-      // Lock this object.
-      Guard guard(m_propsLocker);
-
       // Insert the char at the position specified by the cursor index.
       m_text.insert(m_text.begin() + m_cursorIndex, c);
 
@@ -189,6 +116,28 @@ namespace sdl {
 
       // Register the current cursor's index in order to perform the selection.
       m_selectionStart = m_cursorIndex;
+    }
+
+    inline
+    void
+    TextBox::stopSelection() noexcept {
+      // Detect cases where the selection was not active.
+      if (!m_selectionStarted) {
+        log(
+          std::string("Stopping selection while none has been started"),
+          utils::Level::Warning
+        );
+
+        return;
+      }
+
+      // Stop the selection.
+      m_selectionStarted = false;
+
+      // Request a repaint if the selection contained at least one character.
+      if (m_selectionStart != m_cursorIndex) {
+        requestRepaint();
+      }
     }
 
     inline
@@ -232,17 +181,26 @@ namespace sdl {
 
         // Render each part.
         if (hasLeftTextPart()) {
-          // TODO: Update this.
           m_leftText = getEngine().createTextureFromText(getLeftText(), m_font, m_textRole);
         }
 
         if (hasSelectedTextPart()) {
-          // TODO: Update this.
-          m_selectedText = getEngine().createTextureFromText(getSelectedText(), m_font, m_textRole);
+          // The role of the selected text is always `HighlightedText`.
+          m_selectedText = getEngine().createTextureFromText(
+            getSelectedText(),
+            m_font,
+            core::engine::Palette::ColorRole::HighlightedText
+          );
+
+          // Also create the selection background based on the size of the selected text.
+          utils::Sizef sizeText = getEngine().queryTexture(m_selectedText);
+          m_selectionBackground = getEngine().createTexture(
+            sizeText,
+            core::engine::Palette::ColorRole::Highlight
+          );
         }
 
         if (hasRightTextPart()) {
-          // TODO: Update this.
           m_rightText = getEngine().createTextureFromText(getRightText(), m_font, m_textRole);
         }
       }
@@ -280,6 +238,11 @@ namespace sdl {
       if (m_selectedText.valid()) {
         getEngine().destroyTexture(m_selectedText);
         m_selectedText.invalidate();
+      }
+
+      if (m_selectionBackground.valid()) {
+        getEngine().destroyTexture(m_selectionBackground);
+        m_selectionBackground.invalidate();
       }
     }
 
@@ -324,8 +287,19 @@ namespace sdl {
     inline
     std::string
     TextBox::getLeftText() const noexcept {
-      // TODO: Handle selection this.
-      return m_text.substr(0u, m_cursorIndex);
+      // The left part of the text is the part that is not covered neither by the cursor nor
+      // by the selection.
+
+      // Assume the left part is only the part left to the cursor's current index.
+      unsigned upperBound = m_cursorIndex;
+
+      // If a selection is running, take the minimum between the cursor's index and the
+      // selection start: this is the left part of the text.
+      if (selectionStarted()) {
+        upperBound = std::min(m_cursorIndex, m_selectionStart);
+      }
+
+      return m_text.substr(0u, upperBound);
     }
 
     inline
@@ -348,8 +322,21 @@ namespace sdl {
     inline
     std::string
     TextBox::getSelectedText() const noexcept {
-      // TODO: Implement this.
-      return std::string();
+      // The selected part of the text is the part that spans the interbal defined by the
+      // cursor's current position and the selection start. If no selection is started,
+      // the selected part is empty.
+
+      // If no selection is active, no selected text part.
+      if (!selectionStarted()) {
+        return std::string();
+      }
+
+      // If a selection is active define a valid interval between `m_cursorIndex` and the
+      // `m_selectionStart`: this corresponds to the selected part.
+      unsigned lowerBound = std::min(m_selectionStart, m_cursorIndex);
+      unsigned upperBound = std::max(m_selectionStart, m_cursorIndex);
+
+      return m_text.substr(lowerBound, upperBound - lowerBound);
     }
 
     inline
@@ -372,8 +359,19 @@ namespace sdl {
     inline
     std::string
     TextBox::getRightText() const noexcept {
-      // TODO: Handle selection.
-      return m_text.substr(m_cursorIndex);
+      // The right part of the text is the part that is not covered neither by the cursor nor
+      // by the selection.
+
+      // Assume the right part is only the part right to the cursor's current index.
+      unsigned lowerBound = m_cursorIndex;
+
+      // If a selection is running, take the minimum between the cursor's index and the
+      // selection start: this is the left part of the text.
+      if (selectionStarted()) {
+        lowerBound = std::max(m_cursorIndex, m_selectionStart);
+      }
+
+      return m_text.substr(lowerBound);
     }
 
     inline
@@ -390,120 +388,6 @@ namespace sdl {
 
       // Request a repaint.
       requestRepaint();
-    }
-
-    inline
-    utils::Boxf
-    TextBox::computeLeftTextPosition(const utils::Sizef& env) const noexcept {
-      // The left part of the text is always on the left part of the widget. It cannot
-      // be offseted by the cursor because the whole point of the `left part` of the
-      // text is to be on the left of the cursor.
-      // We assume that this method should not be called if the `m_leftText` texture is
-      // not valid, otherwise we're not able to compute a valid position.
-      if (!m_leftText.valid()) {
-        error(
-          std::string("Could not compute position of the left part of the text in textbox"),
-          std::string("Invalid text texture")
-        );
-      }
-
-      utils::Sizef sizeLeft = getEngine().queryTexture(m_leftText);
-
-      return utils::Boxf(
-        -env.w() / 2.0f + sizeLeft.w() / 2.0f,
-        0.0f,
-        sizeLeft
-      );
-    }
-
-    inline
-    utils::Boxf
-    TextBox::computeSelectedTextPosition(const utils::Sizef& /*env*/) const noexcept {
-      // TODO: Implement this.
-      return utils::Boxf();
-    }
-
-    inline
-    utils::Boxf
-    TextBox::computeCursorPosition(const utils::Sizef& env) const noexcept {
-      // The cursor should be placed right after the left part of the text. To do se we
-      // obviously need to retrieve the dimensions of the left part of the text. If this
-      // can't be done it means that the cursor is probably set to be located before the
-      // first character displayed in the textbox.
-      utils::Sizef sizeLeft;
-
-      if (m_leftText.valid()) {
-        sizeLeft = getEngine().queryTexture(m_leftText);
-      }
-
-      // Retrieve the dimensions of the cursor so that we can create an accurate position.
-      // We need to ensure both that the cursor is valid and that it's visible.
-      if (!m_cursor.valid()) {
-        error(
-          std::string("Could not compute cursor position in textbox"),
-          std::string("Invalid cursor texture")
-        );
-      }
-      if (!isCursorVisible()) {
-        error(
-          std::string("Could not compute cursor position in textbox"),
-          std::string("Cursor is not visible")
-        );
-      }
-
-      utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
-
-      // Locate the cursor on the right of the left part of the text. If there's no left part
-      // of the text (i.e. the cursor is located before the first character) the `sizeLeft`
-      // value will be null so we can use it the same way.
-      return utils::Boxf(
-        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() / 2.0f,
-        0.0f,
-        sizeCursor
-      );
-    }
-
-    inline
-    utils::Boxf
-    TextBox::computeRightTextPosition(const utils::Sizef& env) const noexcept {
-      // The right part always comes after the left part and the cursor. Unlike the other
-      // two it is actually not a failure if the left part of the text does not have a
-      // valid texture identifier.
-      utils::Sizef sizeLeft;
-      if (m_leftText.valid()) {
-        sizeLeft = getEngine().queryTexture(m_leftText);
-      }
-
-      // If the cursor is not valid it might mean that we never actually displayed it. We
-      // can check that before failing. Also, no matter whether the texture is valid we
-      // only want to use it if the cursor is visible.
-      utils::Sizef sizeCursor;
-
-      if (isCursorVisible()) {
-        if (!m_cursor.valid()) {
-          error(
-            std::string("Could not compute position of the right part of the text in textbox"),
-            std::string("Invalid cursor texture")
-          );
-        }
-
-        if (m_cursor.valid()) {
-          sizeCursor = getEngine().queryTexture(m_cursor);
-        }
-      }
-
-      // It is also a problem if the right part is not valid.
-      if (!m_rightText.valid()) {
-        error(
-          std::string("Could not compute position of the right part of the text in textbox"),
-          std::string("Invalid text texture")
-        );
-      }
-
-      utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
-
-      // Locate the right part of the text after the left and cursor part.
-      return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeRight.w() / 2.0f, 0.0f, sizeRight);
     }
 
   }
