@@ -56,14 +56,7 @@ namespace sdl {
       // Lock this object.
       Guard guard(m_propsLocker);
 
-      // TODO: Because the repeat events are processed as `KeyPress` we don't handle
-      // them in the text box. Maybe we want to modify this ?
       // TODO: We might also want to allow selection with the mouse ?
-      // TODO: Both problems could be partly resolved if we were to refactor the events
-      // system by creating a `MouseClick` and a `KeyPressed` both regrouping the mouse
-      // button down and mouse button release and same for the key. This would allow more
-      // complex events to be built like `Drag` and would overall allow for easier semantic
-      // than the current `keyPressed` and `keyReleased`.
 
       // Depending on the type of key pressed by the user we might:
       // - add a new character to the text displayed.
