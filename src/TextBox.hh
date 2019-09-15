@@ -66,7 +66,7 @@ namespace sdl {
          * @return - `true` if the event was recognized, `false` otherwise.
          */
         bool
-        keyReleaseEvent(const core::engine::KeyEvent& e) override;
+        keyPressEvent(const core::engine::KeyEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `SdlWidget` method. A texture representing

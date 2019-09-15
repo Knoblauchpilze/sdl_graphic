@@ -52,7 +52,7 @@ namespace sdl {
     }
 
     bool
-    TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
+    TextBox::keyPressEvent(const core::engine::KeyEvent& e) {
       // Lock this object.
       Guard guard(m_propsLocker);
 
