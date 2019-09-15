@@ -26,8 +26,6 @@ namespace sdl {
       // textbox anymore and thus we can hide the cursor.
       updateCursorState(false);
 
-      // TODO: Selection should be lost when losing focus as well.
-
       // Use the base handler method to provide a return value.
       return core::SdlWidget::keyboardReleasedEvent(e);
     }
