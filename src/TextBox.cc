@@ -178,10 +178,6 @@ namespace sdl {
 
       // Render the selected part of the text if it is valid.
       if (m_selectionBackground.valid() && hasSelectedTextPart()) {
-        // TODO: We should probably prevent the filling of the texture at each repaint.
-        log("Should fill selection bg with " + getPalette().getColorForRole(getEngine().getTextureRole(m_selectionBackground)).toString());
-        getEngine().fillTexture(m_selectionBackground, getPalette(), nullptr);
-
         drawPartOnCanvas(m_selectionBackground, computeSelectedTextPosition(sizeEnv), uuid, env, area);
       }
 

@@ -197,11 +197,24 @@ namespace sdl {
           );
 
           // Also create the selection background based on the size of the selected text.
+          // In order to obtain a fully usable texture we will perform the fill operation
+          // for this texture here: this is a one-time operation which should be performed
+          // before rendering the texture for the first time. As this method is called by
+          // the main thread (through the `drawContentPrivate` interface) we CAN do that.
           utils::Sizef sizeText = getEngine().queryTexture(m_selectedText);
           m_selectionBackground = getEngine().createTexture(
             sizeText,
             core::engine::Palette::ColorRole::Highlight
           );
+
+          if (!m_selectionBackground.valid()) {
+            error(
+              std::string("Could not create selection background texture"),
+              std::string("Engine returned invalid uuid")
+            );
+          }
+
+          getEngine().fillTexture(m_selectionBackground, getPalette());
         }
 
         if (hasRightTextPart()) {
