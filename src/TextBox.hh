@@ -388,28 +388,26 @@ namespace sdl {
         computeRightTextPosition(const utils::Sizef& env) const noexcept;
 
         /**
-         * @brief - Used to perform the drawing of the input part of the texture onto the specified
-         *          canvas. This allows to factor some of the code needed to draw each part of the
-         *          text displayed in this box as it's pretty similar.
-         *          Perform the computation to find out which part of the input texture should be
-         *          drawn to match the dst requirements.
-         * @param text - an identifier to draw on the canvas.
-         * @param localDst - the area expressed in parent coordinate frame of the area of the `text`
-         *                   to display.
-         * @param textSize - a description of the dimensions of the text to repaint.
-         * @param toRepaint - the area expressed in parent coordinate frame of the part which need
-         *                    to be repainted.
-         * @param canvas - an identifier of the canvas onto which the texture should be drawn.
-         * @param env - a box representing the dimensions of the canvas where the `text` is to be
-         *              drawn.
+         * @brief - Used to perform the drawing of the portion of the texture described by `uuid` to
+         *          the specified `canvas`. In order to determine which portion of the `uuid` should
+         *          be repainted we use the `toUpdate` which represents an area expressed in parent's
+         *          coordinate frame of the area to update. The `localDst` represents the area in
+         *          parent's coordinate frame covered by the `uuid` texture.
+         *          By computing the intersection of both this method is able to derive and repaint
+         *          only the relevant part of the `uuid` (if any) to the provided `canvas` texture.
+         * @param uuid - The texture to repaint. We assume that this texture is valid.
+         * @param localDst - the area covered by the `uuid` texture in parent coordinate frame.
+         * @param canvas - the identifier of the texture onto which the `uuid` should be repainted.
+         * @param env - a description of the size of the environment (i.e. the `canvas` texture) which
+         *              is used to perform conversion of various areas in engine format.
+         * @param toUpdate - an area representing the area to update in parent's coordinate frame.
          */
         void
-        drawPartOnCanvas(const utils::Uuid& text,
+        drawPartOnCanvas(const utils::Uuid& uuid,
                          const utils::Boxf& localDst,
-                         const utils::Sizef& textSize,
-                         const utils::Boxf& toRepaint,
                          const utils::Uuid& canvas,
-                         const utils::Boxf& env);
+                         const utils::Boxf& env,
+                         const utils::Boxf& toUpdate);
 
       private:
 
