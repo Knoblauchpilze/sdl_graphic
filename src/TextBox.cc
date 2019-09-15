@@ -132,6 +132,17 @@ namespace sdl {
         return toReturn;
       }
 
+      // We should stop the selection if any and remove the characters selected so far.
+      if (selectionStarted()) {
+        // Given that we have a selection active it does not really matter whether we use
+        // the `forward` suppression. For good measure though we will do as if we pressed
+        // the `Delete` key.
+        removeCharFromText(true);
+
+        // Stop the selection.
+        stopSelection();
+      }
+
       // Add the corresponding char to the internal text.
       addCharToText(e.getChar());
 
