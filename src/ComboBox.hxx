@@ -31,6 +31,12 @@ namespace sdl {
 
     inline
     int
+    ComboBox::getDefaultZOrder() noexcept {
+      return sk_defaultZOrder;
+    }
+
+    inline
+    int
     ComboBox::getItemsCount() const noexcept {
       return m_items.size();
     }

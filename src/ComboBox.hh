@@ -162,6 +162,14 @@ namespace sdl {
         };
 
         /**
+         * @brief - Used to access the internal `sk_defaultZOrder` in a meaningful way.
+         * @return - the value of the static member `sk_defaultZOrder`.
+         */
+        static
+        int
+        getDefaultZOrder() noexcept;
+
+        /**
          * @brief - Used to build this component by creating the adequate layout and the component
          *          to use to represent each item of the combobox.
          */
@@ -294,6 +302,13 @@ namespace sdl {
         };
 
         using ItemsMap = std::vector<ComboBoxItem>;
+
+        /**
+         * @brief - Convenience value describing the defautl z order to apply to combo boxes. This
+         *          value is larger than the default one provided for widgets in general which is
+         *          useful to allow combo boxes to be displayed on top of other elements.
+         */
+        static const int sk_defaultZOrder;
 
         InsertPolicy m_insertPolicy;
         int m_maxVisibleItems;

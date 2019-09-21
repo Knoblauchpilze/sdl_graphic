@@ -8,6 +8,8 @@
 namespace sdl {
   namespace graphic {
 
+    const int ComboBox::sk_defaultZOrder(1);
+
     ComboBox::ComboBox(const std::string& name,
                        const InsertPolicy& policy,
                        core::SdlWidget* parent,
@@ -26,7 +28,7 @@ namespace sdl {
     {
       // Assign the z order for this widget: it should be drawn in front of other
       // regular widgets.
-      setZOrder(1);
+      setZOrder(getDefaultZOrder());
 
       // Build the layout for this component.
       build();
@@ -348,6 +350,7 @@ namespace sdl {
         this,
         core::engine::Color::NamedColor::Silver
       );
+      icon->setZOrder(getDefaultZOrder());
 
       LabelWidget* text = new LabelWidget(
         std::string("combobox_text"),
@@ -359,6 +362,7 @@ namespace sdl {
         this,
         core::engine::Color::NamedColor::Silver
       );
+      text->setZOrder(getDefaultZOrder());
 
       // Add these items to the layout.
       layout->addItem(icon, 0, 0, 1, 1);
@@ -497,6 +501,7 @@ namespace sdl {
             this,
             core::engine::Color::NamedColor::Silver
           );
+          icon->setZOrder(getDefaultZOrder());
 
           // Add it to the layout.
           layout->addItem(icon, 0u, 1u + id, 1u, 1u);
@@ -526,6 +531,7 @@ namespace sdl {
             this,
             core::engine::Color::NamedColor::Silver
           );
+          text->setZOrder(getDefaultZOrder());
 
           // Add it to the layout.
           layout->addItem(text, 1u, 1u + id, 1u, 1u);
