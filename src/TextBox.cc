@@ -204,7 +204,7 @@ namespace sdl {
     void
     TextBox::build() {
       // Disable hovering focus: more precisely only allow click focus.
-      setFocusPolicy(core::FocusPolicy::ClickFocus);
+      setFocusPolicy(core::FocusPolicy(core::focus::Type::Click));
 
       // Build a palette which has the same selection color as the base
       // background color.
