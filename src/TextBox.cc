@@ -84,14 +84,14 @@ namespace sdl {
         // starts a selection: this is triggered by using the shift modifier and
         // then moving the cursor. We only want to start a selection if we're not
         // already in the process of selected some text.
-        if (e.getModifiers().shiftEnabled() && !selectionStarted()) {
+        if (core::engine::shiftEnabled(e.getModifiers()) && !selectionStarted()) {
           startSelection();
         }
 
         // We should also stop the selection in case a motion key is pressed while
         // the shift modifier is not pressed. This actually cancels the update of
         // the cursor position.
-        if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
+        if (!core::engine::shiftEnabled(e.getModifiers()) && selectionStarted()) {
           stopSelection();
         }
         else {
@@ -110,7 +110,7 @@ namespace sdl {
         // Handle the end of the selection if needed: we only want to handle it after
         // performing the deletion of the character(s) because that's how most of the
         // other tools handle it.
-        if (!e.getModifiers().shiftEnabled() && selectionStarted()) {
+        if (!core::engine::shiftEnabled(e.getModifiers()) && selectionStarted()) {
           stopSelection();
         }
 
