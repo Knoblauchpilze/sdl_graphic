@@ -487,7 +487,7 @@ namespace sdl {
     utils::Boxf
     TextBox::computeRightTextPosition(const utils::Sizef& env) const noexcept {
       // The right part always comes after the left part, the selected part and the cursor.
-      
+
       // Retrieve the size of the left part if any.
       utils::Sizef sizeLeft;
       if (m_leftText.valid()) {
