@@ -69,6 +69,17 @@ namespace sdl {
         keyPressEvent(const core::engine::KeyEvent& e) override;
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` in order to provide
+         *          custom behavior when the user clicks on the textbox. We want to
+         *          move the cursor to a location between two characters close to
+         *          where the click occurred.
+         * @param e - the event to be handled.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
+
+        /**
          * @brief - Reimplementation of the base `EngineObject` method to provide specific
          *          behavior when the user double click on a word of the textbox. It should
          *          select this word entirely.
@@ -146,6 +157,17 @@ namespace sdl {
         void
         updateCursorPosition(const CursorMotion& motion,
                              bool fastForward = false);
+
+        /**
+         * @brief - Used to update the position of the cursor to the value specified in argument.
+         *          The needed flag will be set in order to repaint the textbox if needed. Note
+         *          that some checks are performed to verify that the input position is valid,
+         *          which means that it is somewhat safe to call this method without be too strict
+         *          on the input argument.
+         * @param pos - the position to assign to the cursor.
+         */
+        void
+        updateCursorToPosition(const unsigned pos);
 
         /**
          * @brief - Add the specified character to the internal text at the position specified
@@ -305,6 +327,18 @@ namespace sdl {
          */
         std::string
         getRightText() const noexcept;
+
+        /**
+         * @brief - Used to determine the index of the character that is closest to the input
+         *          position. The position is assumed to be expressed in local coordinate frame
+         *          and the index returned can be assigned to the `m_cursorIndex` without
+         *          problems.
+         * @param pos - a vector representing a position expressed in local coordinate frame.
+         * @return - a value representing the index to assign to the cursor so that it is located
+         *           closest to the input position.
+         */
+        unsigned
+        closestCharacterFrom(const utils::Vector2f& pos) const noexcept;
 
         /**
          * @brief - Used to determine whether any of the endering properties of the text has

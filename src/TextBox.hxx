@@ -62,7 +62,7 @@ namespace sdl {
       // Detect whether some text is visible in the textbox.
       if (m_text.empty()) {
         // Set the cursor position to `0` to be on the safe side.
-        m_cursorIndex = 0;
+        updateCursorToPosition(0u);
 
         return;
       }
@@ -71,27 +71,39 @@ namespace sdl {
       if (motion == CursorMotion::Left) {
         // Check for fast forward.
         if (fastForward) {
-          m_cursorIndex = 0;
+          updateCursorToPosition(0u);
         }
         else {
           if (m_cursorIndex > 0) {
-            --m_cursorIndex;
+            updateCursorToPosition(m_cursorIndex - 1u);
           }
         }
       }
       else {
         if (fastForward) {
-          m_cursorIndex = m_text.size();
+          updateCursorToPosition(m_text.size());
         }
         else {
           if (m_cursorIndex < m_text.size()) {
-            ++m_cursorIndex;
+            updateCursorToPosition(m_cursorIndex + 1u);
           }
         }
       }
+    }
 
-      // Request a repaint as we modified the position of the cursor.
-      setTextChanged();
+    inline
+    void
+    TextBox::updateCursorToPosition(const unsigned pos) {
+      const unsigned old = m_cursorIndex;
+
+      // Clamp the position when assigning to the internal value. This formula has
+      // the advantage of taking care of empty text displayed.
+      m_cursorIndex = std::min(static_cast<unsigned>(m_text.size()), pos);
+
+      // Indicate that the text has changed if needed.
+      if (old != m_cursorIndex) {
+        setTextChanged();
+      }
     }
 
     inline

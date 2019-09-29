@@ -143,6 +143,41 @@ namespace sdl {
     }
 
     bool
+    TextBox::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // The goal here is to move the cursor between the characters which are closest
+      // of the location of the click. A summary of the algorithm consists in moving
+      // through he text displayed on the screen and to select the character whose
+      // position is the last that is smallest than the location of the click.
+      // Such an action resets any active selection but does not actually change any
+      // characters displayed.
+      // We only want to apply this behavior when the textbox already has the keyboard
+      // focus: this means that we should first call the base method to handle the
+      // focus and then perform the necessary modifications of the position of the
+      // cursor.
+      bool toReturn = core::SdlWidget::mouseButtonReleaseEvent(e);
+
+      // Get the local position of the click.
+      utils::Vector2f localClick = mapFromGlobal(e.getMousePosition());
+
+      // Determine the index of the character closest to the click position.
+      unsigned idChar = closestCharacterFrom(localClick);
+
+      // Stop selection if any.
+      if (selectionStarted()) {
+        stopSelection();
+      }
+
+      // Move the cursor to the specified index.
+      updateCursorToPosition(idChar);
+
+      // Use the base handler to provide the return value.
+      return toReturn;
+    }
+
+    bool
     TextBox::mouseDoubleClickEvent(const core::engine::MouseEvent& e) {
       // Lock this object.
       Guard guard(m_propsLocker);
@@ -191,6 +226,11 @@ namespace sdl {
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
       utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
 
+      // TODO: Now that we have a way to get the size of a text, we should probably
+      // update the way we render the text and instead of having a left and right
+      // part we could possibly only have a single string and the additional data
+      // (such as the selection box and the cursor) be displayed around it.
+      // This would simplify this class a bit.
       // Render the left part of the text if it is valid.
       if (m_leftText.valid() && hasLeftTextPart()) {
         drawPartOnCanvas(m_leftText, computeLeftTextPosition(sizeEnv), uuid, env, area);
@@ -329,6 +369,84 @@ namespace sdl {
 
       // Also we need to trigger a repaint as the text has changed.
       setTextChanged();
+    }
+
+    unsigned
+    TextBox::closestCharacterFrom(const utils::Vector2f& pos) const noexcept {
+      // We want to determine the character that fits the following description:
+      //  - any string smaller than the one including this character does not reach
+      //    the input `pos`.
+      //  - any string larger than the one terminating at this character has its
+      //    last character completely beyond the input `pos`.
+      // In order to determine this index, we will use the dedicated `SDL TTF API`
+      // method which allows to compute the dimension of a string as if it was
+      // rendered for display. We will loop through the text displayed in this box
+      // and pick the character fitting the above conditions.
+      // Note that to provide the most exact detection of the character we actually
+      // account for intra-character selection, meaning that if the user clicks on
+      // the left half of a character, the cursor will be positionned before this
+      // character while if the cursor is on the right half of the character upon
+      // clicking we will position the cursor after the character.
+
+      // Handle the case where the font is not valid.
+      // TODO: We should maybe load the font instead ?
+      if (!m_font.valid()) {
+        log(
+          std::string("Could not find closest character from position ") + pos.toString() + ", font not loaded",
+          utils::Level::Warning
+        );
+
+        return 0u;
+      }
+
+      // Start at the beginning of the text displayed in this box.
+      unsigned id = 0u;
+      bool valid = false;
+      utils::Sizef textSize;
+
+      utils::Sizef area = core::LayoutItem::getRenderingArea().toSize();
+
+      while (!valid && id <= m_text.size()) {
+        // Render the string containing the characters until `id` and check whether
+        // the click is now on the left side of the rendered string.
+        textSize = getEngine().getTextSize(m_text.substr(0u, id), m_font);
+
+        // Check whether the size of the text is now encompassing the input position.
+        if (-area.w() / 2.0f + textSize.w() >= pos.x()) {
+          // We found the character we wanted.
+          valid = true;
+        }
+        else {
+          // The string composed of the text up to the `id`-th character is not enough
+          // to span the input `pos`, continue accumulating characters.
+          ++id;
+        }
+      }
+
+      // We determined the character which allows to move from left to right of the
+      // cursor. We know need to determine whether the cursor should be placed on
+      // the left or on the right of the character.
+      // This is done by computing the size of the text without the last character
+      // and determining if the cursor lies in the first half of it or on the second
+      // half.
+      // The only special cases are when the cursor is either too far left or too far
+      // right which means that we should actually clamp it to be on the first or
+      // last character of the text displayed.
+      if (!valid || id == 0) {
+        return id;
+      }
+
+      utils::Sizef sizeWithoutLast = getEngine().getTextSize(m_text.substr(0u, id - 1), m_font);
+
+      const float delta = textSize.w() - sizeWithoutLast.w();
+      const float offset = pos.x() + area.w() / 2.0f - sizeWithoutLast.w();
+
+      if (offset <= delta / 2.0f) {
+        --id;
+      }
+
+      // Return the found id.
+      return id;
     }
 
     utils::Boxf
