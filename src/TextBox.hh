@@ -69,6 +69,16 @@ namespace sdl {
         keyPressEvent(const core::engine::KeyEvent& e) override;
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method to provide specific
+         *          behavior when the user double click on a word of the textbox. It should
+         *          select this word entirely.
+         * @param e - the double click event which should be handled.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        mouseDoubleClickEvent(const core::engine::MouseEvent& e) override;
+
+        /**
          * @brief - Reimplementation of the base `SdlWidget` method. A texture representing
          *          the text associated to this textbox along with a visual representation of
          *          the cursor indicating the current character being edited should be drawn

@@ -142,6 +142,22 @@ namespace sdl {
       return toReturn;
     }
 
+    bool
+    TextBox::mouseDoubleClickEvent(const core::engine::MouseEvent& e) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // Perform a selection of the entirety of the text inserted in the textbox. We will
+      // also move the cursor to the end of the displayed text.
+      // TODO: We might want to only select the word the cursor is at.
+      updateCursorPosition(CursorMotion::Left, true);
+      startSelection();
+      updateCursorPosition(CursorMotion::Right, true);
+
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::mouseDoubleClickEvent(e);
+    }
+
     void
     TextBox::drawContentPrivate(const utils::Uuid& uuid,
                                 const utils::Boxf& area)
