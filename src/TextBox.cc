@@ -14,6 +14,7 @@ namespace sdl {
       m_text(text),
       m_cursorIndex(0u),
       m_cursorVisible(false),
+      m_cursorChanged(true),
 
       m_selectionStart(m_cursorIndex),
       m_selectionStarted(false),
@@ -213,8 +214,10 @@ namespace sdl {
       }
 
       // Load the cursor if it is visible (otherwise no need to do so).
-      if (isCursorVisible()) {
+      if (cursorChanged()) {
         loadCursor();
+
+        m_cursorChanged = false;
       }
 
       // Render each part of the text displayed in this text box: depending on
@@ -226,11 +229,6 @@ namespace sdl {
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
       utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
 
-      // TODO: Now that we have a way to get the size of a text, we should probably
-      // update the way we render the text and instead of having a left and right
-      // part we could possibly only have a single string and the additional data
-      // (such as the selection box and the cursor) be displayed around it.
-      // This would simplify this class a bit.
       // Render the left part of the text if it is valid.
       if (m_leftText.valid() && hasLeftTextPart()) {
         drawPartOnCanvas(m_leftText, computeLeftTextPosition(sizeEnv), uuid, env, area);
@@ -361,10 +359,10 @@ namespace sdl {
       // position in order to keep indicating the same position.
       if (selectionStarted()) {
         // Put back the cursor after the first character before the deleted part.
-        m_cursorIndex = toRemoveBegin;
+        updateCursorToPosition(toRemoveBegin);
       }
       else if (!forward) {
-        --m_cursorIndex;
+        updateCursorToPosition(m_cursorIndex - 1u);
       }
 
       // Also we need to trigger a repaint as the text has changed.
@@ -389,7 +387,6 @@ namespace sdl {
       // clicking we will position the cursor after the character.
 
       // Handle the case where the font is not valid.
-      // TODO: We should maybe load the font instead ?
       if (!m_font.valid()) {
         log(
           std::string("Could not find closest character from position ") + pos.toString() + ", font not loaded",
@@ -409,7 +406,7 @@ namespace sdl {
       while (!valid && id <= m_text.size()) {
         // Render the string containing the characters until `id` and check whether
         // the click is now on the left side of the rendered string.
-        textSize = getEngine().getTextSize(m_text.substr(0u, id), m_font);
+        textSize = getEngine().getTextSize(m_text.substr(0u, id), m_font, false);
 
         // Check whether the size of the text is now encompassing the input position.
         if (-area.w() / 2.0f + textSize.w() >= pos.x()) {
@@ -436,7 +433,7 @@ namespace sdl {
         return id;
       }
 
-      utils::Sizef sizeWithoutLast = getEngine().getTextSize(m_text.substr(0u, id - 1), m_font);
+      utils::Sizef sizeWithoutLast = getEngine().getTextSize(m_text.substr(0u, id - 1), m_font, false);
 
       const float delta = textSize.w() - sizeWithoutLast.w();
       const float offset = pos.x() + area.w() / 2.0f - sizeWithoutLast.w();
@@ -473,32 +470,14 @@ namespace sdl {
 
     utils::Boxf
     TextBox::computeSelectedTextPosition(const utils::Sizef& env) const noexcept {
-      // The selected part of the text is on the right of the left part of the text,
-      // and might be before or after the cursor depending on the current position of
-      // the cursor compared to the selection start.
+      // The selected part of the text is on the right of the left part of the text
+      // but before the rigth part. This means that if the text is selected until
+      // the end of the string there's actually no right part.
 
       // Retrieve the size of the left part of the text if any.
       utils::Sizef sizeLeft;
       if (m_leftText.valid()) {
         sizeLeft = getEngine().queryTexture(m_leftText);
-      }
-
-      // Retrieve the size of the cursor text: this is only the case if the current cursor's
-      // position is smaller than the starting index of the selection and if the cursor is
-      // visible.
-      utils::Sizef sizeCursor;
-      if (selectionStarted() && m_cursorIndex < m_selectionStart) {
-        // Check whether the cursor is valid.
-        if (!m_cursor.valid() && isCursorVisible()) {
-          error(
-            std::string("Could not compute selected text position in textbox"),
-            std::string("Invalid cursor texture")
-          );
-        }
-
-        if (isCursorVisible()) {
-          sizeCursor = getEngine().queryTexture(m_cursor);
-        }
       }
 
       // Retrieve the size of the selected text.
@@ -511,88 +490,21 @@ namespace sdl {
       utils::Sizef sizeSelected = getEngine().queryTexture(m_selectedText);
 
       return utils::Boxf(
-        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeSelected.w() / 2.0f,
+        -env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() / 2.0f,
         0.0f,
         sizeSelected
       );
     }
 
     utils::Boxf
-    TextBox::computeSelectedBackgroundPosition(const utils::Sizef& env) const noexcept {
-      // The selected part of the text is on the right of the left part of the text,
-      // and might be before or after the cursor depending on the current position of
-      // the cursor compared to the selection start.
-
-      // Retrieve the size of the left part of the text if any.
-      utils::Sizef sizeLeft;
-      if (m_leftText.valid()) {
-        sizeLeft = getEngine().queryTexture(m_leftText);
-      }
-
-      // Retrieve the size of the cursor text: this is only the case if the current cursor's
-      // position is smaller than the starting index of the selection and if the cursor is
-      // visible.
-      utils::Sizef sizeCursor;
-      if (selectionStarted() && m_cursorIndex < m_selectionStart) {
-        // Check whether the cursor is valid.
-        if (!m_cursor.valid() && isCursorVisible()) {
-          error(
-            std::string("Could not compute selected text position in textbox"),
-            std::string("Invalid cursor texture")
-          );
-        }
-
-        if (isCursorVisible()) {
-          sizeCursor = getEngine().queryTexture(m_cursor);
-        }
-      }
-
-      // Retrieve the size of the selected text.
-      if (!m_selectedText.valid()) {
-        error(
-          std::string("Could not compute position of the selected part of the text in textbox"),
-          std::string("Invalid text texture")
-        );
-      }
-      utils::Sizef sizeSelectedBg = getEngine().queryTexture(m_selectionBackground);
-
-      return utils::Boxf(
-        -env.w() / 2.0f + sizeLeft.w() + sizeCursor.w() + sizeSelectedBg.w() / 2.0f,
-        0.0f,
-        sizeSelectedBg
-      );
-    }
-
-    utils::Boxf
     TextBox::computeCursorPosition(const utils::Sizef& env) const noexcept {
-      // The cursor should be placed after the left part of the text, and after the selected
-      // part of the text if the current cursor's index is larger than the selection start.
-      // To provide a valid position we need to access the size of the left part of the text
-      // if any and also the size of the selected part if any.
-
-      // Retrieve the size of the left part of the text if any.
-      utils::Sizef sizeLeft;
-      if (m_leftText.valid()) {
-        sizeLeft = getEngine().queryTexture(m_leftText);
-      }
-
-      // Retrieve the size of the selected text: this is only the case if the current cursor's
-      // position is larger than the starting index of the selection.
-      utils::Sizef sizeSelected;
-      if (selectionStarted() && m_cursorIndex > m_selectionStart) {
-        // Check whether the selected text is valid.
-        if (!m_selectedText.valid()) {
-          error(
-            std::string("Could not compute cursor position in textbox"),
-            std::string("Invalid selected text texture")
-          );
-        }
-
-        sizeSelected = getEngine().queryTexture(m_selectedText);
-      }
-
-      // Retrieve the dimensions of the cursor so that we can create an accurate position.
-      // We need to ensure both that the cursor is valid and that it's visible.
+      // The cursor should be placed at the location specified by the `m_cursorIndex`.
+      // In order to determine the position we have to rely on the engine method allowing
+      // to determine the length of a rendered text: this will allow to precisely position
+      // the cursor after the targeted character.
+      // We assume that the cursor is visible when calling this method. We also verify
+      // that the associated texture is valid because we have to use its dimensions to
+      // position it accurately.
       if (!m_cursor.valid()) {
         error(
           std::string("Could not compute cursor position in textbox"),
@@ -605,14 +517,22 @@ namespace sdl {
           std::string("Cursor is not visible")
         );
       }
+      if (!m_font.valid()) {
+        error(
+          std::string("Could not compute cursor position in textbox"),
+          std::string("Font is not valid")
+        );
+      }
 
-      utils::Sizef sizeCursor = getEngine().queryTexture(m_cursor);
+      // Query the size of the text up to the `m_cursorIndex`-nth character: this will
+      // provide an offset to localize the cursor's texture on this textbox.
+      utils::Sizef text = getEngine().getTextSize(m_text.substr(0u, m_cursorIndex), m_font, false);
 
-      // Locate the cursor on the right of the left part of the text. If there's no left part
-      // of the text (i.e. the cursor is located before the first character) the `sizeLeft`
-      // value will be null so we can use it the same way.
+      // The cursor should be positionned right after that.
+      utils::Sizef sizeCursor = getEngine().getTextSize("|", m_font, true);
+
       return utils::Boxf(
-        -env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() + sizeCursor.w() / 2.0f,
+        -env.w() / 2.0f + text.w() + sizeCursor.w() / 2.0f,
         0.0f,
         sizeCursor
       );
@@ -620,7 +540,9 @@ namespace sdl {
 
     utils::Boxf
     TextBox::computeRightTextPosition(const utils::Sizef& env) const noexcept {
-      // The right part always comes after the left part, the selected part and the cursor.
+      // The right part always comes after the left part and the selected part.
+      // If the selected part encompasses the last characters of the string we
+      // have effectively no right part.
 
       // Retrieve the size of the left part if any.
       utils::Sizef sizeLeft;
@@ -634,23 +556,6 @@ namespace sdl {
         sizeSelected = getEngine().queryTexture(m_selectedText);
       }
 
-      // If the cursor is not valid it might mean that we never actually displayed it. We
-      // can check that before failing. Also, no matter whether the texture is valid we
-      // only want to use it if the cursor is visible.
-      utils::Sizef sizeCursor;
-      if (isCursorVisible()) {
-        if (!m_cursor.valid()) {
-          error(
-            std::string("Could not compute position of the right part of the text in textbox"),
-            std::string("Invalid cursor texture")
-          );
-        }
-
-        if (m_cursor.valid()) {
-          sizeCursor = getEngine().queryTexture(m_cursor);
-        }
-      }
-
       // It is also a problem if the right part is not valid.
       if (!m_rightText.valid()) {
         error(
@@ -662,7 +567,7 @@ namespace sdl {
       utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
 
       // Locate the right part of the text after the left and cursor part.
-      return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() + sizeCursor.w() + sizeRight.w() / 2.0f, 0.0f, sizeRight);
+      return utils::Boxf(-env.w() / 2.0f + sizeLeft.w() + sizeSelected.w() + sizeRight.w() / 2.0f, 0.0f, sizeRight);
     }
 
     void

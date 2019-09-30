@@ -341,7 +341,7 @@ namespace sdl {
         closestCharacterFrom(const utils::Vector2f& pos) const noexcept;
 
         /**
-         * @brief - Used to determine whether any of the endering properties of the text has
+         * @brief - Used to determine whether any of the rendering properties of the text has
          *          been modified since the last `drawContentPrivate` operation.
          *          Internally uses the `m_textChanged` status to perform the check.
          *          Assumes that the `m_propsLocker` is already locked.
@@ -359,6 +359,23 @@ namespace sdl {
         setTextChanged() noexcept;
 
         /**
+         * @brief - Used to determine whether the cursor has been modified since the last call to the
+         *          `drawContentPrivate` operation. Internally uses the `m_cursorChanged` status 
+         *          perform the check.
+         *          Assumes that the `m_propsLocker` is already locked.
+         * @return - `true` if the cursor has been modified and `false` otherwise.
+         */
+        bool
+        cursorChanged() const noexcept;
+
+        /**
+         * @brief - Marks this widget for a rebuild of the text upon calling the `drawContentPrivate`
+         *          method. Assumes that the `m_propsLocker` is already locked.
+         */
+        void
+        setCursorChanged() noexcept;
+
+        /**
          * @brief - Used to compute the position in the parent area for the left part of the text
          *          displayed in this text box. The left part is most of the times on the left most
          *          part of the widget except when the cursor is set to be before the first letter
@@ -368,6 +385,7 @@ namespace sdl {
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
+         *          We assume that a left text texture is available when calling this method.
          * @param env - a description of the available space in the parent area.
          * @return - a box indicating both the dimensions of the left part of the text and its
          *           position on the parent area.
@@ -383,6 +401,7 @@ namespace sdl {
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
+         *          We assume that a selected text exist when calling this function.
          * @param env - a description of the available space in the parent area.
          * @return - a box indicating both the dimensions of the selected part of the text and its
          *           position on the parent area.
@@ -394,6 +413,8 @@ namespace sdl {
          * @brief - Function very similar to the `computeSelectedTextPosition` except it is used to
          *          determine a valid position of the background to associate to the selected text
          *          so that it is visible.
+         *          The assumptions made upon calling this function are equivalent to the ones made
+         *          when calling `computeSelectedTextPosition`.
          * @param env - a description of the available space in the parent area.
          * @return - a box indicating both the dimensions of the selection background and its
          *           position on the parent area.
@@ -408,6 +429,8 @@ namespace sdl {
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
+         *          Note that the cursor's texture is assumed to be valid when calling this method
+         *          but no checks are performed to verify that it is visible.
          * @param env - a description of the available space in the parent area.
          * @return - a box indicating both the dimensions of the cursor and its position on the parent
          *           area.
@@ -424,6 +447,8 @@ namespace sdl {
          *          In order to provide accurate computation of the position relatively to a parent
          *          area the user needs to provide a size indicating the available space on said
          *          parent area. The position will be returned as if centered in this parent space.
+         *          Note that the right text's texture is assumed to be valid when calling this
+         *          function.
          * @param env - a description of the available space in the parent area.
          * @return - a box indicating both the dimensions of the right part of the text and its
          *           position on the parent area.
@@ -484,6 +509,13 @@ namespace sdl {
          */
         bool m_cursorVisible;
 
+        /**
+         * @brief - Used to determine whether the texture cached in `m_cursor` is valid and can
+         *          be reused as is or if it should be recreated. Typical case where this value
+         *          is set to `true` is when the cursor becomes visible or when its color should
+         *          be updated as a result of a selection operation.
+         */
+        bool m_cursorChanged;
 
         /**
          * @brief - Describes the starting index of the selected text. Basically we consider that

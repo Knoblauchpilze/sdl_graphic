@@ -103,6 +103,7 @@ namespace sdl {
       // Indicate that the text has changed if needed.
       if (old != m_cursorIndex) {
         setTextChanged();
+        setCursorChanged();
       }
     }
 
@@ -151,6 +152,7 @@ namespace sdl {
       // no longer selected.
       if (m_selectionStart != m_cursorIndex) {
         setTextChanged();
+        setCursorChanged();
       }
     }
 
@@ -239,14 +241,21 @@ namespace sdl {
       // Clear existing cursor if any.
       clearCursor();
 
-      // Load the cursor if needed.
-      if (!m_cursor.valid()) {
-        // Load the font.
-        loadFont();
+      // Load the font.
+      loadFont();
 
-        // The cursor is actually represented with a '|' character.
-        m_cursor = getEngine().createTextureFromText(std::string("|"), m_font, m_textRole);
-      }
+      // The cursor is actually represented with a '|' character.
+      // Its role is determine by whether it is displayed on top
+      // of the selection background: indeed as the background is
+      // quite dark, the base cursor's role does not contrast well
+      // with it so we usually want to choose another role.
+      core::engine::Palette::ColorRole role = (
+        selectionStarted() && m_cursorIndex < m_selectionStart ?
+        core::engine::Palette::ColorRole::HighlightedText :
+        m_textRole
+      );
+
+      m_cursor = getEngine().createTextureFromText(std::string("|"), m_font, role);
     }
 
     inline
@@ -415,6 +424,28 @@ namespace sdl {
 
       // Request a repaint.
       requestRepaint();
+    }
+
+    inline
+    bool
+    TextBox::cursorChanged() const noexcept {
+      return m_cursorChanged;
+    }
+
+    inline
+    void
+    TextBox::setCursorChanged() noexcept {
+      // Follow a similar behavior to `setTextChanged`.
+      m_cursorChanged = true;
+
+      requestRepaint();
+    }
+
+    inline
+    utils::Boxf
+    TextBox::computeSelectedBackgroundPosition(const utils::Sizef& env) const noexcept {
+      // The selected part of the text is located at the same position as the selected text.
+      return computeSelectedTextPosition(env);
     }
 
   }
