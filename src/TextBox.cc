@@ -53,6 +53,12 @@ namespace sdl {
     }
 
     bool
+    TextBox::dropEvent(const core::engine::DropEvent& e) {
+      // TODO: Is this needed ?
+      return core::SdlWidget::dropEvent(e);
+    }
+
+    bool
     TextBox::keyPressEvent(const core::engine::KeyEvent& e) {
       // Lock this object.
       Guard guard(m_propsLocker);
@@ -160,6 +166,11 @@ namespace sdl {
       // cursor.
       bool toReturn = core::SdlWidget::mouseButtonReleaseEvent(e);
 
+      // TODO: In the case of a drag event, we get the notification of the mouse button
+      // release even though it's been a drop event really. Maybe we should remove the
+      // notification of the button release in case of a drop event OR we should find a
+      // way to not release the mouse when the mouse is being dragged in this widget.
+
       // Get the local position of the click.
       utils::Vector2f localClick = mapFromGlobal(e.getMousePosition());
 
@@ -192,6 +203,67 @@ namespace sdl {
 
       // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDoubleClickEvent(e);
+    }
+
+    bool
+    TextBox::mouseDragEvent(const core::engine::MouseEvent& e) {
+      // We only want to react if the drag event includes at least the left mouse
+      // button: this is the button triggering the selection behavior.
+      if (!e.getButtons().isSet(core::engine::mouse::Button::Left)) {
+        // We are not interested in this event.
+        return core::SdlWidget::mouseDragEvent(e);
+      }
+
+      // The left mouse button is part of the drag event. We need to perform the
+      // selection of the text spanned by the area covered by the drag event.
+      // Also we want to update the cursor's position to always be as close of
+      // the mouse's cursor as possible. In order to do all that we need to first
+      // determine the indices of the characters which are closer of both the
+      // initial position where the drag started and the current position of the
+      // mouse: this will represent the desired selection area.
+      utils::Vector2f start = mapFromGlobal(e.getInitMousePosition());
+      utils::Vector2f cur = mapFromGlobal(e.getMousePosition());
+
+      // Determine the character closest to each position.
+      unsigned idStart = closestCharacterFrom(start);
+      unsigned idCur = closestCharacterFrom(cur);
+
+      // We now need to update the selected text based on the above values. As
+      // a drag event is something rather long, we might not update the text
+      // selected each time so we should be careful not to request too many
+      // repaints.
+      if (!selectionStarted()) {
+        // The selection has not started: we need to ensure that the cursor is
+        // at the character targeted by the drag event before starting the
+        // selection.
+        updateCursorToPosition(idStart);
+
+        // Now start the selection.
+        startSelection();
+
+        // And move the cursor to the current position.
+        updateCursorToPosition(idCur);
+      }
+      else {
+        // The selection already started: we can verify that he starting index
+        // is still relevant compared to the local start of the selection.
+        if (m_selectionStart != idStart) {
+          // This is weird.
+          log(
+            std::string("Drag event references beginning at character ") + std::to_string(idStart) +
+            " but internal registered value was " + std::to_string(idStart),
+            utils::Level::Warning
+          );
+
+          m_selectionStart = idStart;
+        }
+
+        // Move the cursor to the desired index.
+        updateCursorToPosition(idCur);
+      }
+
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::mouseDragEvent(e);
     }
 
     void
@@ -543,6 +615,8 @@ namespace sdl {
       // The right part always comes after the left part and the selected part.
       // If the selected part encompasses the last characters of the string we
       // have effectively no right part.
+
+      // TODO: Apparently there are some problems when the string contains a 'f' character.
 
       // Retrieve the size of the left part if any.
       utils::Sizef sizeLeft;
