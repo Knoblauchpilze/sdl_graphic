@@ -54,7 +54,10 @@ namespace sdl {
 
     bool
     TextBox::dropEvent(const core::engine::DropEvent& e) {
-      // TODO: Is this needed ?
+      // TODO: Is this needed ? Might be useful in a first approach to detect that a
+      // drag operation is over and to reactivate the selection which has probably
+      // been disabled by the associated `MouseButtonRelease` event generated along
+      // this drop event.
       return core::SdlWidget::dropEvent(e);
     }
 
@@ -170,6 +173,9 @@ namespace sdl {
       // release even though it's been a drop event really. Maybe we should remove the
       // notification of the button release in case of a drop event OR we should find a
       // way to not release the mouse when the mouse is being dragged in this widget.
+      // Maybe we should add a method in the `MouseEvent` similar to `wasDragged` which
+      // would be `true` when the mouse is released after a drag event. We CAN determine
+      // that in the `MouseState` (line 150) where we would set this property if needed.
 
       // Get the local position of the click.
       utils::Vector2f localClick = mapFromGlobal(e.getMousePosition());
@@ -637,7 +643,6 @@ namespace sdl {
           std::string("Invalid text texture")
         );
       }
-
       utils::Sizef sizeRight = getEngine().queryTexture(m_rightText);
 
       // Locate the right part of the text after the left and cursor part.

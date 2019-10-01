@@ -102,9 +102,7 @@ namespace sdl {
 
       // Indicate that the text has changed if needed.
       if (old != m_cursorIndex) {
-        if (selectionStarted()) {
-          setTextChanged();
-        }
+        setTextChanged();
         setCursorChanged();
       }
     }
