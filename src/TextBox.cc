@@ -255,7 +255,7 @@ namespace sdl {
           // This is weird.
           log(
             std::string("Drag event references beginning at character ") + std::to_string(idStart) +
-            " but internal registered value was " + std::to_string(idStart),
+            " but internal registered value was " + std::to_string(m_selectionStart),
             utils::Level::Warning
           );
 
