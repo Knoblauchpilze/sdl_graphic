@@ -215,7 +215,9 @@ namespace sdl {
     TextBox::mouseDragEvent(const core::engine::MouseEvent& e) {
       // We only want to react if the drag event includes at least the left mouse
       // button: this is the button triggering the selection behavior.
-      if (!e.getButtons().isSet(core::engine::mouse::Button::Left)) {
+      core::engine::mouse::Button sensitive = core::engine::mouse::Button::Left;
+
+      if (!e.getButtons().isSet(sensitive)) {
         // We are not interested in this event.
         return core::SdlWidget::mouseDragEvent(e);
       }
@@ -227,7 +229,7 @@ namespace sdl {
       // determine the indices of the characters which are closer of both the
       // initial position where the drag started and the current position of the
       // mouse: this will represent the desired selection area.
-      utils::Vector2f start = mapFromGlobal(e.getInitMousePosition());
+      utils::Vector2f start = mapFromGlobal(e.getInitMousePosition(sensitive));
       utils::Vector2f cur = mapFromGlobal(e.getMousePosition());
 
       // Determine the character closest to each position.
