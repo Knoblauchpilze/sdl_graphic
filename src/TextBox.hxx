@@ -9,6 +9,9 @@ namespace sdl {
     inline
     bool
     TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
+      // Lock the content using the locker provided by the parent class.
+      Guard guard(m_propsLocker);
+
       // Update the cursor visible status, considering that as we just grabbed the
       // keyboard focus we are ready to make some modifications on the textbox and
       // thus we should display the cursor.
@@ -21,6 +24,9 @@ namespace sdl {
     inline
     bool
     TextBox::keyboardReleasedEvent(const core::engine::Event& e) {
+      // Lock the content using the locker provided by the parent class.
+      Guard guard(m_propsLocker);
+
       // Update the cursor visible status, considering that as we just lost the
       // keyboard focus the user does not want to perform modifications on the
       // textbox anymore and thus we can hide the cursor.
@@ -44,14 +50,15 @@ namespace sdl {
     inline
     void
     TextBox::updateCursorState(const bool visible) {
-      // Lock this object.
-      Guard guard(m_propsLocker);
+      bool old = m_cursorVisible;
 
       // Update the cursor's internal state.
       m_cursorVisible = visible;
 
-      // Request a repaint event.
-      requestRepaint();
+      // Request a repaint event if needed.
+      if (old != m_cursorVisible) {
+        requestRepaint();
+      }
     }
 
     inline

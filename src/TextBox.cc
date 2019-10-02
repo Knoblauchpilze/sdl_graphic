@@ -206,6 +206,9 @@ namespace sdl {
 
     bool
     TextBox::mouseDragEvent(const core::engine::MouseEvent& e) {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
       // We only want to react if the drag event includes at least the left mouse
       // button: this is the button triggering the selection behavior.
       core::engine::mouse::Button sensitive = core::engine::mouse::Button::Left;
@@ -262,6 +265,9 @@ namespace sdl {
         // Move the cursor to the desired index.
         updateCursorToPosition(idCur);
       }
+
+      // Also set the cursor to visible if it is not already the case.
+      updateCursorState(true);
 
       // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDragEvent(e);
