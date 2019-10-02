@@ -53,20 +53,9 @@ namespace sdl {
     }
 
     bool
-    TextBox::dropEvent(const core::engine::DropEvent& e) {
-      // TODO: Is this needed ? Might be useful in a first approach to detect that a
-      // drag operation is over and to reactivate the selection which has probably
-      // been disabled by the associated `MouseButtonRelease` event generated along
-      // this drop event.
-      return core::SdlWidget::dropEvent(e);
-    }
-
-    bool
     TextBox::keyPressEvent(const core::engine::KeyEvent& e) {
       // Lock this object.
       Guard guard(m_propsLocker);
-
-      // TODO: We might also want to allow selection with the mouse ?
 
       // Depending on the type of key pressed by the user we might:
       // - add a new character to the text displayed.
@@ -169,13 +158,17 @@ namespace sdl {
       // cursor.
       bool toReturn = core::SdlWidget::mouseButtonReleaseEvent(e);
 
-      // TODO: In the case of a drag event, we get the notification of the mouse button
-      // release even though it's been a drop event really. Maybe we should remove the
-      // notification of the button release in case of a drop event OR we should find a
-      // way to not release the mouse when the mouse is being dragged in this widget.
-      // Maybe we should add a method in the `MouseEvent` similar to `wasDragged` which
-      // would be `true` when the mouse is released after a drag event. We CAN determine
-      // that in the `MouseState` (line 150) where we would set this property if needed.
+      // Also we have to take care of the special case of the first button release
+      // event issued after a drag event. Indeed the events system provides such an
+      // event in the case someone is not tracking drag events but still wants to
+      // receive the notification about clicks.
+      // As for this class, the button release is used to move the cursor to the
+      // desired position and stop the selection which is not what we want in the
+      // case of a drag event. So we need to prevent the rest of this function from
+      // being executed in this case.
+      if (e.wasDragged()) {
+        return toReturn;
+      }
 
       // Get the local position of the click.
       utils::Vector2f localClick = mapFromGlobal(e.getMousePosition());

@@ -35,18 +35,6 @@ namespace sdl {
       protected:
 
         /**
-         * @brief - Specialization of the base `EngineObject` method to provide custom behavior
-         *          when the mouse is released after a drag event. We will use this event to
-         *          trigger the selection of the text hovered over by the mouse during the drag
-         *          event.
-         * @param e - the drop event to process.
-         * @return - `true` if the event was recognized, `false` otherwise.
-         */
-        bool
-        dropEvent(const core::engine::DropEvent& e) override;
-
-
-        /**
          * @brief - Specialization of the base `SdlWidget` method in order to handle keyboard focus
          *          update. Compared to the base method this class only adds the update of the cursor
          *          display.
