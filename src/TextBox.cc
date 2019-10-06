@@ -623,8 +623,6 @@ namespace sdl {
       // If the selected part encompasses the last characters of the string we
       // have effectively no right part.
 
-      // TODO: Apparently there are some problems when the string contains a 'f' character.
-
       // Retrieve the size of the left part if any.
       utils::Sizef sizeLeft;
       if (m_leftText.valid()) {
