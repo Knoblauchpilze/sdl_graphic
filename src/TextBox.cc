@@ -119,7 +119,8 @@ namespace sdl {
 
       // Check whether the key is alphanumeric: if this is not the case we can't do much
       // so we will just trash the event for now.
-      if (!e.isAlphaNumeric()) {
+      // TODO: We should implement some kind of filters which the user could specify.
+      if (!e.isPrintable()) {
         // Use the return value provided by the base handler.
         return toReturn;
       }
