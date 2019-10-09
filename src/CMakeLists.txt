@@ -13,6 +13,8 @@ set (SOURCES
   ComboBox.cc
   TabWidget.cc
   TextBox.cc
+  IntValidator.cc
+  FloatValidator.cc
   )
 
 add_library (sdl_graphic SHARED

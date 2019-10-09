@@ -30,8 +30,11 @@ namespace sdl {
          *          validation just yet.
          * @param name - the name of the validator.
          */
-        Validator();
+        Validator(const std::string& name);
 
+        /**
+         * @brief - Destruction of the object.
+         */
         virtual ~Validator();
 
         /**
