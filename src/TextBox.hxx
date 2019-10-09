@@ -7,6 +7,26 @@ namespace sdl {
   namespace graphic {
 
     inline
+    void
+    TextBox::setValidator(ValidatorShPtr validator) {
+      Guard guard(m_propsLocker);
+
+      // Assign the validator to the internal object. We might reset a previously
+      // installed filter by doing so.
+      m_validator = validator;
+    }
+
+    inline
+    std::string
+    TextBox::getValue() {
+      // Lock this object.
+      Guard guard(m_propsLocker);
+
+      // TODO: We should implement some kind of filters which the user could specify.
+      return m_text;
+    }
+
+    inline
     bool
     TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
       // Lock the content using the locker provided by the parent class.

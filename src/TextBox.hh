@@ -5,6 +5,7 @@
 # include <string>
 # include <core_utils/Uuid.hh>
 # include <sdl_core/SdlWidget.hh>
+# include "Validator.hh"
 
 namespace sdl {
   namespace graphic {
@@ -31,6 +32,29 @@ namespace sdl {
                 const utils::Sizef& area = utils::Sizef());
 
         virtual ~TextBox();
+
+        /**
+         * @brief - Used to assign a validator to this textbox which is used to
+         *          control the text entered in it. Depending on the validator
+         *          specific characters might be forbidden.
+         *          Note that a `null` validator is considered valid and states
+         *          that the textbox accepts all inputs.
+         * @param validator - the validator to assign.
+         */
+        void
+        setValidator(ValidatorShPtr validator);
+
+        /**
+         * @brief - Used to retrieve the current value stored in this textbox. Note
+         *          that the validator is applied at this step, meaning that the value
+         *          displayed and returned might be modified by the filter upon calling
+         *          this method.
+         *          A fixup is attempted in case the value is deemed invalid. If no
+         *          valid value can be retrieved an error is raised.
+         * @return - the best attempt at providing a valid value given the validator.
+         */
+        std::string
+        getValue();
 
       protected:
 
@@ -614,6 +638,14 @@ namespace sdl {
          * @brief - Used to protect concurrent accesses to the internal data of this textbox.
          */
         std::mutex m_propsLocker;
+
+        /**
+         * @brief - Optional pointer to control the input of the textbox. If this value is `null` no
+         *          control is performed to verify that the input matches some sort of convention
+         *          but if it is not `null` any character is checked against this validator before
+         *          being inserted.
+         */
+        ValidatorShPtr m_validator;
     };
 
     using TextBoxShPtr = std::shared_ptr<TextBox>;

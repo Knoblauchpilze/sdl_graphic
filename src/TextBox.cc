@@ -33,7 +33,9 @@ namespace sdl {
 
       m_selectionBackground(),
 
-      m_propsLocker()
+      m_propsLocker(),
+
+      m_validator(nullptr)
     {
       // Build the internal state of this box.
       build();
@@ -117,9 +119,11 @@ namespace sdl {
         return toReturn;
       }
 
-      // Check whether the key is alphanumeric: if this is not the case we can't do much
-      // so we will just trash the event for now.
-      // TODO: We should implement some kind of filters which the user could specify.
+      // Check whether the key is authorized: in a first approach we will rely on
+      // the fact that the character should be printable. If this is not the case
+      // there's no point in trying to display it.
+      // The validator is used later on when the user wants to retrieve the value
+      // that is stored in this textbox.
       if (!e.isPrintable()) {
         // Use the return value provided by the base handler.
         return toReturn;
