@@ -163,7 +163,7 @@ namespace sdl {
          *           any other case.
          */
         bool
-        canTriggerCursorMotion(const core::engine::Key& k) const noexcept;
+        canTriggerCursorMotion(const core::engine::RawKey& k) const noexcept;
 
         /**
          * @brief - Used to trigger the needed events and internal states so that the cursor

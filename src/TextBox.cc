@@ -70,15 +70,15 @@ namespace sdl {
       // We will handle first the motion of the cursor. It is triggered by using
       // the left and right arrows. The position is updated until no more move is
       // possible in the corresponding direction.
-      if (canTriggerCursorMotion(e.getKey())) {
+      if (canTriggerCursorMotion(e.getRawKey())) {
         // Assume left motion and change if needed.
         CursorMotion motion = CursorMotion::Left;
-        if (e.getKey() == core::engine::Key::Right || e.getKey() == core::engine::Key::End) {
+        if (e.getRawKey() == core::engine::RawKey::Right || e.getRawKey() == core::engine::RawKey::End) {
           motion = CursorMotion::Right;
         }
         const bool fastForward = (
-          e.getKey() == core::engine::Key::Home ||
-          e.getKey() == core::engine::Key::End
+          e.getRawKey() == core::engine::RawKey::Home ||
+          e.getRawKey() == core::engine::RawKey::End
         );
 
         // Before updating the cursor position we need to detect when the user
@@ -104,9 +104,9 @@ namespace sdl {
       }
 
       // Handle the removal of a character.
-      if (e.getKey() == core::engine::Key::BackSpace || e.getKey() == core::engine::Key::Delete) {
+      if (e.getRawKey() == core::engine::RawKey::BackSpace || e.getRawKey() == core::engine::RawKey::Delete) {
         // Perform the character removal.
-        removeCharFromText(e.getKey() == core::engine::Key::Delete);
+        removeCharFromText(e.getRawKey() == core::engine::RawKey::Delete);
 
         // Handle the end of the selection if needed: we only want to handle it after
         // performing the deletion of the character(s) because that's how most of the

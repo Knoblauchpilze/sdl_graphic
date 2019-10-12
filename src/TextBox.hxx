@@ -58,12 +58,12 @@ namespace sdl {
 
     inline
     bool
-    TextBox::canTriggerCursorMotion(const core::engine::Key& k) const noexcept {
+    TextBox::canTriggerCursorMotion(const core::engine::RawKey& k) const noexcept {
       return
-        k == core::engine::Key::Left ||
-        k == core::engine::Key::Right ||
-        k == core::engine::Key::Home ||
-        k == core::engine::Key::End
+        k == core::engine::RawKey::Left ||
+        k == core::engine::RawKey::Right ||
+        k == core::engine::RawKey::Home ||
+        k == core::engine::RawKey::End
       ;
     }
 
