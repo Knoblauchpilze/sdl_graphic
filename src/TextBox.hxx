@@ -138,6 +138,25 @@ namespace sdl {
               updateCursorToPosition(id == 0u ? id : id + 1u);
             }
             break;
+          case CursorMotionMode::ToWordOrSpace:
+            {
+              // This mode is similar to the `ToWord` one except we consider a space
+              // sequence to also be a `word`.
+              std::size_t id = m_cursorIndex - 1u;
+              bool gap = (m_text[id] == ' ');
+
+              // Loop until either we reach a space or (if we started at a space)
+              // until we reach a real character.
+              while (id > 0u && ((gap && m_text[id] == ' ') || (!gap && m_text[id] != ' '))) {
+                --id;
+              }
+
+              // We don't want to move to whatever position we reached unless we did
+              // reach the beginning of the string. Indeed in any other case we don't
+              // want to move past the space character.
+              updateCursorToPosition(id == 0u ? id : id + 1u);
+            }
+            break;
           default:
             log("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)), utils::Level::Warning);
             break;
@@ -176,6 +195,28 @@ namespace sdl {
                 if (gap && m_text[id] != ' ') {
                   gap = false;
                 }
+              }
+
+              // We don't want to move to whatever position we reached unless we did
+              // reach the end of the string. Indeed in any other case we don't want
+              // to move past the space character.
+              updateCursorToPosition(id == m_text.size() ? m_text.size() : id);
+            }
+            break;
+          case CursorMotionMode::ToWordOrSpace:
+            {
+              // Try to find the next occurrence of a ' ' character. If we can
+              // find one we will move to reach it, otherwise we move to the
+              // end of the string.
+              // Also we want to skip all the ' ' characters to directly reach the
+              // next word in case we're standing right on the verge of a space gap.
+              std::size_t id = m_cursorIndex;
+              bool gap = (m_text[id] == ' ');
+
+              // Loop until either we reach a space or (if we started at a space)
+              // until we reach a real character.
+              while (id < m_text.size() && ((gap && m_text[id] == ' ') || (!gap && m_text[id] != ' '))) {
+                ++id;
               }
 
               // We don't want to move to whatever position we reached unless we did

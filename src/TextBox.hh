@@ -156,6 +156,7 @@ namespace sdl {
         enum class CursorMotionMode {
           SingleChar,
           ToWord,
+          ToWordOrSpace,
           ToEnd
         };
 

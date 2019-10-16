@@ -203,12 +203,9 @@ namespace sdl {
 
       // Perform a selection of the entirety of the text inserted in the textbox. We will
       // also move the cursor to the end of the displayed text.
-      // TODO: We might want to select only the spaces between words when we have a situation
-      // like "zdiudiu      eifuu"
-      //                ^- User double clicks here.
-      updateCursorPosition(CursorMotion::Left, CursorMotionMode::ToWord);
+      updateCursorPosition(CursorMotion::Left, CursorMotionMode::ToWordOrSpace);
       startSelection();
-      updateCursorPosition(CursorMotion::Right, CursorMotionMode::ToWord);
+      updateCursorPosition(CursorMotion::Right, CursorMotionMode::ToWordOrSpace);
 
       // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDoubleClickEvent(e);
