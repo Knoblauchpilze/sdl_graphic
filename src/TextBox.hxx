@@ -83,7 +83,9 @@ namespace sdl {
 
     inline
     void
-    TextBox::updateCursorPosition(const CursorMotion& motion, bool fastForward) {
+    TextBox::updateCursorPosition(const CursorMotion& motion,
+                                  const CursorMotionMode& mode)
+    {
       // Based on the input direction, try to update the index at which the cursor
       // should be displayed.
       // Detect whether some text is visible in the textbox.
@@ -96,24 +98,95 @@ namespace sdl {
 
       // Depending on the motion direction update the position of the cursor.
       if (motion == CursorMotion::Left) {
-        // Check for fast forward.
-        if (fastForward) {
-          updateCursorToPosition(0u);
+        // Based on the cursor motion mode we should handle the motion differently.
+        // Also we handle the case where the cursor is already on the very left of
+        // the text here so that we don't have to handle it for each cursor motion
+        // mode.
+        if (m_cursorIndex == 0) {
+          return;
         }
-        else {
-          if (m_cursorIndex > 0) {
+
+        switch (mode) {
+          case CursorMotionMode::SingleChar:
             updateCursorToPosition(m_cursorIndex - 1u);
-          }
+            break;
+          case CursorMotionMode::ToEnd:
+            updateCursorToPosition(0u);
+            break;
+          case CursorMotionMode::ToWord:
+            {
+              // Try to find the previous occurrence of a ' ' character. If we can
+              // find one we will move to reach it, otherwise we move to the start
+              // of the string.
+              // Also we want to skip all the ' ' characters to directly reach the
+              // next word in case we're standing right on the verge of a space gap.
+              std::size_t id = m_cursorIndex - 1u;
+              bool gap = (m_text[id] == ' ');
+
+              // Loop until either we reach a space or (if we started at a space)
+              // until we reach a real character.
+              while (id > 0u && (gap || (!gap && m_text[id] != ' '))) {
+                --id;
+                if (gap && m_text[id] != ' ') {
+                  gap = false;
+                }
+              }
+
+              // We don't want to move to whatever position we reached unless we did
+              // reach the beginning of the string. Indeed in any other case we don't
+              // want to move past the space character.
+              updateCursorToPosition(id == 0u ? id : id + 1u);
+            }
+            break;
+          default:
+            log("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)), utils::Level::Warning);
+            break;
         }
       }
       else {
-        if (fastForward) {
-          updateCursorToPosition(m_text.size());
+        // Based on the cursor motion mode we should handle the motion differently.
+        // Also we handle the case where the cursor is already on the very right of
+        // the text here so that we don't have to handle it for each cursor motion
+        // mode.
+        if (m_cursorIndex >= m_text.size()) {
+          return;
         }
-        else {
-          if (m_cursorIndex < m_text.size()) {
+
+        switch (mode) {
+          case CursorMotionMode::SingleChar:
             updateCursorToPosition(m_cursorIndex + 1u);
-          }
+            break;
+          case CursorMotionMode::ToEnd:
+            updateCursorToPosition(m_text.size());
+            break;
+          case CursorMotionMode::ToWord:
+            {
+              // Try to find the next occurrence of a ' ' character. If we can
+              // find one we will move to reach it, otherwise we move to the
+              // end of the string.
+              // Also we want to skip all the ' ' characters to directly reach the
+              // next word in case we're standing right on the verge of a space gap.
+              std::size_t id = m_cursorIndex;
+              bool gap = (m_text[id] == ' ');
+
+              // Loop until either we reach a space or (if we started at a space)
+              // until we reach a real character.
+              while (id < m_text.size() && (gap || (!gap && m_text[id] != ' '))) {
+                ++id;
+                if (gap && m_text[id] != ' ') {
+                  gap = false;
+                }
+              }
+
+              // We don't want to move to whatever position we reached unless we did
+              // reach the end of the string. Indeed in any other case we don't want
+              // to move past the space character.
+              updateCursorToPosition(id == m_text.size() ? m_text.size() : id);
+            }
+            break;
+          default:
+            log("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)), utils::Level::Warning);
+            break;
         }
       }
     }
@@ -136,9 +209,9 @@ namespace sdl {
 
     inline
     void
-    TextBox::addCharToText(const char c) {
+    TextBox::addCharToText(std::string c) {
       // Insert the char at the position specified by the cursor index.
-      m_text.insert(m_text.begin() + m_cursorIndex, c);
+      m_text.insert(m_text.begin() + m_cursorIndex, c[0]);
 
       // Update the position of the cursor index so that it stays at the
       // same position.

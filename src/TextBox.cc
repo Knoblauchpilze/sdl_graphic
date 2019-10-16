@@ -76,10 +76,13 @@ namespace sdl {
         if (e.getRawKey() == core::engine::RawKey::Right || e.getRawKey() == core::engine::RawKey::End) {
           motion = CursorMotion::Right;
         }
-        const bool fastForward = (
-          e.getRawKey() == core::engine::RawKey::Home ||
-          e.getRawKey() == core::engine::RawKey::End
-        );
+        CursorMotionMode mode = CursorMotionMode::SingleChar;
+        if (core::engine::ctrlEnabled(e.getModifiers())) {
+          mode = CursorMotionMode::ToWord;
+        }
+        if (e.getRawKey() == core::engine::RawKey::Home || e.getRawKey() == core::engine::RawKey::End) {
+          mode = CursorMotionMode::ToEnd;
+        }
 
         // Before updating the cursor position we need to detect when the user
         // starts a selection: this is triggered by using the shift modifier and
@@ -96,7 +99,7 @@ namespace sdl {
           stopSelection();
         }
         else {
-          updateCursorPosition(motion, fastForward);
+          updateCursorPosition(motion, mode);
         }
 
         // Use the base handler to provide the return value.
@@ -200,10 +203,12 @@ namespace sdl {
 
       // Perform a selection of the entirety of the text inserted in the textbox. We will
       // also move the cursor to the end of the displayed text.
-      // TODO: We might want to only select the word the cursor is at.
-      updateCursorPosition(CursorMotion::Left, true);
+      // TODO: We might want to select only the spaces between words when we have a situation
+      // like "zdiudiu      eifuu"
+      //                ^- User double clicks here.
+      updateCursorPosition(CursorMotion::Left, CursorMotionMode::ToWord);
       startSelection();
-      updateCursorPosition(CursorMotion::Right, true);
+      updateCursorPosition(CursorMotion::Right, CursorMotionMode::ToWord);
 
       // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDoubleClickEvent(e);

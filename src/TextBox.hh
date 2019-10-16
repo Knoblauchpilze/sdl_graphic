@@ -148,6 +148,18 @@ namespace sdl {
         };
 
         /**
+         * @brief - Used to specify the type of motion to apply to the cursor. Typical values
+         *          allow to move directly to the begin or to the end of an element or until
+         *          the next word is found.
+         *          The basic mode corresponds to a motion of a single character.
+         */
+        enum class CursorMotionMode {
+          SingleChar,
+          ToWord,
+          ToEnd
+        };
+
+        /**
          * @brief - Used internally upon constructing the text box to initialize internal
          *          states.
          */
@@ -181,17 +193,16 @@ namespace sdl {
          *          the motion.
          *          The cursor is advanced by one step in the correct direction if possible. If
          *          no motion in the specified direction is possible nothing happens.
-         *          The `fastForward` attribute defines whether the motiion should fastforward
-         *          until no more motion of this type is possible. Typically it indicates in the
-         *          case of a left motion for example that the new position of the cursor should
-         *          be set to the beginning of the text.
+         *          The `mode` attribute defines whether the motion should continue until the
+         *          end of the string is reached or if something else should be done.
          * @param motion - the direction into which the cursor should be moved.
-         * @param fastForward - `true` if the motion should be applied until it can't be applied
-         *                      anymore and `false` otherwise.
+         * @param mode - the type of motion to apply in the specified direction. Typical values
+         *               include moving of a single character, until the next word or until the
+         *               end of the string.
          */
         void
         updateCursorPosition(const CursorMotion& motion,
-                             bool fastForward = false);
+                             const CursorMotionMode& mode = CursorMotionMode::SingleChar);
 
         /**
          * @brief - Used to update the position of the cursor to the value specified in argument.
@@ -211,7 +222,7 @@ namespace sdl {
          * @param c - the character to add to the internal text.
          */
         void
-        addCharToText(const char c);
+        addCharToText(std::string c);
 
         /**
          * @brief - Remove a character from the internal text according to the position pointed
