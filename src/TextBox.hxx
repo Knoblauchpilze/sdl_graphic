@@ -197,10 +197,8 @@ namespace sdl {
                 }
               }
 
-              // We don't want to move to whatever position we reached unless we did
-              // reach the end of the string. Indeed in any other case we don't want
-              // to move past the space character.
-              updateCursorToPosition(id == m_text.size() ? m_text.size() : id);
+              // We want to move to whatever position we reached.
+              updateCursorToPosition(id);
             }
             break;
           case CursorMotionMode::ToWordOrSpace:
@@ -219,10 +217,8 @@ namespace sdl {
                 ++id;
               }
 
-              // We don't want to move to whatever position we reached unless we did
-              // reach the end of the string. Indeed in any other case we don't want
-              // to move past the space character.
-              updateCursorToPosition(id == m_text.size() ? m_text.size() : id);
+              // We want to move to whatever position we reached.
+              updateCursorToPosition(id);
             }
             break;
           default:
@@ -338,10 +334,28 @@ namespace sdl {
 
         // Render each part.
         if (hasLeftTextPart()) {
+          // Check for empty text and display a debug to help understand the problem.
+          if (getLeftText().empty()) {
+            log(
+              "Trying to render left text ranging from " + std::to_string(m_selectionStart) + " to " +
+              std::to_string(m_cursorIndex) + " which lead to empty text",
+              utils::Level::Error
+            );
+          }
+
           m_leftText = getEngine().createTextureFromText(getLeftText(), m_font, m_textRole);
         }
 
         if (hasSelectedTextPart()) {
+          // Check for empty text and display a debug to help understand the problem.
+          if (getSelectedText().empty()) {
+            log(
+              "Trying to render selected text ranging from " + std::to_string(m_selectionStart) + " to " +
+              std::to_string(m_cursorIndex) + " which lead to empty text",
+              utils::Level::Error
+            );
+          }
+
           // The role of the selected text is always `HighlightedText`.
           m_selectedText = getEngine().createTextureFromText(
             getSelectedText(),
@@ -371,6 +385,15 @@ namespace sdl {
         }
 
         if (hasRightTextPart()) {
+          // Check for empty text and display a debug to help understand the problem.
+          if (getRightText().empty()) {
+            log(
+              "Trying to render right text ranging from " + std::to_string(m_selectionStart) + " to " +
+              std::to_string(m_cursorIndex) + " which lead to empty text",
+              utils::Level::Error
+            );
+          }
+
           m_rightText = getEngine().createTextureFromText(getRightText(), m_font, m_textRole);
         }
       }
