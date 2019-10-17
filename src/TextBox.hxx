@@ -250,9 +250,9 @@ namespace sdl {
 
     inline
     void
-    TextBox::addCharToText(std::string c) {
+    TextBox::addCharToText(char c) {
       // Insert the char at the position specified by the cursor index.
-      m_text.insert(m_text.begin() + m_cursorIndex, c[0]);
+      m_text.insert(m_text.begin() + m_cursorIndex, c);
 
       // Update the position of the cursor index so that it stays at the
       // same position.

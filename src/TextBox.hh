@@ -223,7 +223,7 @@ namespace sdl {
          * @param c - the character to add to the internal text.
          */
         void
-        addCharToText(std::string c);
+        addCharToText(char c);
 
         /**
          * @brief - Remove a character from the internal text according to the position pointed
