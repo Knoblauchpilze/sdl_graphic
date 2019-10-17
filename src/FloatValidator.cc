@@ -57,7 +57,7 @@ namespace sdl {
       // We consider values that could be transformed to the range by either
       // adding or removing some digits to be in intermediate state. All other
       // cases are marked invalid.
-      // TODO: Implementation.
+      // TODO: Implementation, see here: https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html
       return State::Intermediate;
     }
 
