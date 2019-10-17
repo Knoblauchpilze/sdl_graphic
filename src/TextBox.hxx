@@ -22,7 +22,52 @@ namespace sdl {
       // Lock this object.
       Guard guard(m_propsLocker);
 
-      // TODO: We should implement some kind of filters which the user could specify.
+      // Check whether a validator is set for this object: if this is the case we
+      // should apply it on the value displayed, try to fix it if needed and both
+      // update the value displayed along with the return value.
+      if (m_validator != nullptr) {
+        Validator::State s = m_validator->validate(m_text);
+
+        // Check the result of the validation.
+        switch (s) {
+          case Validator::State::Intermediate:
+          case Validator::State::Invalid:
+            {
+              // If the input is either invalid or intermediate we should try to fix
+              // it so that we get a valid value.
+              m_validator->fixup(m_text);
+              
+              // Check whether it is valid.
+              std::string text = m_text;
+              s = m_validator->validate(text);
+
+              if (s == Validator::State::Valid) {
+                // The validator was able to fix the input, let's reflect these changes
+                // in the text box.
+                m_text = text;
+
+                setTextChanged();
+              }
+              else {
+                // The text was not made valid, continue by keeping this text but by
+                // logging something.
+                log(
+                  std::string("Could not make text \"") + m_text + "\" valid against validator, using it as is",
+                  utils::Level::Warning
+                );
+              }
+            }
+            break;
+          case Validator::State::Valid:
+          default:
+            // Default behavior is to consider the input valid.
+            break;
+        }
+      }
+
+      // Return the text currently displayed: it is either valid because of
+      // the validator or it is not valid and the validator can't fix it so
+      // better use it as is.
       return m_text;
     }
 
