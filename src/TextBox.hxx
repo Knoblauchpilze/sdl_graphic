@@ -301,6 +301,19 @@ namespace sdl {
 
       // Mark the text as dirty.
       setTextChanged();
+
+      if (m_validator) {
+        Validator::State s = m_validator->validate(m_text);
+        if (s == Validator::State::Valid) {
+          log("Textbox content \"" + m_text + "\" is valid", utils::Level::Info);
+        }
+        else if (s == Validator::State::Intermediate) {
+          log("Textbox content \"" + m_text + "\" is intermediate", utils::Level::Warning);
+        }
+        else {
+          log("Textbox content \"" + m_text + "\" is invalid", utils::Level::Error);
+        }
+      }
     }
 
     inline
