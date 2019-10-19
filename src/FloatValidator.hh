@@ -18,7 +18,7 @@ namespace sdl {
       enum class Notation {
         Standard,
         Scientific
-      }
+      };
 
     }
 
@@ -81,6 +81,32 @@ namespace sdl {
          */
         State
         validate(const std::string& input) const override;
+
+      private:
+
+        /**
+         * @brief - Performs the validation of the input `value` extracted from a string using the
+         *          standard notation. Returns a state which allow to determine whether the value
+         *          is valid given the range and decimals count.
+         * @param value - the float value to validate against he internal range.
+         * @param digits - the number of digits of the input string which generated the `value`.
+         * @return - a state describing the input `value` is valid against the internal range.
+         */
+        State
+        validateStandardNotation(float value,
+                                 int digits) const noexcept;
+
+        /**
+         * @brief - Performs the validation of the input `value` extracted from a string using the
+         *          scientific notation. Returns a state which allow to determine whether the value
+         *          is valid given the range and decimals count.
+         * @param value - the float value to validate against he internal range.
+         * @param digits - the number of digits of the input string which generated the `value`.
+         * @return - a state describing the input `value` is valid against the internal range.
+         */
+        State
+        validateScientificNotation(float value,
+                                   int digits) const noexcept;
 
       private:
 

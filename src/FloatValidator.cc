@@ -57,7 +57,7 @@ namespace sdl {
 
     Validator::State
     FloatValidator::validate(const std::string& input) const {
-      // Try to convert the input string to an integer value: if this cannot be done
+      // Try to convert the input string to a float value: if this cannot be done
       // we have a trivial case of an invalid input.
       bool ok = false;
       float val = convertToFloat(input, &ok);
@@ -69,21 +69,113 @@ namespace sdl {
         return State::Intermediate;
       }
 
-      // Now check the value of the float against the range: we can either have
-      // a float which is valid (easy detection) or something which is not.
-      // Some values are not valid but could be transformed into a valid number
-      // while some are obviously wrong.
+      // Check whether the input string has at least the right sign compared to the
+      // range. In order to do that we want to check for the existence of the '-'
+      // and '+' characters in the string.
+      if (m_lower >= 0 && input[0] == '-') {
+        return State::Invalid;
+      }
+      if (m_upper < 0 && input[0] == '+') {
+        return State::Invalid;
+      }
 
-      // Handle valid case first.
+      // Check whether the string is composed of a single '-' or '+' character: the
+      // conversion fails on this type of string but it is considered intermediate
+      // instead of `Invalid` so we need to check that before using the result of
+      // the `ok` value.
+      if ((input[0] == '-' || input[0] == '+') && input.size() == 1u) {
+        return State::Intermediate;
+      }
+
+      // Now we can check if the conversion was successful: if this is not the case
+      // it means that something is wrong with the input string and thus we can say
+      // that's it's invalid in regard of the range.
+      if (!ok) {
+        return State::Invalid;
+      }
+
+      // Detect valid cases.
       if (val >= m_lower && val <= m_upper) {
         return State::Valid;
       }
 
-      // We consider values that could be transformed to the range by either
-      // adding or removing some digits to be in intermediate state. All other
-      // cases are marked invalid.
+      // We now need to check for the expected number notation: indeed when using
+      // the scientific notation we cannot really rely on the number of digits to
+      // determine whether we can still add numbers.
+      // We will use dedicated handlers to perform the analysis.
+      switch (m_notation) {
+        case number::Notation::Scientific:
+          return validateStandardNotation(val, input.size());
+        case number::Notation::Standard:
+          return validateScientificNotation(val, input.size());
+        default:
+          break;
+      }
+
+      // Failure to interpret the number notation results in an error.
+      error(
+        std::string("Could not validate input \"") + input + "\" as floating point value",
+        std::string("Could not interpret number notation ") + std::to_string(static_cast<int>(m_notation))
+      );
+
+      // Make the compiler silent about not returning anything.
+      return State::Invalid;
+    }
+
+    Validator::State
+    FloatValidator::validateStandardNotation(float /*value*/,
+                                             int /*digits*/) const noexcept
+    {
       // TODO: Implementation, see here: https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html
-      return State::Intermediate;
+      return State::Invalid;
+# ifdef IMPLEMENTATION
+      Q_Q(const QDoubleValidator);
+      QByteArray buff;
+      if (!locale.d->m_data->validateChars(input, numMode, &buff, q->dec, locale.numberOptions())) {
+          return QValidator::Invalid;
+      }
+      if (buff.isEmpty())
+          return QValidator::Intermediate;
+      if (q->b >= 0 && buff.startsWith('-'))
+          return QValidator::Invalid;
+      if (q->t < 0 && buff.startsWith('+'))
+          return QValidator::Invalid;
+      bool ok = false;
+      double i = buff.toDouble(&ok); // returns 0.0 if !ok
+      if (i == qt_qnan())
+          return QValidator::Invalid;
+      if (!ok)
+          return QValidator::Intermediate;
+      if (i >= q->b && i <= q->t)
+          return QValidator::Acceptable;
+
+
+      if (notation == QDoubleValidator::StandardNotation) {
+          double max = qMax(qAbs(q->b), qAbs(q->t));
+          if (max < LLONG_MAX) {
+              qlonglong n = pow10(numDigits(qlonglong(max)));
+              // In order to get the highest possible number in the intermediate
+              // range we need to get 10 to the power of the number of digits
+              // after the decimal's and subtract that from the top number.
+              //
+              // For example, where q->dec == 2 and with a range of 0.0 - 9.0
+              // then the minimum possible number is 0.00 and the maximum
+              // possible is 9.99. Therefore 9.999 and 10.0 should be seen as
+              // invalid.
+              if (qAbs(i) > (n - std::pow(10, -q->dec)))
+                  return QValidator::Invalid;
+          }
+      }
+      return QValidator::Intermediate;
+# endif
+    }
+
+    Validator::State
+    FloatValidator::validateScientificNotation(float /*value*/,
+                                               int /*digits*/) const noexcept
+    {
+      // TODO: Implementation.
+      return State::Invalid;
     }
 
   }
