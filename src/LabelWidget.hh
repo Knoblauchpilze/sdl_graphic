@@ -107,7 +107,7 @@ namespace sdl {
 
         /**
          * @brief - Used to update the internal value of the `m_textRole` value based on the role
-         *          of the base widget's content provided as argument. 
+         *          of the base widget's content provided as argument.
          *          Basically tries to assign a valid role corresponding to the background into
          *          which the text will be displayed.
          *          Assumes that the `m_propsLocker` is already locked.

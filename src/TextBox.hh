@@ -407,7 +407,7 @@ namespace sdl {
 
         /**
          * @brief - Used to determine whether the cursor has been modified since the last call to the
-         *          `drawContentPrivate` operation. Internally uses the `m_cursorChanged` status 
+         *          `drawContentPrivate` operation. Internally uses the `m_cursorChanged` status
          *          perform the check.
          *          Assumes that the `m_propsLocker` is already locked.
          * @return - `true` if the cursor has been modified and `false` otherwise.

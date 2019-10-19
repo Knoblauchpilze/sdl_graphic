@@ -36,7 +36,7 @@ namespace sdl {
               // If the input is either invalid or intermediate we should try to fix
               // it so that we get a valid value.
               m_validator->fixup(m_text);
-              
+
               // Check whether it is valid.
               std::string text = m_text;
               s = m_validator->validate(text);

@@ -107,16 +107,16 @@ namespace sdl {
       if (val < 0) {
         // Let's use some examples to find out what to do.
         // Value: `-3`
-        //  1. Range: `[  30,  60 ]`  
-        //  2. Range: `[   5,   6 ]`  
-        //  3. Range: `[   2,   6 ]`  
-        //  4. Range: `[   1,   2 ]`  
-        //  5. Range: `[  -1,   6 ]`  
-        //  6. Range: `[  -6,   1 ]`  V
-        //  7. Range: `[  -2,  -1 ]`  V
-        //  8. Range: `[  -4,  -2 ]`  V
-        //  9. Range: `[  -5,  -4 ]`  V
-        // 10. Range: `[ -50, -40 ]`  V
+        //  1. Range: `[  30,  60 ]`
+        //  2. Range: `[   5,   6 ]`
+        //  3. Range: `[   2,   6 ]`
+        //  4. Range: `[   1,   2 ]`
+        //  5. Range: `[  -1,   6 ]`
+        //  6. Range: `[  -6,   1 ]`
+        //  7. Range: `[  -2,  -1 ]`
+        //  8. Range: `[  -4,  -2 ]`
+        //  9. Range: `[  -5,  -4 ]`
+        // 10. Range: `[ -50, -40 ]`
         //
         // Case `1` should be considered invalid (we can't make the input valid
         // without deleting some characters).
