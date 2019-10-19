@@ -1,5 +1,6 @@
 
 # include "FloatValidator.hh"
+# include <cmath>
 # include <string>
 
 namespace {
@@ -94,20 +95,24 @@ namespace sdl {
         return State::Invalid;
       }
 
+      float lower, upper;
+      accountForDecimals(lower, upper);
+
       // Detect valid cases.
-      if (val >= m_lower && val <= m_upper) {
+      if (val >= lower && val <= upper) {
         return State::Valid;
       }
 
-      // We now need to check for the expected number notation: indeed when using
-      // the scientific notation we cannot really rely on the number of digits to
-      // determine whether we can still add numbers.
-      // We will use dedicated handlers to perform the analysis.
+      // Compute the number of digits used by the number to analyze. Unlike for the
+      // integer case we can't really rely on the size of the input string to count
+      // the number of digits so we should use the logarithm approach.
+      int digits = (std::abs(val) < std::numeric_limits<float>::min() ? 1 : static_cast<int>(std::log10(std::abs(val)) + 1));
+
       switch (m_notation) {
-        case number::Notation::Scientific:
-          return validateStandardNotation(val, input.size());
         case number::Notation::Standard:
-          return validateScientificNotation(val, input.size());
+          return validateStandardNotation(val, digits);
+        case number::Notation::Scientific:
+          return validateScientificNotation(val, digits);
         default:
           break;
       }
@@ -123,9 +128,91 @@ namespace sdl {
     }
 
     Validator::State
-    FloatValidator::validateStandardNotation(float /*value*/,
-                                             int /*digits*/) const noexcept
+    FloatValidator::validateStandardNotation(float value,
+                                             int digits) const noexcept
     {
+      // Given that we're using standard notation we can rely on the number of digits of the
+      // input data to determine whether the value is valid. We will use a process similar
+      // to what's performed for the integer validation.
+      float lower, upper;
+      accountForDecimals(lower, upper);
+
+      int lowerDigits = (lower == 0 ? 1 : static_cast<int>(std::log10(std::abs(lower)) + 1));
+      int upperDigits = (upper == 0 ? 1 : static_cast<int>(std::log10(std::abs(upper)) + 1));
+
+      // The input value is obviously not valid (otherwise we would have already validated it
+      // in the main `validate` function) so we will either return `Invalid` or `Intermediate`.
+      // The process is very similar to what happens for the integers and one should head over
+      // there to get more details on the checks.
+      if (value < 0) {
+        // Let's use some examples to find out what to do.
+        // Value: `-3`
+        //  1. Range: `[  30,  60 ]` -> invalid
+        //  2. Range: `[   5,   6 ]` -> invalid
+        //  3. Range: `[   2,   6 ]` -> invalid
+        //  4. Range: `[   1,   2 ]` -> invalid
+        //  5. Range: `[  -1,   6 ]` -> invalid
+        //  6. Range: `[  -6,   1 ]` -> valid
+        //  7. Range: `[  -2,  -1 ]` -> invalid
+        //  8. Range: `[  -4,  -2 ]` -> valid
+        //  9. Range: `[  -5,  -4 ]` -> invalid
+        // 10. Range: `[ -50, -40 ]` -> intermediate
+
+        // Case ` 9`, `7`, `6`, `5`, `4`, `3`, `2` and `1`.
+        if ((value > m_upper && digits >= upperDigits) || (value < m_lower && digits >= lowerDigits)) {
+          return State::Invalid;
+        }
+
+        // Case `10`.
+        return State::Intermediate;
+      }
+      else {
+        // Let's use some examples to find out what to do.
+        // Value: `3`
+        //  1. Range: `[  30,  60 ]` -> intermediate
+        //  2. Range: `[   5,   6 ]` -> invalid
+        //  3. Range: `[   2,   6 ]` -> valid
+        //  4. Range: `[   1,   2 ]` -> invalid
+        //  5. Range: `[  -1,   6 ]` -> valid
+        //  6. Range: `[  -6,   1 ]` -> intermediate
+        //  7. Range: `[  -2,  -1 ]` -> invalid
+        //  8. Range: `[  -4,  -2 ]` -> intermediate
+        //  9. Range: `[  -5,  -4 ]` -> invalid
+        // 10. Range: `[ -50, -40 ]` -> intermediate
+
+        log("Value: " + std::to_string(value) + ", range: [" + std::to_string(lower) + "; " + std::to_string(upper) + "], digits: " + std::to_string(digits) + " c: " + std::to_string(lowerDigits) + "/" + std::to_string(upperDigits));
+
+        // Case `1` and `10`.
+        if ((value < lower && digits < lowerDigits && value * lower > 0) ||
+            (-value > upper && digits < upperDigits && value * upper < 0))
+        {
+          return State::Intermediate;
+        }
+
+        // Case `4` and `7`.
+        if ((value > upper && digits >= upperDigits && value * upper > 0) ||
+            (-value < lower && digits >= lowerDigits && value * lower < 0))
+        {
+          return State::Invalid;
+        }
+
+        // Case `2` and `9`.
+        if ((value < lower && digits >= lowerDigits && value * lower > 0) ||
+            (-value > upper && digits >= upperDigits && value * upper < 0))
+        {
+          return State::Invalid;
+        }
+
+        // Case `6` and `8`.
+        return State::Intermediate;
+      }
+    }
+
+    Validator::State
+    FloatValidator::validateScientificNotation(float /*value*/,
+                                               int /*digits*/) const noexcept
+    {
+
       // TODO: Implementation, see here: https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html
       return State::Invalid;
 # ifdef IMPLEMENTATION
@@ -168,14 +255,6 @@ namespace sdl {
       }
       return QValidator::Intermediate;
 # endif
-    }
-
-    Validator::State
-    FloatValidator::validateScientificNotation(float /*value*/,
-                                               int /*digits*/) const noexcept
-    {
-      // TODO: Implementation.
-      return State::Invalid;
     }
 
   }

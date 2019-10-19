@@ -28,9 +28,16 @@ namespace sdl {
         /**
          * @brief - Creates a new validator allowing to validate float input. Will return valid
          *          only if the float is a valid number. The user can specify a range which the
-         *          number should lie into.
-         *          The user can specify the expected notation for the number: this helps adapt
-         *          to various user format.
+         *          number should lie into. The user can specify the expected notation for the
+         *          number: this helps adapt to various user formats.
+         *          Despite being named `decimals` the attribute has actually little to do with
+         *          its general meaning. Setting `decimals = 5` indicates that the range actually
+         *          gets extended by `0.99999` in both direction if applicable (i.e. if the
+         *          lower bound is negative the range is set to `[m_lower - 0.99999; m_upper]`,
+         *          and in the positive case the range is set to `[m_lower; m_upper - 0.99999]`).
+         *          Setting `decimals = 0` in this approach does not mean that we're actually
+         *          only accepting integer values but rather than the range defined by the lower
+         *          and upper bound is strict (i.e. `[lower; range]`).
          *          Note that the validator is not strict in the sense that numbers equal to the
          *          bounds are considered valid.
          * @param lower - the lower bound of the validation interval.
@@ -41,7 +48,7 @@ namespace sdl {
         FloatValidator(float lower = std::numeric_limits<float>::lowest(),
                        float upper = std::numeric_limits<float>::max(),
                        const number::Notation& notation = number::Notation::Standard,
-                       float decimals = 6.0f);
+                       int decimals = 6);
 
         virtual ~FloatValidator();
 
@@ -85,9 +92,24 @@ namespace sdl {
       private:
 
         /**
+         * @brief - Used to update the input values with the actual bounds to use given the
+         *          value of decimals count. Typically if `m_decimals` is set to `3`, the
+         *          upper bound will be extended by `0.999` and the lower bound decreased by
+         *          `0.999` if possible (i.e. if it is negative).
+         * @param lower - output value which will contain the actual lower bound given the
+         *                desired decimals count.
+         * @param upper - output value which will contain the actual upper bound given the
+         *                desired decimals count.
+         */
+        void
+        accountForDecimals(float& lower, float& upper) const noexcept;
+
+        /**
          * @brief - Performs the validation of the input `value` extracted from a string using the
          *          standard notation. Returns a state which allow to determine whether the value
          *          is valid given the range and decimals count.
+         *          Note that the digits count should not include the potential signum characters
+         *          (e.g. '+' or '-').
          * @param value - the float value to validate against he internal range.
          * @param digits - the number of digits of the input string which generated the `value`.
          * @return - a state describing the input `value` is valid against the internal range.
@@ -123,7 +145,7 @@ namespace sdl {
         /**
          * @brief - The number of decimals accepted by this validator.
          */
-        float m_decimals;
+        int m_decimals;
 
         /**
          * @brief - The format expected for numbers when validating input.
