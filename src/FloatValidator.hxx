@@ -8,11 +8,15 @@ namespace sdl {
 
     inline
     FloatValidator::FloatValidator(float lower,
-                                   float upper):
+                                   float upper,
+                                   const number::Notation& notation,
+                                   float decimals):
       Validator(std::string("float_validator")),
 
       m_lower(lower),
-      m_upper(upper)
+      m_upper(upper),
+      m_decimals(decimals),
+      m_notation(notation)
     {}
 
     inline
@@ -30,6 +34,12 @@ namespace sdl {
     FloatValidator::setUpperBound(float upper) noexcept {
       m_upper = upper;
       m_lower = std::min(m_lower, m_upper);
+    }
+
+    inline
+    void
+    FloatValidator::setNotation(const number::Notation& notation) noexcept {
+      m_notation = notation;
     }
 
   }

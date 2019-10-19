@@ -9,6 +9,19 @@
 namespace sdl {
   namespace graphic {
 
+    namespace number {
+
+      /**
+       * @brief - Defines the possible number representation modes. Typical values include
+       *          standard notation or scientific notation.
+       */
+      enum class Notation {
+        Standard,
+        Scientific
+      }
+
+    }
+
     class FloatValidator: public Validator {
       public:
 
@@ -16,13 +29,19 @@ namespace sdl {
          * @brief - Creates a new validator allowing to validate float input. Will return valid
          *          only if the float is a valid number. The user can specify a range which the
          *          number should lie into.
+         *          The user can specify the expected notation for the number: this helps adapt
+         *          to various user format.
          *          Note that the validator is not strict in the sense that numbers equal to the
          *          bounds are considered valid.
          * @param lower - the lower bound of the validation interval.
          * @param upper - the upper bound of the validation interval.
+         * @param notation - the notation describing the expected format for numbers.
+         * @param decimals - the number of decimals accepted to define a float value.
          */
         FloatValidator(float lower = std::numeric_limits<float>::lowest(),
-                       float upper = std::numeric_limits<float>::max());
+                       float upper = std::numeric_limits<float>::max(),
+                       const number::Notation& notation = number::Notation::Standard,
+                       float decimals = 6.0f);
 
         virtual ~FloatValidator();
 
@@ -45,6 +64,15 @@ namespace sdl {
         setUpperBound(float upper) noexcept;
 
         /**
+         * @brief - Used to specify the expected number notation for numbers to validate. Depending
+         *          on the local expectations of the user one can choose to configure this validator
+         *          accordingly.
+         * @param notation - the number notation to expect when validating numbers.
+         */
+        void
+        setNotation(const number::Notation& notation) noexcept;
+
+        /**
          * @brief - Reimplementation of the base `Validator` method to react on float input.
          *          Returns `Valid` if the input string represents a float value in the range
          *          associated to this validator.
@@ -65,6 +93,16 @@ namespace sdl {
          * @brief - The lower bound of the range where float values are considered valid.
          */
         float m_upper;
+
+        /**
+         * @brief - The number of decimals accepted by this validator.
+         */
+        float m_decimals;
+
+        /**
+         * @brief - The format expected for numbers when validating input.
+         */
+        number::Notation m_notation;
     };
 
     using FloatValidatorShPtr = std::shared_ptr<FloatValidator>;
