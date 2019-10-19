@@ -94,8 +94,8 @@ namespace sdl {
       if (input[0] == '-' || input[0] == '+') {
         --digits;
       }
-      int upperDigits = (m_upper == 0 ? 1 : static_cast<int>(std::log10(std::abs(m_upper)) + 1));
       int lowerDigits = (m_lower == 0 ? 1 : static_cast<int>(std::log10(std::abs(m_lower)) + 1));
+      int upperDigits = (m_upper == 0 ? 1 : static_cast<int>(std::log10(std::abs(m_upper)) + 1));
 
       // The input value represents a value which is not in the specified range.
       // We can't have any `Valid` value produced here but we still need to see
