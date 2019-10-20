@@ -169,7 +169,7 @@ namespace sdl {
 
       std::string strDec;
       if (hasDecimals && indexDecSep < input.size() - 1) {
-        strDec = input.substr(indexDecSep + 1u, indexExp);
+        strDec = input.substr(indexDecSep + 1u, indexExp - (indexDecSep + 1u));
       }
 
       std::string strExp;
