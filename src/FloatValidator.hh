@@ -123,12 +123,12 @@ namespace sdl {
          *          scientific notation. Returns a state which allow to determine whether the value
          *          is valid given the range and decimals count.
          * @param value - the float value to validate against he internal range.
-         * @param digits - the number of digits of the input string which generated the `value`.
+         * @param digits - the initial string which produced the `value`.
          * @return - a state describing the input `value` is valid against the internal range.
          */
         State
         validateScientificNotation(float value,
-                                   int digits) const noexcept;
+                                   const std::string& digits) const noexcept;
 
       private:
 

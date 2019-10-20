@@ -2,6 +2,7 @@
 # include "FloatValidator.hh"
 # include <cmath>
 # include <string>
+# include <sstream>
 
 namespace {
 
@@ -22,6 +23,7 @@ namespace {
   {
     // Use the dedicated conversion function.
     size_t end;
+    bool scientific = false;
     float val;
     bool valid = true;
 
@@ -37,13 +39,26 @@ namespace {
       valid = false;
     }
 
+    // If the parsing was not valid it might mean that we're facing something written
+    // with scientific notation. Let's try to convert it using a string stream. It
+    // might allow for some more conversions even though after testing it seems that
+    // the standard `stof` approach handles these cases just fine.
+    if (!valid || end < input.size()) {
+      std::stringstream stream(input);
+      stream >> val;
+
+      // Check whether the conversion did happen successfully.
+      valid = !stream.fail();
+      scientific = true;
+    }
+
     // Analyze the result of the conversion.
     if (ok != nullptr) {
-      *ok = valid && (end >= input.size());
+      *ok = valid && (scientific || end >= input.size());
     }
 
     // Assign a `0` value in case the conversion failed.
-    if (!valid || end < input.size()) {
+    if (!valid || (!scientific && end < input.size())) {
       val = 0;
     }
 
@@ -112,7 +127,7 @@ namespace sdl {
         case number::Notation::Standard:
           return validateStandardNotation(val, digits);
         case number::Notation::Scientific:
-          return validateScientificNotation(val, digits);
+          return validateScientificNotation(val, input);
         default:
           break;
       }
@@ -210,7 +225,7 @@ namespace sdl {
 
     Validator::State
     FloatValidator::validateScientificNotation(float /*value*/,
-                                               int /*digits*/) const noexcept
+                                               const std::string& /*digits*/) const noexcept
     {
 
       // TODO: Implementation, see here: https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html
