@@ -26,6 +26,8 @@ namespace sdl {
          *          Setting `decimals = 0` in this approach does not mean that we're actually
          *          only accepting integer values but rather than the range defined by the lower
          *          and upper bound is strict (i.e. `[lower; range]`).
+         *          An important remark: the decimals are only used when the notation expected
+         *          for numbers is set to `Standard`.
          *          Note that the validator is not strict in the sense that numbers equal to the
          *          bounds are considered valid.
          * @param lower - the lower bound of the validation interval.

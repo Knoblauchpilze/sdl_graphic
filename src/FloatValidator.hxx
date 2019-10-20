@@ -50,15 +50,17 @@ namespace sdl {
       // Note that the lower bound will only be updated in case it is negative.
       // We handle the special case where decimals is set to `0` separately to
       // avoid numerical instabilities.
+      // Note that we only do this in case the expected number notation is set
+      // to `Standard`.
       const float overshoot = (m_decimals == 0 ? 0.0f : 1.0f - std::pow(10.0f, -1.0f * m_decimals));
 
       lower = m_lower;
-      if (m_lower < 0.0f) {
+      if (m_lower < 0.0f && m_notation == number::Notation::Standard) {
         lower = m_lower - overshoot;
       }
 
       upper = m_upper;
-      if (m_upper > 0.0f) {
+      if (m_upper > 0.0f && m_notation == number::Notation::Standard) {
         upper = m_upper + overshoot;
       }
     }
