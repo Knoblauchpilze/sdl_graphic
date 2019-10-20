@@ -350,7 +350,6 @@ namespace sdl {
         this,
         core::engine::Color::NamedColor::Silver
       );
-      icon->setZOrder(getDefaultZOrder());
 
       LabelWidget* text = new LabelWidget(
         std::string("combobox_text"),
@@ -362,7 +361,6 @@ namespace sdl {
         this,
         core::engine::Color::NamedColor::Silver
       );
-      text->setZOrder(getDefaultZOrder());
 
       // Add these items to the layout.
       layout->addItem(icon, 0, 0, 1, 1);
@@ -501,7 +499,6 @@ namespace sdl {
             this,
             core::engine::Color::NamedColor::Silver
           );
-          icon->setZOrder(getDefaultZOrder());
 
           // Add it to the layout.
           layout->addItem(icon, 0u, 1u + id, 1u, 1u);
@@ -531,7 +528,6 @@ namespace sdl {
             this,
             core::engine::Color::NamedColor::Silver
           );
-          text->setZOrder(getDefaultZOrder());
 
           // Add it to the layout.
           layout->addItem(text, 1u, 1u + id, 1u, 1u);
