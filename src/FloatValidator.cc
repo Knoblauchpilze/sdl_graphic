@@ -216,17 +216,72 @@ namespace sdl {
         return State::Invalid;
       }
 
+      // If the input number does not yet have an exponent we can't determine anything. Any number
+      // can be remapped to any range using a suited exponent so we wan't to handle all these cases
+      // by returning intermediate state right away.
+      if (!hasExponent) {
+        return State::Intermediate;
+      }
+
       // We know want to determine clearly invalid cases. Below are a few examples to help
       // see the possible cases. A first distinction comes from the sign of the input value
       // as using a negative value already rules out half of the number space (as we don't
       // allow deletions).
-      // TODO: Implementation.
+      // We will consider in the rest of this method that the information can only be added
+      // after the more specialized term of the number and that the sign of each component
+      // cannot be changed. This helps reduce the scope of modifications that can be made to
+      // a number and prevent always returning `Intermediate`.
+      // Note that at this point we know that an exponent is provided in the input integer.
       if (value < 0) {
-        return State::Intermediate;
+        if (exponent < 0) {
+          // Ex: Value: `-1.23e-2`, range `[1, 3]`.
+          if (value > m_upper) {
+            // No matter the number of digits we will add to the exponent we won't be able to
+            // decrease the number enough to reach the upper bound.
+            return State::Invalid;
+          }
+        }
+
+        if (exponent > 0) {
+          // Ex: Value: `-1.23e2`, range `[-80, 3]`.
+          if (value < m_lower) {
+            // No matter the number of digits we will add to the exponent we won't be able to
+            // increase the number enough to reach the lower bound.
+            return State::Invalid;
+          }
+        }
       }
       else {
-        return State::Intermediate;
+        if (exponent < 0) {
+          // Ex: Value: `1.23e-2`, range `[1, 3]`.
+          if (value < m_lower && m_lower >= 0.0f) {
+            // No matter the number of digits we will add to the exponent we won't be able to
+            // increase the number enough to reach the lower bound.
+            return State::Invalid;
+          }
+
+          // Ex: Value: `1.23e-2`, range `[-3, -1]`.
+          if (-value > m_upper && m_upper <= 0.0f) {
+            // No matter the number of digits we will add to the exponent we won't be able to
+            // decrease the number enough to reach the upper bound.
+            return State::Invalid;
+          }
+        }
+
+        if (exponent > 0) {
+          // Ex: Value: `1.23e2`, range `[0.5, 1]`.
+          // Ex: Value: `1.23e2`, range `[-0.5, 1]`.
+          // Ex: Value: `1.23e2`, range `[-0.5, -0.1]`.
+          if (value > m_upper && -value < m_lower) {
+            // No matter the number of digits we will add to the exponent we won't be able to
+            // decrease the number enough to reach the upper bound.
+            return State::Invalid;
+          }
+        }
       }
+
+      // No obvious problems with extending this number to make it valid.
+      return State::Intermediate;
     }
 
   }
