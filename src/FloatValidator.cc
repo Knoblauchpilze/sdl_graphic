@@ -2,77 +2,17 @@
 # include "FloatValidator.hh"
 # include <cmath>
 # include <string>
-# include <sstream>
-
-namespace {
-
-  /**
-   * @brief - Used to attempt to convert the input string to a valid float value.
-   *          Note that if the input string cannot be converted the returned value
-   *          will be `0.0` and the `ok` boolean will be set to `false` if it is
-   *          not set to `nullptr`.
-   * @param input - the string to convert to a float.
-   * @param ok - a pointer which should be set if the user wants to know whether the
-   *             input string could be successfully converted to a float value.
-   * @return - the float represented by the input string or `0.0` if the string is
-   *           not a valid number.
-   */
-  float
-  convertToFloat(const std::string& input,
-                 bool* ok = nullptr) noexcept
-  {
-    // Use the dedicated conversion function.
-    size_t end;
-    bool scientific = false;
-    float val;
-    bool valid = true;
-
-    try {
-      val = std::stof(input.c_str(), &end);
-    }
-    catch (const std::invalid_argument& e) {
-      // No conversion could be performed.
-      valid = false;
-    }
-    catch (const std::out_of_range& e) {
-      // The value seems to be valid but cannot be represented using a float value.
-      valid = false;
-    }
-
-    // If the parsing was not valid it might mean that we're facing something written
-    // with scientific notation. Let's try to convert it using a string stream. It
-    // might allow for some more conversions even though after testing it seems that
-    // the standard `stof` approach handles these cases just fine.
-    if (!valid || end < input.size()) {
-      std::stringstream stream(input);
-      stream >> val;
-
-      // Check whether the conversion did happen successfully.
-      valid = !stream.fail();
-      scientific = true;
-    }
-
-    // Analyze the result of the conversion.
-    if (ok != nullptr) {
-      *ok = valid && (scientific || end >= input.size());
-    }
-
-    // Assign a `0` value in case the conversion failed.
-    if (!valid || (!scientific && end < input.size())) {
-      val = 0;
-    }
-
-    // Return the converted value.
-    return val;
-  }
-
-}
+# include "Validator_utils.hxx"
 
 namespace sdl {
   namespace graphic {
 
     Validator::State
     FloatValidator::validate(const std::string& input) const {
+      // Note: the actual implementation is based on what we found in the Qt repository
+      // but refined in order to provide more precise analysis of intermediate and
+      // invalid states. For more details, see here:
+      // https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html.
       // Try to convert the input string to a float value: if this cannot be done
       // we have a trivial case of an invalid input.
       bool ok = false;
@@ -195,8 +135,6 @@ namespace sdl {
         //  9. Range: `[  -5,  -4 ]` -> invalid
         // 10. Range: `[ -50, -40 ]` -> intermediate
 
-        log("Value: " + std::to_string(value) + ", range: [" + std::to_string(lower) + "; " + std::to_string(upper) + "], digits: " + std::to_string(digits) + " c: " + std::to_string(lowerDigits) + "/" + std::to_string(upperDigits));
-
         // Case `1` and `10`.
         if ((value < lower && digits < lowerDigits && value * lower > 0) ||
             (-value > upper && digits < upperDigits && value * upper < 0))
@@ -224,52 +162,57 @@ namespace sdl {
     }
 
     Validator::State
-    FloatValidator::validateScientificNotation(float /*value*/,
-                                               const std::string& /*digits*/) const noexcept
+    FloatValidator::validateScientificNotation(float value,
+                                               const std::string& digits) const noexcept
     {
+      // This method is supposedly called when the input `digits` string represents a number
+      // in scientific notation. Upon entering this function we already know that the input
+      // value is not valid so we should try to determine whether it is an intermediate or
+      // an invalid input.
+      // Just like for the standard notation case we will consider that it's possible to add
+      // some digits, a sign or an exponent (i.e. either '+' or '-' or 'e' or 'E') but not
+      // to remove some existing symbols (otherwise everything is just intermediate and we
+      // don't have anything to do).
+      // Compared to the standard notation we can't really rely on the length of the input
+      // string to determine whether some digits are missing or anything due to the scientific
+      // notation.
+      // We will also verify that the scientific notation is actually correctly handled in the
+      // input string and that we're not handling something like "98e2".
+      float lower, upper;
+      accountForDecimals(lower, upper);
 
-      // TODO: Implementation, see here: https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html
-      return State::Invalid;
-# ifdef IMPLEMENTATION
-      Q_Q(const QDoubleValidator);
-      QByteArray buff;
-      if (!locale.d->m_data->validateChars(input, numMode, &buff, q->dec, locale.numberOptions())) {
-          return QValidator::Invalid;
+      // Determine whether there's already a decimal separator (a.k.a. '.' or ',' character)
+      // or/and an exponent by extracting each component of the input number.
+      // Extract each part of the input value.
+      int leading = 0, decimals = 0, exponent = 0;
+      bool hasLeading = false, hasDecimals = false, hasExponent = false;
+      extractComponents(digits, leading, hasLeading, decimals, hasDecimals, exponent, hasExponent);
+
+      // We want to detect valuies which are clearly too big or too large and which cannot
+      // be made valid by adding digits and decimal separator or exponent if possible.
+      int leadingDigits = (leading == 0 ? 1 : static_cast<int>(std::log10(std::abs(leading)) + 1));
+      int decDigits = (decimals == 0 ? 1 : static_cast<int>(std::log10(std::abs(decimals)) + 1));
+      int expDigits = (exponent == 0 ? 1 : static_cast<int>(std::log10(std::abs(exponent)) + 1));
+
+      log("Number \"" + digits + " parsed to l: " + std::to_string(leading) + ", d: " + std::to_string(decimals) + ", e: " + std::to_string(exponent));
+      log("Digits: (" + std::to_string(leadingDigits) + ", " + std::to_string(decDigits) + ", " + std::to_string(expDigits) + ")");
+
+      // Number with more that one digit in the leading part are clearly invalid.
+      if (leadingDigits > 1) {
+        return State::Invalid;
       }
-      if (buff.isEmpty())
-          return QValidator::Intermediate;
-      if (q->b >= 0 && buff.startsWith('-'))
-          return QValidator::Invalid;
-      if (q->t < 0 && buff.startsWith('+'))
-          return QValidator::Invalid;
-      bool ok = false;
-      double i = buff.toDouble(&ok); // returns 0.0 if !ok
-      if (i == qt_qnan())
-          return QValidator::Invalid;
-      if (!ok)
-          return QValidator::Intermediate;
-      if (i >= q->b && i <= q->t)
-          return QValidator::Acceptable;
 
-
-      if (notation == QDoubleValidator::StandardNotation) {
-          double max = qMax(qAbs(q->b), qAbs(q->t));
-          if (max < LLONG_MAX) {
-              qlonglong n = pow10(numDigits(qlonglong(max)));
-              // In order to get the highest possible number in the intermediate
-              // range we need to get 10 to the power of the number of digits
-              // after the decimal's and subtract that from the top number.
-              //
-              // For example, where q->dec == 2 and with a range of 0.0 - 9.0
-              // then the minimum possible number is 0.00 and the maximum
-              // possible is 9.99. Therefore 9.999 and 10.0 should be seen as
-              // invalid.
-              if (qAbs(i) > (n - std::pow(10, -q->dec)))
-                  return QValidator::Invalid;
-          }
+      // We know want to determine clearly invalid cases. Below are a few examples to help
+      // see the possible cases. A first distinction comes from the sign of the input value
+      // as using a negative value already rules out half of the number space (as we don't
+      // allow deletions).
+      // TODO: Implementation.
+      if (value < 0) {
+        return State::Intermediate;
       }
-      return QValidator::Intermediate;
-# endif
+      else {
+        return State::Intermediate;
+      }
     }
 
   }

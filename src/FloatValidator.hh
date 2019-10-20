@@ -5,22 +5,10 @@
 # include <string>
 # include <limits>
 # include "Validator.hh"
+# include "Validator_utils.hxx"
 
 namespace sdl {
   namespace graphic {
-
-    namespace number {
-
-      /**
-       * @brief - Defines the possible number representation modes. Typical values include
-       *          standard notation or scientific notation.
-       */
-      enum class Notation {
-        Standard,
-        Scientific
-      };
-
-    }
 
     class FloatValidator: public Validator {
       public:

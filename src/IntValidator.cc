@@ -1,49 +1,17 @@
 
 # include "IntValidator.hh"
 # include <cmath>
-
-namespace {
-
-  /**
-   * @brief - Used to attempt to convert the input string to a valid integer value.
-   *          Note that if the input string cannot be converted the returned value
-   *          will be `0` and the `ok` boolean will be set to `false` if it is not
-   *          set to `nullptr`.
-   * @param input - the string to convert to an integer.
-   * @param ok - a pointer which should be set if the user wants to know whether the
-   *             input string could be successfully converted to an integer value.
-   * @return - the integer represented by the input string or `0` if the string is
-   *           not a valid number.
-   */
-  int
-  convertToInt(const std::string& input,
-               bool* ok = nullptr) noexcept
-  {
-    // Use the dedicated conversion function.
-    char* end = nullptr;
-    int val = static_cast<int>(strtol(input.c_str(), &end, 10));
-
-    // Analyze the result of the conversion.
-    if (ok != nullptr) {
-      *ok = (*end == '\0');
-    }
-
-    // Assign a `0` value in case the conversion failed.
-    if (*end != '\0') {
-      val = 0;
-    }
-
-    // Return the converted value.
-    return val;
-  }
-
-}
+# include "Validator_utils.hxx"
 
 namespace sdl {
   namespace graphic {
 
     Validator::State
     IntValidator::validate(const std::string& input) const {
+      // Note: the actual implementation is based on what we found in the Qt repository
+      // but refined in order to provide more precise analysis of intermediate and
+      // invalid states. For more details, see here:
+      // https://code.woboq.org/qt5/qtbase/src/gui/util/qvalidator.cpp.html.
       // Try to convert the input string to an integer value: if this cannot be done
       // we have a trivial case of an invalid input.
       bool ok = false;
