@@ -35,6 +35,20 @@ namespace sdl {
         return State::Invalid;
       }
 
+      // We should detect cases where the notation is expected to be scientific and
+      // when we have an invalid leading part (i.e. with more than `1` digit).
+      if (m_notation == number::Notation::Scientific) {
+        // Retrieve the leading part of the number if any and compute its length.
+        int leading = 0;
+        bool hasLeading = false;
+        extractComponents(input, &leading, &hasLeading);
+        int digits = (std::abs(leading) == 0 ? 1 : static_cast<int>(std::log10(std::abs(leading)) + 1));
+
+        if (hasLeading && digits > 1) {
+          return State::Invalid;
+        }
+      }
+
       // Check whether the string is composed of a single '-' or '+' character: the
       // conversion fails on this type of string but it is considered intermediate
       // instead of `Invalid` so we need to check that before using the result of
@@ -186,7 +200,7 @@ namespace sdl {
       // Extract each part of the input value.
       int leading = 0, decimals = 0, exponent = 0;
       bool hasLeading = false, hasDecimals = false, hasExponent = false;
-      extractComponents(digits, leading, hasLeading, decimals, hasDecimals, exponent, hasExponent);
+      extractComponents(digits, &leading, &hasLeading, &decimals, &hasDecimals, &exponent, &hasExponent);
 
       // We want to detect valuies which are clearly too big or too large and which cannot
       // be made valid by adding digits and decimal separator or exponent if possible.

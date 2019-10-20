@@ -141,21 +141,21 @@ namespace sdl {
     inline
     void
     extractComponents(const std::string& input,
-                      int& leading,
-                      bool& hasLeading,
-                      int& decimals,
-                      bool& hasDecimals,
-                      int& exponent,
-                      bool& hasExponent)
+                      int* leading = nullptr,
+                      bool* hasLeading = nullptr,
+                      int* decimals = nullptr,
+                      bool* hasDecimals = nullptr,
+                      int* exponent = nullptr,
+                      bool* hasExponent = nullptr)
     {
       // The structure of a number in scientific notation should be something like `1.2e3`.
       // We will first try to determine whether each part is filled or if some are missing.
       std::size_t indexDecSep = std::min(input.find('.'), input.find(','));
       std::size_t indexExp = std::min(input.find('e'), input.find('E'));
 
-      hasLeading = (std::min(indexDecSep, indexExp) > 0);
-      hasDecimals = (indexDecSep != std::string::npos);
-      hasExponent = (indexExp != std::string::npos);
+      bool leadExist = (std::min(indexDecSep, indexExp) > 0);
+      bool decExist = (indexDecSep != std::string::npos);
+      bool expExist = (indexExp != std::string::npos);
 
       // Tokenize the string into the corresponding values. Note that we take full advantage
       // of the fact that we know beforehand the structure of a number in scientific notation.
@@ -163,65 +163,86 @@ namespace sdl {
       // The leading part runs until we reach either the end of the string, the first decimals
       // or the exponent.
       std::string strLead;
-      if (hasLeading) {
+      if (leadExist) {
         strLead = input.substr(0, std::min(indexDecSep, indexExp));
       }
 
       std::string strDec;
-      if (hasDecimals && indexDecSep < input.size() - 1) {
+      if (decExist && indexDecSep < input.size() - 1) {
         strDec = input.substr(indexDecSep + 1u, indexExp - (indexDecSep + 1u));
       }
 
       std::string strExp;
-      if (hasExponent && indexExp < input.size() - 1) {
+      if (expExist && indexExp < input.size() - 1) {
         strExp = input.substr(indexExp + 1u);
       }
 
       // Convert each component to an int.
       bool ok = false;
 
-      if (!hasLeading) {
-        leading = 0;
-      }
-      else {
-        leading = convertToInt(strLead, &ok);
-        if (!ok) {
-          throw utils::CoreException(
-            std::string("Could not convert leading part of number \"") + input + "\"",
-            std::string("float"),
-            std::string("validator"),
-            std::string("Invalid conversion to integer")
-          );
+      // If the user wants to retrieve the leading part of the number.
+      if (leading != nullptr) {
+        if (hasLeading != nullptr) {
+          *hasLeading = leadExist;
+        }
+
+        if (!leadExist) {
+          *leading = 0;
+        }
+        else {
+          *leading = convertToInt(strLead, &ok);
+          if (!ok) {
+            throw utils::CoreException(
+              std::string("Could not convert leading part of number \"") + input + "\"",
+              std::string("float"),
+              std::string("validator"),
+              std::string("Invalid conversion to integer")
+            );
+          }
         }
       }
 
-      if (!hasDecimals) {
-        decimals = 0;
-      }
-      else {
-        decimals = convertToInt(strDec, &ok);
-        if (!ok) {
-          throw utils::CoreException(
-            std::string("Could not convert decimals part of number \"") + input + "\"",
-            std::string("float"),
-            std::string("validator"),
-            std::string("Invalid conversion to integer")
-          );
+      // If the user wants to retrieve the decimal part of the number.
+      if (decimals != nullptr) {
+        if (hasDecimals != nullptr) {
+          *hasDecimals = decExist;
+        }
+
+        if (!decExist) {
+          *decimals = 0;
+        }
+        else {
+          *decimals = convertToInt(strDec, &ok);
+          if (!ok) {
+            throw utils::CoreException(
+              std::string("Could not convert decimals part of number \"") + input + "\"",
+              std::string("float"),
+              std::string("validator"),
+              std::string("Invalid conversion to integer")
+            );
+          }
         }
       }
 
-      if (!hasExponent) {
-        exponent = 0;
-      }
-      else {
-        exponent = convertToInt(strExp, &ok);
-        if (!ok) {
-          throw utils::CoreException(
-            std::string("Could not convert exponent part of number \"") + input + "\"",
-            std::string("float"),
-            std::string("validator"),
-            std::string("Invalid conversion to integer")
-          );
+      // If the user wants to retrieve the exponent part of the number.
+      if (exponent != nullptr) {
+        if (hasExponent != nullptr) {
+          *hasExponent = expExist;
+        }
+
+        if (!expExist) {
+          *exponent = 0;
+        }
+        else {
+          *exponent = convertToInt(strExp, &ok);
+          if (!ok) {
+            throw utils::CoreException(
+              std::string("Could not convert exponent part of number \"") + input + "\"",
+              std::string("float"),
+              std::string("validator"),
+              std::string("Invalid conversion to integer")
+            );
+          }
         }
       }
     }
