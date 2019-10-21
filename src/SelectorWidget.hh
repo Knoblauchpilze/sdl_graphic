@@ -55,7 +55,7 @@ namespace sdl {
                      const int& index);
 
         /**
-         * @brief - Removes the specified item frmo this widget. Just like the `removeWidget`
+         * @brief - Removes the specified item from this widget. Just like the `removeWidget`
          *          overload the active item is updated if needed.
          *          Note that if the widget does not exist an error is raised. Also note that
          *          this function calls the `removeWidget` internally.
