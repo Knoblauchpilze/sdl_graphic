@@ -10,9 +10,9 @@ namespace sdl {
 
     GridLayout::GridLayout(const std::string& name,
                            core::SdlWidget* widget,
-                           const unsigned& columns,
-                           const unsigned& rows,
-                           const float& margin):
+                           unsigned columns,
+                           unsigned rows,
+                           float margin):
       core::Layout(name, widget, margin),
       m_columns(columns),
       m_rows(rows),
@@ -266,7 +266,7 @@ namespace sdl {
     }
 
     void
-    GridLayout::updateGridCoordinates(const int& item,
+    GridLayout::updateGridCoordinates(int item,
                                       const utils::Boxi& coordinates)
     {
       // Try to retrieve the desired item.

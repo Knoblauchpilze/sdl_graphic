@@ -11,20 +11,22 @@ namespace sdl {
   namespace graphic {
 
     inline
-    const unsigned&
+    unsigned
     GridLayout::getColumnCount() const noexcept {
       return m_columns;
     }
 
     inline
-    const unsigned&
+    unsigned
     GridLayout::getRowCount() const noexcept {
       return m_rows;
     }
 
     inline
     void
-    GridLayout::setColumnHorizontalStretch(const unsigned& column, const float& stretch) {
+    GridLayout::setColumnHorizontalStretch(unsigned column,
+                                           float stretch)
+    {
       if (column > m_columns) {
         error(
           std::string("Cannot set horizontal stretch for column ") + std::to_string(column) +
@@ -37,7 +39,9 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setColumnMinimumWidth(const unsigned& column, const float& width) {
+    GridLayout::setColumnMinimumWidth(unsigned column,
+                                      float width)
+    {
       if (column > m_columns) {
         error(
           std::string("Cannot set minimum width for column ") + std::to_string(column) +
@@ -50,7 +54,7 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setColumnsMinimumWidth(const float& width) {
+    GridLayout::setColumnsMinimumWidth(float width) {
       for (unsigned column = 0u ; column < m_columns ; ++column) {
         m_columnsInfo[column].min = width;
       }
@@ -58,7 +62,9 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setRowVerticalStretch(const unsigned& row, const float& stretch) {
+    GridLayout::setRowVerticalStretch(unsigned row,
+                                      float stretch)
+    {
       if (row > m_rows) {
         error(
           std::string("Cannot set vertical stretch for row ") + std::to_string(row) +
@@ -71,7 +77,9 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setRowMinimumHeight(const unsigned& row, const float& height) {
+    GridLayout::setRowMinimumHeight(unsigned row,
+                                    float height)
+    {
       if (row > m_rows) {
         error(
           std::string("Cannot set minimum height for row ") + std::to_string(row) +
@@ -84,7 +92,7 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setRowsMinimumHeight(const float& height) {
+    GridLayout::setRowsMinimumHeight(float height) {
       for (unsigned row = 0u ; row < m_rows ; ++row) {
         m_rowsInfo[row].min = height;
       }
@@ -93,10 +101,10 @@ namespace sdl {
     inline
     void
     GridLayout::addItem(core::LayoutItem* container,
-                        const unsigned& x,
-                        const unsigned& y,
-                        const unsigned& w,
-                        const unsigned& h)
+                        unsigned x,
+                        unsigned y,
+                        unsigned w,
+                        unsigned h)
     {
       // Use the base handler to add the item and retrieve its index.
       int physID = core::Layout::addItem(container);
@@ -115,7 +123,9 @@ namespace sdl {
 
     inline
     void
-    GridLayout::setGrid(const unsigned& columns, const unsigned& rows) {
+    GridLayout::setGrid(unsigned columns,
+                        unsigned rows)
+    {
       // Resize the internal attributes.
       m_columns = columns;
       m_rows = rows;

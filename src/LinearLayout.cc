@@ -10,8 +10,8 @@ namespace sdl {
     LinearLayout::LinearLayout(const std::string& name,
                                core::SdlWidget* widget,
                                const Direction& direction,
-                               const float& margin,
-                               const float& interMargin):
+                               float margin,
+                               float interMargin):
       core::Layout(name, widget, margin),
       m_direction(direction),
       m_componentMargin(interMargin),
@@ -235,7 +235,7 @@ namespace sdl {
 
     void
     LinearLayout::addItem(core::LayoutItem* item,
-                          const int& index)
+                          int index)
     {
       // We want to insert the `item` at logical position `index`. This
       // includes registering the item in the layout as usual but we also

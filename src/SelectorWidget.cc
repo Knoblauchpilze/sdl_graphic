@@ -17,7 +17,7 @@ namespace sdl {
 
     void
     SelectorWidget::insertWidget(core::SdlWidget* widget,
-                                 const int& index)
+                                 int index)
     {
       if (widget == nullptr) {
         error(

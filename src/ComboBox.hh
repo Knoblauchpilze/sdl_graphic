@@ -198,7 +198,7 @@ namespace sdl {
          * @param index - the index of the item to activate.
          */
         void
-        setActiveItem(const int& index);
+        setActiveItem(int index);
 
         /**
          * @brief - Returns true if this combobox is dropped (i.e. displays the available options)
@@ -252,7 +252,7 @@ namespace sdl {
          * @return - the string assigned to the icon widget representing item `id`.
          */
         std::string
-        getIconNameFromID(const int& id) const noexcept;
+        getIconNameFromID(int id) const noexcept;
 
         /**
          * @brief - Retrieves the name of the text widget for the specified index.
@@ -260,7 +260,7 @@ namespace sdl {
          * @return - the string assigned to the text widget representing item `id`.
          */
         std::string
-        getTextNameFromID(const int& id) const noexcept;
+        getTextNameFromID(int id) const noexcept;
 
         /**
          * @brief - Used to connect this method as receiver of the elements inserted

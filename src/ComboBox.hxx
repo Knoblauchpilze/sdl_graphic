@@ -91,13 +91,13 @@ namespace sdl {
 
     inline
     std::string
-    ComboBox::getIconNameFromID(const int& id) const noexcept {
+    ComboBox::getIconNameFromID(int id) const noexcept {
       return std::string("icon_widget_") + std::to_string(id);
     }
 
     inline
     std::string
-    ComboBox::getTextNameFromID(const int& id) const noexcept {
+    ComboBox::getTextNameFromID(int id) const noexcept {
       return std::string("text_widget_") + std::to_string(id);
     }
 

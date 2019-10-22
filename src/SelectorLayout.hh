@@ -12,7 +12,7 @@ namespace sdl {
 
         SelectorLayout(const std::string& name,
                        core::SdlWidget* widget,
-                       const float& margin = 1.0f);
+                       float margin = 1.0f);
 
         virtual ~SelectorLayout();
 
@@ -21,13 +21,13 @@ namespace sdl {
 
         void
         addItem(core::LayoutItem* item,
-                const int& index) override;
+                int index) override;
 
         void
         setActiveItem(const std::string& name);
 
         void
-        setActiveItem(const int& index);
+        setActiveItem(int index);
 
         /**
          * @brief - Used to switch to the next item in the layout and activate it.
@@ -102,8 +102,8 @@ namespace sdl {
          */
         void
         handleItemInsertion(core::LayoutItem* item,
-                            const int& logicalID,
-                            const int& realID);
+                            int logicalID,
+                            int realID);
 
       private:
 

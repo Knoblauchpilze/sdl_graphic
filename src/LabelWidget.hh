@@ -29,7 +29,7 @@ namespace sdl {
         LabelWidget(const std::string& name,
                     const std::string& text,
                     const std::string& font,
-                    const unsigned& size = 15,
+                    unsigned size = 15,
                     const HorizontalAlignment& hAlignment = HorizontalAlignment::Center,
                     const VerticalAlignment& vAlignment = VerticalAlignment::Center,
                     SdlWidget* parent = nullptr,

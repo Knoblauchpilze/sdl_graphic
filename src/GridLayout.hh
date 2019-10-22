@@ -13,45 +13,46 @@ namespace sdl {
 
         GridLayout(const std::string& name,
                    core::SdlWidget* widget,
-                   const unsigned& columns,
-                   const unsigned& rows,
-                   const float& margin = 0.0f);
+                   unsigned columns,
+                   unsigned rows,
+                   float margin = 0.0f);
 
         virtual ~GridLayout();
 
-        const unsigned&
+        unsigned
         getColumnCount() const noexcept;
 
-        const unsigned&
+        unsigned
         getRowCount() const noexcept;
 
         void
-        setColumnHorizontalStretch(const unsigned& column, const float& stretch);
+        setColumnHorizontalStretch(unsigned column, float stretch);
 
         void
-        setColumnMinimumWidth(const unsigned& column, const float& width);
+        setColumnMinimumWidth(unsigned column, float width);
 
         void
-        setColumnsMinimumWidth(const float& width);
+        setColumnsMinimumWidth(float width);
 
         void
-        setRowVerticalStretch(const unsigned& row, const float& stretch);
+        setRowVerticalStretch(unsigned row, float stretch);
 
         void
-        setRowMinimumHeight(const unsigned& row, const float& height);
+        setRowMinimumHeight(unsigned row, float height);
 
         void
-        setRowsMinimumHeight(const float& height);
+        setRowsMinimumHeight(float height);
 
         void
         addItem(core::LayoutItem* container,
-                const unsigned& x,
-                const unsigned& y,
-                const unsigned& w,
-                const unsigned& h) override;
+                unsigned x,
+                unsigned y,
+                unsigned w,
+                unsigned h) override;
 
         void
-        setGrid(const unsigned& columns, const unsigned& rows);
+        setGrid(unsigned columns,
+                unsigned rows);
 
       protected:
 
@@ -148,7 +149,7 @@ namespace sdl {
          * @param coordinates - the new coordinates to assign to this item.
          */
         void
-        updateGridCoordinates(const int& item,
+        updateGridCoordinates(int item,
                               const utils::Boxi& coordinates);
 
         std::vector<CellInfo>

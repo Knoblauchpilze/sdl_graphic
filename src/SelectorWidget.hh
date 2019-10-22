@@ -26,7 +26,7 @@ namespace sdl {
         setActiveWidget(const std::string& name);
 
         void
-        setActiveWidget(const int& index);
+        setActiveWidget(int index);
 
         /**
          * @brief - Used to switch to the next item in the layout and activate it.
@@ -52,7 +52,7 @@ namespace sdl {
          */
         void
         insertWidget(core::SdlWidget* widget,
-                     const int& index);
+                     int index);
 
         /**
          * @brief - Removes the specified item from this widget. Just like the `removeWidget`

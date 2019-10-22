@@ -7,7 +7,7 @@ namespace sdl {
 
     SelectorLayout::SelectorLayout(const std::string& name,
                                    core::SdlWidget* widget,
-                                   const float& margin):
+                                   float margin):
       core::Layout(name, widget, margin),
       m_activeItem(-1),
       m_idsToPosition()
@@ -18,7 +18,7 @@ namespace sdl {
     SelectorLayout::~SelectorLayout() {}
 
     void
-    SelectorLayout::setActiveItem(const int& index) {
+    SelectorLayout::setActiveItem(int index) {
       // Check whether the provided index is valid.
       if (!isValidIndex(index)) {
         error(
@@ -162,8 +162,8 @@ namespace sdl {
 
     void
     SelectorLayout::handleItemInsertion(core::LayoutItem* item,
-                                        const int& logicalID,
-                                        const int& realID)
+                                        int logicalID,
+                                        int realID)
     {
       // Return early if some basic assumptions are not verified.
       if (item == nullptr) {

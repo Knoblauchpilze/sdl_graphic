@@ -7,7 +7,7 @@ namespace sdl {
     TextBox::TextBox(const std::string& name,
                      const std::string& font,
                      const std::string& text,
-                     const unsigned& size,
+                     unsigned size,
                      SdlWidget* parent,
                      const utils::Sizef& area):
       core::SdlWidget(name, area, parent),

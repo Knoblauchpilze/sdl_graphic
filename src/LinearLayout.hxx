@@ -26,7 +26,7 @@ namespace sdl {
     }
 
     inline
-    const float&
+    float
     LinearLayout::getComponentMargin() const noexcept {
       return m_componentMargin;
     }
@@ -82,7 +82,8 @@ namespace sdl {
     inline
     utils::Sizef
     LinearLayout::computeDefaultItemBox(const utils::Sizef& area,
-                                        const unsigned& itemsCount) const {
+                                        unsigned itemsCount) const
+    {
       // We assume the layout is not empty.
       if (getDirection() == Direction::Horizontal) {
         return utils::Sizef(

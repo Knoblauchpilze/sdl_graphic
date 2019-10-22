@@ -28,8 +28,8 @@ namespace sdl {
         LinearLayout(const std::string& name,
                      core::SdlWidget* widget,
                      const Direction& direction,
-                     const float& margin = 1.0f,
-                     const float& interMargin = 0.0f);
+                     float margin = 1.0f,
+                     float interMargin = 0.0f);
 
         virtual ~LinearLayout();
 
@@ -45,12 +45,12 @@ namespace sdl {
 
         void
         addItem(core::LayoutItem* item,
-                const int& index) override;
+                int index) override;
 
         const Direction&
         getDirection() const noexcept;
 
-        const float&
+        float
         getComponentMargin() const noexcept;
 
       protected:
@@ -99,7 +99,7 @@ namespace sdl {
 
         utils::Sizef
         computeDefaultItemBox(const utils::Sizef& area,
-                              const unsigned& itemsCount) const;
+                              unsigned itemsCount) const;
 
         utils::Sizef
         computeSizeOfItems(const std::vector<utils::Boxf>& boxes) const;

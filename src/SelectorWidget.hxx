@@ -14,7 +14,7 @@ namespace sdl {
 
     inline
     void
-    SelectorWidget::setActiveWidget(const int& index) {
+    SelectorWidget::setActiveWidget(int index) {
       getLayout().setActiveItem(index);
     }
 

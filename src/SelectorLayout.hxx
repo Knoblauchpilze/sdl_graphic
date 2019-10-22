@@ -22,7 +22,7 @@ namespace sdl {
     inline
     void
     SelectorLayout::addItem(core::LayoutItem* item,
-                            const int& index)
+                            int index)
     {
       // Use the base method to perform the insertion.
       int physID = core::Layout::addItem(item);

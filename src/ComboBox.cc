@@ -422,7 +422,7 @@ namespace sdl {
     }
 
     void
-    ComboBox::setActiveItem(const int& index) {
+    ComboBox::setActiveItem(int index) {
       // Remove the corresponding item if it exists.
       if (index < 0 || index >= getItemsCount()) {
         error(

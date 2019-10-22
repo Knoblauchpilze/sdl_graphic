@@ -7,7 +7,7 @@ namespace sdl {
     LabelWidget::LabelWidget(const std::string& name,
                              const std::string& text,
                              const std::string& font,
-                             const unsigned& size,
+                             unsigned size,
                              const HorizontalAlignment& hAlignment,
                              const VerticalAlignment& vAlignment,
                              SdlWidget* parent,
