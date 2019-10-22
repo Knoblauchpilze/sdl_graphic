@@ -3,6 +3,7 @@
 
 # include <memory>
 # include <sdl_core/SdlWidget.hh>
+# include "ScrollBar.hh"
 # include "GridLayout.hh"
 
 namespace sdl {
@@ -68,7 +69,7 @@ namespace sdl {
          * @param scrollBar - the new horizontal scroll bar to assign to this area.
          */
         void
-        setHorizontalScrollBar(QScrollBar* scrollBar);
+        setHorizontalScrollBar(ScrollBar* scrollBar);
 
         /**
          * @brief - Assigns a new scroll bar policy for the vertical direction.
@@ -86,7 +87,7 @@ namespace sdl {
          * @param scrollBar - the new vertical scroll bar to assign to this area.
          */
         void
-        setVerticalScrollBar(QScrollBar* scrollBar);
+        setVerticalScrollBar(ScrollBar* scrollBar);
 
         /**
          * @brief - Used to define a new widget to display in this scroll area.
