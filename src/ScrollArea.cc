@@ -24,7 +24,7 @@ namespace sdl {
     void
     ScrollArea::setCornerWidget(core::SdlWidget* corner) {
       // First thing is to remove any existing corner widget.
-      core::SdlWidget* wid = getChildAs<core::SdlWidget>(getCornerWidgetName());
+      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(getCornerWidgetName());
 
       // If this item is not null we need to remove it.
       if (wid != nullptr) {
@@ -45,7 +45,7 @@ namespace sdl {
     void
     ScrollArea::setHorizontalScrollBar(ScrollBar* scrollBar) {
       // First thing is to remove any existing scroll bar.
-      ScrollBar* bar = getChildAs<ScrollBar>(getHBarName());
+      ScrollBar* bar = getChildOrNull<ScrollBar>(getHBarName());
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
@@ -66,7 +66,7 @@ namespace sdl {
     void
     ScrollArea::setVerticalScrollBar(ScrollBar* scrollBar) {
       // First thing is to remove any existing scroll bar.
-      ScrollBar* bar = getChildAs<ScrollBar>(getVBarName());
+      ScrollBar* bar = getChildOrNull<ScrollBar>(getVBarName());
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
@@ -87,7 +87,7 @@ namespace sdl {
     void
     ScrollArea::setViewport(core::SdlWidget* viewport) {
       // First thing is to remove any existing corner widget.
-      core::SdlWidget* wid = getChildAs<core::SdlWidget>(getViewportName());
+      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(getViewportName());
 
       // If this item is not null we need to remove it.
       if (wid != nullptr) {
