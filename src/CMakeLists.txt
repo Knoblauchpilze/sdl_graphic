@@ -16,6 +16,7 @@ set (SOURCES
   IntValidator.cc
   FloatValidator.cc
   ScrollArea.cc
+  ScrollBar.cc
   )
 
 add_library (sdl_graphic SHARED
