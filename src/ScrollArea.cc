@@ -15,7 +15,9 @@ namespace sdl {
       m_vBarPolicy(vBar),
 
       m_propsLocker()
-    {}
+    {
+      build();
+    }
 
     ScrollArea::~ScrollArea() {}
 
@@ -123,6 +125,56 @@ namespace sdl {
 
       // Now we can remove the input `widget` from the children' list.
       removeWidget(widget);
+    }
+
+    void
+    ScrollArea::build() {
+      // Create the layout for this widget: the general disposition makes the
+      // use of a `GridLyaout` quite natural so we'll go with this. The scroll
+      // bars should be clamped in size because we don't really need them to
+      // become too big.
+
+      // Create the layout and check for errors.
+      GridLayoutShPtr grid = std::make_shared<GridLayout>(
+        std::string("grid_layout_for_scroll_area"),
+        this,
+        2u,
+        2u,
+        0.0f
+      );
+
+      if (grid == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store main layout")
+        );
+      }
+
+      // Assign the layout to this widget.
+      setLayout(grid);
+
+      // Create scroll bars.
+      ScrollBar* hBar = new ScrollBar(getHBarName(), ScrollBar::Orientation::Horizontal, this);
+      if (hBar == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store horizontal scroll bar")
+        );
+      }
+      hBar->setMaxSize(utils::Sizef(std::numeric_limits<float>::max(), 100.0f));
+
+      ScrollBar* vBar = new ScrollBar(getVBarName(), ScrollBar::Orientation::Vertical, this);
+      if (vBar == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store vertical scroll bar")
+        );
+      }
+      vBar->setMaxSize(utils::Sizef(100.0f, std::numeric_limits<float>::max()));
+
+      // Add scroll bars to the layout.
+      grid->addItem(hBar, 0, 1, 1, 1);
+      grid->addItem(vBar, 1, 0, 1, 1);
     }
 
   }

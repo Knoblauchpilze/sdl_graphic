@@ -29,6 +29,11 @@ namespace sdl {
          * @brief - Creates a scroll area with the specified name and parent.
          *          Some other information can also be provided such as the
          *          policy to use when displaying the scroll bars.
+         *          Upon creating such a widget, a `build` method is called
+         *          which does perform the creation of default scroll bars
+         *          so that the user does not need to do so.
+         *          Each scroll bar can be customized through the interface
+         *          if needed anyway.
          * @param name - the name of this scroll area.
          * @param parent - the parent element to which this widget is attached.
          * @param area - the preferred size of this scroll area.
@@ -196,6 +201,13 @@ namespace sdl {
          */
         void
         removeItem(core::SdlWidget* widget);
+
+        /**
+         * @brief - Used by the constructor to perform the creation of the needed
+         *          resources for this scroll area (namely scroll bars).
+         */
+        void
+        build();
 
       private:
 
