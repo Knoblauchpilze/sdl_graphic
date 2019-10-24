@@ -109,6 +109,11 @@ namespace sdl {
       // This is probably better because it also handles the repaint part which is not
       // covered by the first method yet.
 
+      // Also note that given that we're inserting the viewport but keep its real name
+      // (and not set it to `getViewportName`), we can't remove any `viewport`. So if
+      // the user sets two different viewport it will produce some errors. This will
+      // probably be solved by creating the `QAbstractScrollArea`.
+
       // Now perform the insertion of the input corner widget
       // if it is valid.
       if (viewport != nullptr) {
