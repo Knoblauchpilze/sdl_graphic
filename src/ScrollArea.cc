@@ -94,6 +94,21 @@ namespace sdl {
         removeItem(wid);
       }
 
+      // TODO: When setting the viewport we could not add directly the widget as an
+      // element of the layout but rather create a virtual layout item for it and then
+      // reimplement the method which calls the layout and extract the size of the
+      // virtual item to assign it to the viewport or something.
+      // Basically the layout would generate an event to the virtual layout item and
+      // we would intercept it in order to assign it to the real viewport ?
+      //
+      // Also we could use a new `QAbstractScrollArea` which would manage only the
+      // viewport and handle such cases. Any viewport would then be embedded into a
+      // widget of this type and we would have nothing to worry about. This new type
+      // of widget would not include the scroll bar and maybe not even the scrolling
+      // by panning.
+      // This is probably better because it also handles the repaint part which is not
+      // covered by the first method yet.
+
       // Now perform the insertion of the input corner widget
       // if it is valid.
       if (viewport != nullptr) {
