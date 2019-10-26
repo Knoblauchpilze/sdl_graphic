@@ -65,9 +65,19 @@ namespace sdl {
 
       // Handle the area where the picture should be drawn. The input `area` is
       // expected to be expressed in local coordinates so we can directly compute
-      // the engine usable equivalent.
+      // the engine usable equivalent. There is only one subtlety: we need to
+      // intersect the input `area` with the rendering area of this picture: if
+      // we don't do that we risk to blit the texture onto an area larger than
+      // the current size of the widget leading to invalid scaling.
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
-      utils::Boxf dstRect = area;
+      utils::Boxf dstRect = utils::Boxf::fromSize(sizeEnv, true).intersect(area);
+
+      // Check whether the `dstRect` is valid: if this is not the case it means
+      // that we're indeed asked to repaint an area that is not inside this
+      // widget so we can return early as there's nothing to do.
+      if (!dstRect.valid()) {
+        return;
+      }
 
       // Handle `Fit` mode.
       if (m_mode == Mode::Fit) {
@@ -84,9 +94,9 @@ namespace sdl {
         const float wScale = sizeEnv.w() / srcRect.w();
         const float hScale = sizeEnv.h() / srcRect.h();
 
-        const utils::Vector2f center = utils::Vector2f(area.x() / wScale, area.y() / hScale);
+        const utils::Vector2f center = utils::Vector2f(dstRect.x() / wScale, dstRect.y() / hScale);
 
-        utils::Boxf areaAsSrc(center, area.w() / wScale, area.h() / hScale);
+        utils::Boxf areaAsSrc(center, dstRect.w() / wScale, dstRect.h() / hScale);
 
         // The output `area` corresponds to the `areaAsSrc` portion of the initial
         // image. We now need to intersect this with the image area and see if
@@ -129,7 +139,7 @@ namespace sdl {
         // Considering this the input `area` corresponds exactly to the same area
         // in picture space.
 
-        utils::Boxf srcAreaToDraw = srcRect.intersect(area);
+        utils::Boxf srcAreaToDraw = srcRect.intersect(dstRect);
 
         // If this area is not valid, it means that no part of the image are drawn
         // on the input `area` to update. The `clearContentPrivate` should have
