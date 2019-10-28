@@ -50,6 +50,22 @@ namespace sdl {
         void
         updatePrivate(const utils::Boxf& window) override;
 
+        /**
+         * @brief - This method is called right after a new support widget has been
+         *          defined through the `setSupport` method and is meant to perform
+         *          some additional initializations before this widget is fully used
+         *          as the support area for this scroll area.
+         *          Typical definition include assigning a size based on the widget's
+         *          requirements in order to get a valid display anyway. The position
+         *          can also be set to either be centered on the widget or be on the
+         *          top left corner, or whatever.
+         *          Entering this method guarantees that the input `widget` is not
+         *          `null`. Also the input `widget` is already a child of this widget.
+         * @param widget - the new support widget to use.
+         */
+        virtual void
+        setupSupport(core::SdlWidget* widget);
+
       private:
 
         /**

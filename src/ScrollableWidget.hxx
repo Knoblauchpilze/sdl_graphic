@@ -7,6 +7,12 @@ namespace sdl {
   namespace graphic {
 
     inline
+    void
+    ScrollableWidget::setupSupport(core::SdlWidget* /*widget*/) {
+      // Empty implementation.
+    }
+
+    inline
     bool
     ScrollableWidget::hasSupportWidget() noexcept {
       return hasChild(m_supportName);

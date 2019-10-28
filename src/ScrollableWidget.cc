@@ -35,7 +35,8 @@ namespace sdl {
         // Assign the new name of the scroll bar.
         m_supportName = widget->getName();
 
-        // TODO: Insert in layout ?
+        // Perform the setup of the support widget
+        setupSupport(widget);
       }
     }
 
@@ -48,8 +49,17 @@ namespace sdl {
       if (hasSupportWidget()) {
         core::SdlWidget* support = getSupportWidget();
 
-        // TODO: Actual implementation and determination of the
-        // area to display.
+        // TODO: Actual implementation and determination of the area to display.
+        // To do so we should add a method like `getPreferredSize` in the base
+        // `LayoutItem` class which would return either an invalid size or the
+        // size currently assigned to widgets in most cases and a custom value
+        // in case of specific inheriting classes: one example coming to mind is
+        // the case of the `Fit` picture widgets where we want to retrieve the
+        // size of the picture as loaded from disk.
+        // This value would be used here instead of the size of this widget and
+        // possibly in the `setupSupport` if needed.
+        // Once it is done we can determine the area in here and we should work
+        // on allowing the control of the displayed area of this widget.
         postEvent(
           std::make_shared<core::engine::ResizeEvent>(
             window.toOrigin(),
