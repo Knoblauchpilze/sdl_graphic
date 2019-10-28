@@ -237,8 +237,6 @@ namespace sdl {
         std::string m_cornerName;
         std::string m_hBarName;
         std::string m_vBarName;
-        std::string m_viewportName;
-
     };
 
     using ScrollAreaShPtr = std::shared_ptr<ScrollArea>;

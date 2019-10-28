@@ -1,5 +1,6 @@
 
 # include "ScrollArea.hh"
+# include "ScrollableWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -18,8 +19,7 @@ namespace sdl {
 
       m_cornerName(),
       m_hBarName(),
-      m_vBarName(),
-      m_viewportName()
+      m_vBarName()
     {
       build();
     }
@@ -112,46 +112,23 @@ namespace sdl {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
-      // First thing is to remove any existing corner widget.
-      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(m_viewportName);
+      // Note that we're not directly handling the viewport widget but instead
+      // delegate most of it to the internal scrollable widget. We will do this
+      // also in this case where we will just indicate to the scrollable object
+      // to update its content.
+      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
 
-      // If this item is not null we need to remove it.
-      if (wid != nullptr) {
-        removeItem(wid);
+      // This item should not be `null`.
+      if (wid == nullptr) {
+        error(
+          std::string("Could not update scroll area viewport"),
+          std::string("Invalid internal structure")
+        );
       }
 
-      // TODO: When setting the viewport we could not add directly the widget as an
-      // element of the layout but rather create a virtual layout item for it and then
-      // reimplement the method which calls the layout and extract the size of the
-      // virtual item to assign it to the viewport or something.
-      // Basically the layout would generate an event to the virtual layout item and
-      // we would intercept it in order to assign it to the real viewport ?
-      //
-      // Also we could use a new `QAbstractScrollArea` which would manage only the
-      // viewport and handle such cases. Any viewport would then be embedded into a
-      // widget of this type and we would have nothing to worry about. This new type
-      // of widget would not include the scroll bar and maybe not even the scrolling
-      // by panning.
-      // This is probably better because it also handles the repaint part which is not
-      // covered by the first method yet.
-
-      // Also note that given that we're inserting the viewport but keep its real name
-      // (and not set it to `getViewportName`), we can't remove any `viewport`. So if
-      // the user sets two different viewport it will produce some errors. This will
-      // probably be solved by creating the `QAbstractScrollArea`.
-
-      // Now perform the insertion of the input corner widget
-      // if it is valid.
-      if (viewport != nullptr) {
-        // Insert the input widget as child of this widget so that it gets redrawn.
-        viewport->setParent(this);
-
-        // Assign the new name of the scroll bar.
-        m_viewportName = viewport->getName();
-
-        // We rely on the internal layout method to perform the insertion.
-        getLayout().addItem(viewport, 0, 0, 1, 1);
-      }
+      // Assign the viewport to the scrollable handler: it will handle whether
+      // it is valid to specify a `null` widget or any kind of widget itself.
+      wid->setSupport(viewport);
     }
 
     utils::Sizef
@@ -221,9 +198,19 @@ namespace sdl {
       }
       vBar->setMaxSize(utils::Sizef(100.0f, std::numeric_limits<float>::max()));
 
-      // Add scroll bars to the layout.
-      grid->addItem(hBar, 0, 1, 1, 1);
-      grid->addItem(vBar, 1, 0, 1, 1);
+      // Create the scrollable widget.
+      ScrollableWidget* viewport = new ScrollableWidget(getViewportName(), this);
+      if (viewport == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store the viewport")
+        );
+      }
+
+      // Add scroll bars and viewport to the layout.
+      grid->addItem(hBar,     0, 1, 1, 1);
+      grid->addItem(vBar,     1, 0, 1, 1);
+      grid->addItem(viewport, 0, 0, 1, 1);
     }
 
   }
