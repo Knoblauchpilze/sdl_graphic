@@ -17,6 +17,7 @@ set (SOURCES
   FloatValidator.cc
   ScrollArea.cc
   ScrollBar.cc
+  ScrollableWidget.cc
   )
 
 add_library (sdl_graphic SHARED
