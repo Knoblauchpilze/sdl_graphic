@@ -45,8 +45,7 @@ namespace sdl {
          * @param input - the input string to validate.
          * @return - a value among the enumeration to indicate the validity of the input string.
          */
-        virtual
-        State
+        virtual State
         validate(const std::string& input) const = 0;
 
         /**
@@ -56,8 +55,7 @@ namespace sdl {
          *          checked for validity.
          * @param input - the input to try to fix.
          */
-        virtual
-        void
+        virtual void
         fixup(std::string& input) const;
     };
 
