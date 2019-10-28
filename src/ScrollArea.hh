@@ -229,6 +229,16 @@ namespace sdl {
          */
         std::mutex m_propsLocker;
 
+        /**
+         * @brief - Describes the name of the various widgets used to describe this
+         *          scroll area. This is used to correctly retrieve the element to
+         *          delete when assigning a new scroll bar, viewport or corner.
+         */
+        std::string m_cornerName;
+        std::string m_hBarName;
+        std::string m_vBarName;
+        std::string m_viewportName;
+
     };
 
     using ScrollAreaShPtr = std::shared_ptr<ScrollArea>;

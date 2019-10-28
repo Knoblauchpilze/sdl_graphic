@@ -14,7 +14,12 @@ namespace sdl {
       m_hBarPolicy(hBar),
       m_vBarPolicy(vBar),
 
-      m_propsLocker()
+      m_propsLocker(),
+
+      m_cornerName(),
+      m_hBarName(),
+      m_vBarName(),
+      m_viewportName()
     {
       build();
     }
@@ -23,8 +28,11 @@ namespace sdl {
 
     void
     ScrollArea::setCornerWidget(core::SdlWidget* corner) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
       // First thing is to remove any existing corner widget.
-      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(getCornerWidgetName());
+      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(m_cornerName);
 
       // If this item is not null we need to remove it.
       if (wid != nullptr) {
@@ -37,6 +45,9 @@ namespace sdl {
         // Insert the input widget as child of this widget so that it gets redrawn.
         corner->setParent(this);
 
+        // Assign the new name of the corner widget.
+        m_cornerName = corner->getName();
+
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(corner, 1, 1, 1, 1);
       }
@@ -44,8 +55,11 @@ namespace sdl {
 
     void
     ScrollArea::setHorizontalScrollBar(ScrollBar* scrollBar) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
       // First thing is to remove any existing scroll bar.
-      ScrollBar* bar = getChildOrNull<ScrollBar>(getHBarName());
+      ScrollBar* bar = getChildOrNull<ScrollBar>(m_hBarName);
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
@@ -57,6 +71,9 @@ namespace sdl {
       if (scrollBar != nullptr) {
         // Insert the input widget as child of this widget so that it gets redrawn.
         scrollBar->setParent(this);
+
+        // Assign the new name of the scroll bar.
+        m_hBarName = scrollBar->getName();
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
@@ -65,8 +82,11 @@ namespace sdl {
 
     void
     ScrollArea::setVerticalScrollBar(ScrollBar* scrollBar) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
       // First thing is to remove any existing scroll bar.
-      ScrollBar* bar = getChildOrNull<ScrollBar>(getVBarName());
+      ScrollBar* bar = getChildOrNull<ScrollBar>(m_vBarName);
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
@@ -79,6 +99,9 @@ namespace sdl {
         // Insert the input widget as child of this widget so that it gets redrawn.
         scrollBar->setParent(this);
 
+        // Assign the new name of the scroll bar.
+        m_vBarName = scrollBar->getName();
+
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
       }
@@ -86,8 +109,11 @@ namespace sdl {
 
     void
     ScrollArea::setViewport(core::SdlWidget* viewport) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
       // First thing is to remove any existing corner widget.
-      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(getViewportName());
+      core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(m_viewportName);
 
       // If this item is not null we need to remove it.
       if (wid != nullptr) {
@@ -119,6 +145,9 @@ namespace sdl {
       if (viewport != nullptr) {
         // Insert the input widget as child of this widget so that it gets redrawn.
         viewport->setParent(this);
+
+        // Assign the new name of the scroll bar.
+        m_viewportName = viewport->getName();
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(viewport, 0, 0, 1, 1);
