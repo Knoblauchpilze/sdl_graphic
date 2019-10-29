@@ -11,13 +11,28 @@ namespace sdl {
                                        const core::engine::Color& color,
                                        const utils::Sizef& area):
       core::SdlWidget(name, area, parent, color),
+
       m_file(picture),
+
       m_mode(mode),
+
       m_picture(),
       m_picChanged(true),
 
       m_propsLocker()
-    {}
+    {
+      // Check whether we can assign a valid size hint to this item if possible.
+      // The size hint could either be the result of the input area (in which
+      // case it denotes a will of the user to use this precise value and we
+      // should honor that or it could be left empty in which case we can try to
+      // make better.
+      // Typically in the case of a picture mode set to `Fit` we want to assign
+      // a size hint equivalent to the initial size of the picture. This allows
+      // to at least request that the picture can be displayed in full.
+      if (!area.valid()) {
+        // TODO: Determine and assign the picture size.
+      }
+    }
 
     PictureWidget::~PictureWidget() {
       clearPicture();

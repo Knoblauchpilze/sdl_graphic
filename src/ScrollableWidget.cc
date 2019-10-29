@@ -23,7 +23,6 @@ namespace sdl {
       core::SdlWidget* sup = getChildOrNull<core::SdlWidget>(m_supportName);
 
       if (sup != nullptr) {
-        // TODO: Handle removal from layout ?
         removeWidget(sup);
       }
 
@@ -49,20 +48,32 @@ namespace sdl {
       if (hasSupportWidget()) {
         core::SdlWidget* support = getSupportWidget();
 
-        // TODO: Actual implementation and determination of the area to display.
-        // To do so we should add a method like `getPreferredSize` in the base
-        // `LayoutItem` class which would return either an invalid size or the
-        // size currently assigned to widgets in most cases and a custom value
-        // in case of specific inheriting classes: one example coming to mind is
-        // the case of the `Fit` picture widgets where we want to retrieve the
-        // size of the picture as loaded from disk.
-        // This value would be used here instead of the size of this widget and
-        // possibly in the `setupSupport` if needed.
-        // Once it is done we can determine the area in here and we should work
-        // on allowing the control of the displayed area of this widget.
+        // We want to actualize the rendering area of the support
+        // widget so that it stays the same in the display area.
+        // We will also consider that the initial position of the
+        // support widget is on the top-left corner of the widget.
+        utils::Sizef hint = support->getSizeHint();
+
+        // Compute the position of the rendering area to assign
+        // so that the top left corner of the widget coincide
+        // with the top left corner of this area.
+        utils::Boxf area(
+          -window.w() / 2.0f + hint.w() / 2.0f,
+          -window.h() / 2.0f + hint.h() / 2.0f,
+          hint
+        );
+
+        log(
+          "Scrollabe size is " + window.toString() + ", size hint is " + hint.toString() +
+          " area is " + area.toString()
+        );
+
+        // Post the resize event for the support widget.
+        // TODO: Make sure that the resize event does not trigger a
+        // repaint if the width and height does not change.
         postEvent(
           std::make_shared<core::engine::ResizeEvent>(
-            window.toOrigin(),
+            area,
             support->getRenderingArea(),
             support
           )

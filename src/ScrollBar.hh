@@ -28,11 +28,13 @@ namespace sdl {
          *          bar.
          * @param name - the name of this scroll bar.
          * @param orientation - the orientation of the scroll bar.
+         * @param color - the background color for this scroll bar.
          * @param parent - the parent element to which this widget is attached.
          * @param area - the preferred size of this scroll bar.
          */
         ScrollBar(const std::string& name,
                   const Orientation& orientation,
+                  const core::engine::Color& color,
                   core::SdlWidget* parent = nullptr,
                   const utils::Sizef& area = utils::Sizef());
 

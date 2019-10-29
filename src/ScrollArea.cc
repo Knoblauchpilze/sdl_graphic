@@ -180,7 +180,12 @@ namespace sdl {
       setLayout(grid);
 
       // Create scroll bars.
-      ScrollBar* hBar = new ScrollBar(getHBarName(), ScrollBar::Orientation::Horizontal, this);
+      ScrollBar* hBar = new ScrollBar(
+        getHBarName(),
+        ScrollBar::Orientation::Horizontal,
+        core::engine::Color::NamedColor::Magenta,
+        this
+      );
       if (hBar == nullptr) {
         error(
           std::string("Could not create scroll area"),
@@ -189,7 +194,12 @@ namespace sdl {
       }
       hBar->setMaxSize(utils::Sizef(std::numeric_limits<float>::max(), 100.0f));
 
-      ScrollBar* vBar = new ScrollBar(getVBarName(), ScrollBar::Orientation::Vertical, this);
+      ScrollBar* vBar = new ScrollBar(
+        getVBarName(),
+        ScrollBar::Orientation::Vertical,
+        core::engine::Color::NamedColor::Yellow,
+        this
+      );
       if (vBar == nullptr) {
         error(
           std::string("Could not create scroll area"),
