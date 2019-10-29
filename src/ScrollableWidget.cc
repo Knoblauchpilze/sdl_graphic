@@ -59,7 +59,7 @@ namespace sdl {
         // with the top left corner of this area.
         utils::Boxf area(
           -window.w() / 2.0f + hint.w() / 2.0f,
-          -window.h() / 2.0f + hint.h() / 2.0f,
+          window.h() / 2.0f - hint.h() / 2.0f,
           hint
         );
 
