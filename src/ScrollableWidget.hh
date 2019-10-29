@@ -38,6 +38,21 @@ namespace sdl {
         void
         setSupport(core::SdlWidget* widget);
 
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` in order to filter
+         *          the returned widget if it corresponds to the support widget but
+         *          outside of its assigned area.
+         *          Indeed it might happen that the support widget is assigned a larger
+         *          size that actually displayed. While the standard process uses this
+         *          as a valid information to retrieve the item at the position we don't
+         *          want this here.
+         * @param pos - a vector describing the position which should be spanned by the items.
+         * @return - a valid pointer if any of the children items spans the input position and
+         *           `null` otherwise.
+         */
+        const core::SdlWidget*
+        getItemAt(const utils::Vector2f& pos) const noexcept override;
+
       protected:
 
         /**
@@ -77,7 +92,7 @@ namespace sdl {
          *           and `false` otherwise.
          */
         bool
-        hasSupportWidget() noexcept;
+        hasSupportWidget() const noexcept;
 
         /**
          * @brief - Returns the support widget attached to this element as a
@@ -90,7 +105,7 @@ namespace sdl {
          * @return - the support widget attached to this element.
          */
         core::SdlWidget*
-        getSupportWidget();
+        getSupportWidget() const;
 
       private:
 
