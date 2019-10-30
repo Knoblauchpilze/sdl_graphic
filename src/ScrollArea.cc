@@ -116,24 +116,40 @@ namespace sdl {
       // delegate most of it to the internal scrollable widget. We will do this
       // also in this case where we will just indicate to the scrollable object
       // to update its content.
-      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
-
-      // This item should not be `null`.
-      if (wid == nullptr) {
-        error(
-          std::string("Could not update scroll area viewport"),
-          std::string("Invalid internal structure")
-        );
-      }
+      ScrollableWidget* wid = getViewportHandler();
 
       // Assign the viewport to the scrollable handler: it will handle whether
       // it is valid to specify a `null` widget or any kind of widget itself.
       wid->setSupport(viewport);
     }
 
-    utils::Sizef
-    ScrollArea::getMaximumViewportSize() const noexcept {
-      return utils::Sizef();
+    void
+    ScrollArea::updatePrivate(const utils::Boxf& window) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // Compare the input size of the window and the preferred size of the
+      // viewport: if the preferred is larger than the newly assigned size,
+      // we need to display the scroll bars if this is permitted by policies.
+      // We only do that if this is not already the case.
+      // On the other hand if the window size is now larger than the size
+      // desired by the viewport we can hide the scroll bars.
+      utils::Sizef current = window.toSize();
+
+      bool needHBar = isHSBarVisible(current.w());
+      bool needVBar = isVSBarVisible(current.h());
+
+      // Handle horizontal scroll bar.
+      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
+      if (hBar != nullptr && needHBar && !hBar->isVisible()) {
+        hBar->setVisible(true);
+      }
+
+      // Handle vertical scroll bar.
+      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
+      if (vBar != nullptr && needVBar && !vBar->isVisible()) {
+        vBar->setVisible(true);
+      }
     }
 
     void

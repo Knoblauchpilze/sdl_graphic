@@ -5,6 +5,7 @@
 # include <sdl_core/SdlWidget.hh>
 # include "ScrollBar.hh"
 # include "GridLayout.hh"
+# include "ScrollableWidget.hh"
 
 namespace sdl {
   namespace graphic {
@@ -121,6 +122,18 @@ namespace sdl {
         utils::Sizef
         getMaximumViewportSize() const noexcept;
 
+      protected:
+
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method in order
+         *          to provide a custom implementation for the size update process.
+         *          Indeed when this widget is resized we need to make sure that the
+         *          scroll bars are being displayed or hidden if needed.
+         * @param window - the available size to perform the update.
+         */
+        void
+        updatePrivate(const utils::Boxf& window) override;
+
       private:
 
         /**
@@ -165,24 +178,31 @@ namespace sdl {
          * @brief - Used to determine whether the horizontal scroll bar is visible
          *          from both the policy (because some policy do not allow the bars
          *          to become visible) and from the size of the viewport if any).
+         *          This method checks whether a width of `widegt` requires to show
+         *          the horizontal scroll bar. Typical usage is to provide the
+         *          current size of the widget to this method.
          *          Note that this method assumes that the locker protecting the
          *          internal attributes from concurrent access is already locked.
+         * @param width - the size of the area to check.
          * @return - `true` if the horizontal scroll bar is visible, and `false`
          *           otherwise.
          */
         bool
-        isHSBarVisible() const noexcept;
+        isHSBarVisible(float width) const noexcept;
 
         /**
          * @brief - Similar to the `isHSBarVisible` method but for vertical scroll
-         *          bar.
+         *          bar. This method checks whether a height of `height` requires
+         *          to display the vertical scroll bar. Typical usage is to provide
+         *          the current size of the widget to this method.
          *          Note that this method assumes that the locker protecting the
          *          internal attributes from concurrent access is already locked.
+         * @param height - the size of the area to check.
          * @return - `true` if the vertical scroll bar is visible, and `false`
          *           otherwise.
          */
         bool
-        isVSBarVisible() const noexcept;
+        isVSBarVisible(float height) const noexcept;
 
         /**
          * @brief - Retrieves the layout associated to this scroll area as a valid
@@ -191,7 +211,17 @@ namespace sdl {
          * @return - the layout associated to this scroll area.
          */
         GridLayout&
-        getLayout();
+        getLayout() const;
+
+        /**
+         * @brief - Retrieves the viewport handler associated to this scroll area.
+         *          This component should always be defined and an error is raised
+         *          in case we can't find it.
+         * @return - a pointer to the viewport handler. This return value is always
+         *           valid if this function returns.
+         */
+        ScrollableWidget*
+        getViewportHandler() const;
 
         /**
          * @brief - Removes the specified item from this scroll area. The area will
@@ -227,7 +257,7 @@ namespace sdl {
          * @brief - Used to protect concurrent accesses to the internal data of
          *          this scroll area.
          */
-        std::mutex m_propsLocker;
+        mutable std::mutex m_propsLocker;
 
         /**
          * @brief - Describes the name of the various widgets used to describe this

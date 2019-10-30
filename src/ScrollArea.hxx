@@ -17,7 +17,7 @@ namespace sdl {
         m_hBarPolicy = policy;
 
         // Request a repaint if the horizontal scroll bar is visible.
-        if (isHSBarVisible()) {
+        if (isHSBarVisible(LayoutItem::getRenderingArea().w())) {
           requestRepaint();
         }
       }
@@ -34,10 +34,26 @@ namespace sdl {
         m_vBarPolicy = policy;
 
         // Request a repaint if the horizontal scroll bar is visible.
-        if (isVSBarVisible()) {
+        if (isVSBarVisible(LayoutItem::getRenderingArea().h())) {
           requestRepaint();
         }
       }
+    }
+
+    inline
+    utils::Sizef
+    ScrollArea::getMaximumViewportSize() const noexcept {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
+
+      // TODO: We should reimplement resize to be able to configure whether the
+      // scroll bars are visible based on the size of the context.
+      // TODO: Deadlock.
+
+      // Use the viewport to get the maximum size of the attached viewport.
+      return wid->getPreferredSize();
     }
 
     inline
@@ -66,7 +82,7 @@ namespace sdl {
 
     inline
     bool
-    ScrollArea::isHSBarVisible() const noexcept {
+    ScrollArea::isHSBarVisible(float width) const noexcept {
       // The horizontal scroll bar is visible if:
       // 1. the policy allows it.
       // 2. the size of the viewport requires it.
@@ -77,13 +93,13 @@ namespace sdl {
           return true;
         case BarPolicy::AsNeeded:
         default:
-          return getMaximumViewportSize().w() > LayoutItem::getRenderingArea().w();
+          return getMaximumViewportSize().w() > width;
       }
     }
 
     inline
     bool
-    ScrollArea::isVSBarVisible() const noexcept {
+    ScrollArea::isVSBarVisible(float height) const noexcept {
       // The vertical scroll bar is visible if:
       // 1. the policy allows it.
       // 2. the size of the viewport requires it.
@@ -94,12 +110,13 @@ namespace sdl {
           return true;
         case BarPolicy::AsNeeded:
         default:
-          return getMaximumViewportSize().h() > LayoutItem::getRenderingArea().h();
+          return getMaximumViewportSize().h() > height;
       }
     }
 
+    inline
     GridLayout&
-    ScrollArea::getLayout() {
+    ScrollArea::getLayout() const {
       // Try to retrieve the layout as a `GridLayout`.
       GridLayout* layout = getLayoutAs<GridLayout>();
 
@@ -113,6 +130,24 @@ namespace sdl {
 
       // Return this layout.
       return *layout;
+    }
+
+    inline
+    ScrollableWidget*
+    ScrollArea::getViewportHandler() const {
+      // Try to retrieve the layout as a `GridLayout`.
+      ScrollableWidget* viewport = getChildAs<ScrollableWidget>(getViewportName());
+
+      // If the conversion failed, this is a problem.
+      if (viewport == nullptr) {
+        error(
+          std::string("Cannot retrieve viewport handler for scroll area"),
+          std::string("Invalid viewport data")
+        );
+      }
+
+      // Return this widget.
+      return viewport;
     }
 
   }
