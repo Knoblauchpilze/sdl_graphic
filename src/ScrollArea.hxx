@@ -41,22 +41,6 @@ namespace sdl {
     }
 
     inline
-    utils::Sizef
-    ScrollArea::getMaximumViewportSize() const noexcept {
-      // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
-
-      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
-
-      // TODO: We should reimplement resize to be able to configure whether the
-      // scroll bars are visible based on the size of the context.
-      // TODO: Deadlock.
-
-      // Use the viewport to get the maximum size of the attached viewport.
-      return wid->getPreferredSize();
-    }
-
-    inline
     std::string
     ScrollArea::getViewportName() const noexcept {
       return "viewport";
@@ -78,6 +62,20 @@ namespace sdl {
     std::string
     ScrollArea::getCornerWidgetName() const noexcept {
       return "corner_widget";
+    }
+
+    inline
+    utils::Sizef
+    ScrollArea::getMaximumViewportSize() const noexcept {
+      // Assume the locker is already acquired.
+
+      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
+
+      // TODO: We should reimplement resize to be able to configure whether the
+      // scroll bars are visible based on the size of the context.
+
+      // Use the viewport to get the maximum size of the attached viewport.
+      return wid->getPreferredSize();
     }
 
     inline

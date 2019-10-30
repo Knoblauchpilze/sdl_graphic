@@ -109,19 +109,6 @@ namespace sdl {
         void
         setViewport(core::SdlWidget* viewport);
 
-        /**
-         * @brief - Used to retrieve the size of the viewport widget if no
-         *          scroll bars where used in this area. This basically tells
-         *          how large the widget would be if it was not included in
-         *          a scroll area.
-         *          Note that it no viewport is specified the returned size
-         *          is empty.
-         * @return - a size object representing the area which would be covered
-         *           by the viewport if it was not inside a scroll area.
-         */
-        utils::Sizef
-        getMaximumViewportSize() const noexcept;
-
       protected:
 
         /**
@@ -173,6 +160,21 @@ namespace sdl {
          */
         std::string
         getCornerWidgetName() const noexcept;
+
+        /**
+         * @brief - Used to retrieve the size of the viewport widget if no
+         *          scroll bars where used in this area. This basically tells
+         *          how large the widget would be if it was not included in
+         *          a scroll area.
+         *          Note that it no viewport is specified the returned size
+         *          is empty.
+         *          This method assumes that the locker to protect from several
+         *          thrzads accessing the data is already locked.
+         * @return - a size object representing the area which would be covered
+         *           by the viewport if it was not inside a scroll area.
+         */
+        utils::Sizef
+        getMaximumViewportSize() const noexcept;
 
         /**
          * @brief - Used to determine whether the horizontal scroll bar is visible

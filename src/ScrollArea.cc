@@ -141,15 +141,33 @@ namespace sdl {
 
       // Handle horizontal scroll bar.
       ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
-      if (hBar != nullptr && needHBar && !hBar->isVisible()) {
-        hBar->setVisible(true);
+
+      if (hBar != nullptr && needHBar) {
+        if (!hBar->isVisible()) {
+          hBar->setVisible(true);
+        }
+      }
+      else {
+        if (hBar->isVisible()) {
+          hBar->setVisible(false);
+        }
       }
 
       // Handle vertical scroll bar.
       ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
-      if (vBar != nullptr && needVBar && !vBar->isVisible()) {
-        vBar->setVisible(true);
+      if (vBar != nullptr && needVBar) {
+        if (!vBar->isVisible()) {
+          vBar->setVisible(true);
+        }
       }
+      else {
+        if (vBar->isVisible()) {
+          vBar->setVisible(false);
+        }
+      }
+
+      // Also call the parent method to benefit from the base class behavior.
+      core::SdlWidget::updatePrivate(window);
     }
 
     void
@@ -234,8 +252,8 @@ namespace sdl {
       }
 
       // Add scroll bars and viewport to the layout.
-      grid->addItem(hBar,     0, 1, 1, 1);
-      grid->addItem(vBar,     1, 0, 1, 1);
+      setHorizontalScrollBar(hBar);
+      setVerticalScrollBar(vBar);
       grid->addItem(viewport, 0, 0, 1, 1);
     }
 
