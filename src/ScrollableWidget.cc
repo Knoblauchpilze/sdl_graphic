@@ -78,6 +78,9 @@ namespace sdl {
           )
         );
       }
+
+      // Call the parent method to benefit from base class behavior.
+      core::SdlWidget::updatePrivate(window);
     }
 
   }
