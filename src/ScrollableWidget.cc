@@ -10,7 +10,10 @@ namespace sdl {
       core::SdlWidget(name, area, parent),
 
       m_supportName()
-    {}
+    {
+      // We don't want the widget to be sensitive to hover over events.
+      setFocusPolicy(core::FocusPolicy());
+    }
 
     ScrollableWidget::~ScrollableWidget() {}
 
@@ -61,11 +64,6 @@ namespace sdl {
           -window.w() / 2.0f + hint.w() / 2.0f,
           window.h() / 2.0f - hint.h() / 2.0f,
           hint
-        );
-
-        log(
-          "Scrollabe size is " + window.toString() + ", size hint is " + hint.toString() +
-          " area is " + area.toString()
         );
 
         // Post the resize event for the support widget.

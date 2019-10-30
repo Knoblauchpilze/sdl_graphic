@@ -71,9 +71,6 @@ namespace sdl {
 
       ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
 
-      // TODO: We should reimplement resize to be able to configure whether the
-      // scroll bars are visible based on the size of the context.
-
       // Use the viewport to get the maximum size of the attached viewport.
       return wid->getPreferredSize();
     }
