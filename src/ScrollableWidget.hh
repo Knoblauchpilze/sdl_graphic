@@ -39,6 +39,18 @@ namespace sdl {
         setSupport(core::SdlWidget* widget);
 
         /**
+         * @brief - Used to retrieve the preferred size of this scrollable widget.
+         *          The goal is to provide an indication of the size that this
+         *          widget could use if it was possible: it is directly linked to
+         *          the expected size of the underlying support widget and allows
+         *          to get an idea of how big the widget should be
+         * @return - the size that this widget would occupy should it have all the
+         *           space it needs.
+         */
+        utils::Sizef
+        getPreferredSize() const noexcept;
+
+        /**
          * @brief - Reimplementation of the base `core::SdlWidget` in order to filter
          *          the returned widget if it corresponds to the support widget but
          *          outside of its assigned area.
@@ -57,7 +69,7 @@ namespace sdl {
 
         /**
          * @brief - Reimplementation of the base `core::SdlWidget` method in order
-         *          to provide a custom implementation for the size update process
+         *          to provide a custom implementation for the size update process.
          *          We actually want to transmit the information to the underlying
          *          support widget so that it can update itself if needed.
          * @param window - the available size to perform the update.
@@ -113,7 +125,7 @@ namespace sdl {
          * @brief - Used to protect concurrent accesses to the internal data of
          *          this scrollable widget.
          */
-        std::mutex m_propsLocker;
+        mutable std::mutex m_propsLocker;
 
         /**
          * @brief - Used to hold the name of the support widget currently managed

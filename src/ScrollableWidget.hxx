@@ -7,6 +7,21 @@ namespace sdl {
   namespace graphic {
 
     inline
+    utils::Sizef
+    ScrollableWidget::getPreferredSize() const noexcept {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // If no support widget is assigned, return an empty size.
+      if (!hasSupportWidget()) {
+        return utils::Sizef();
+      }
+
+      // Return the size hint of the support widget.
+      return getSupportWidget()->getSizeHint();
+    }
+
+    inline
     const core::SdlWidget*
     ScrollableWidget::getItemAt(const utils::Vector2f& pos) const noexcept {
       // Use the base handler to retrieve the item spanning the position.
