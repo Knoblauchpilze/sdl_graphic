@@ -118,7 +118,7 @@ namespace sdl {
       }
 
       m_sliderTex = getEngine().createTexture(getSliderSize(total), core::engine::Palette::ColorRole::Dark);
-      if (!m_upArrowTex.valid()) {
+      if (!m_sliderTex.valid()) {
         error(
           std::string("Could not create slider to represent scroll bar"),
           std::string("Engine returned invalid uuid")
@@ -178,7 +178,11 @@ namespace sdl {
           break;
       }
 
-      log("Arrows size ")
+      log("Arrows size is " + arrow.toString() + ", slider " + slider.toString());
+      log("Local area is " + sizeBar.toString() + ", env is " + env.toString());
+      log("Up arrow pos is " + upArrowPos.toString() + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::AlternateBase).toString());
+      log("Slider pos is " + sliderPos.toString() + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::Dark).toString());
+      log("Down arrow pos is " + downArrowPos.toString()+ + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::AlternateBase).toString());
 
       // Draw each element but only render the part which are actually requested
       // given the input area.
@@ -189,6 +193,8 @@ namespace sdl {
 
         utils::Boxf srcRect = convertToLocal(dstRectForUpArrow, upArrowPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
+
+        log("Drawing up arrow from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForUpArrow.toString() + " (engine: " + dstRectEngine.toString() + ")");
 
         // Draw the texture.
         getEngine().drawTexture(m_upArrowTex, &srcRectEngine, &uuid, &dstRectEngine);
@@ -202,6 +208,8 @@ namespace sdl {
         utils::Boxf srcRect = convertToLocal(dstRectForSlider, sliderPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(slider, true));
 
+        log("Drawing slider from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForSlider.toString() + " (engine: " + dstRectEngine.toString() + ")");
+
         // Draw the texture.
         getEngine().drawTexture(m_sliderTex, &srcRectEngine, &uuid, &dstRectEngine);
       }
@@ -213,6 +221,8 @@ namespace sdl {
 
         utils::Boxf srcRect = convertToLocal(dstRectForDownArrow, downArrowPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
+
+        log("Drawing slider from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForDownArrow.toString() + " (engine: " + dstRectEngine.toString() + ")");
 
         // Draw the texture.
         getEngine().drawTexture(m_downArrowTex, &srcRectEngine, &uuid, &dstRectEngine);
