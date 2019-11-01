@@ -226,7 +226,6 @@ namespace sdl {
           std::string("Failed to allocate memory to store horizontal scroll bar")
         );
       }
-      hBar->setMaxSize(utils::Sizef(std::numeric_limits<float>::max(), 100.0f));
 
       ScrollBar* vBar = new ScrollBar(
         getVBarName(),
@@ -240,7 +239,6 @@ namespace sdl {
           std::string("Failed to allocate memory to store vertical scroll bar")
         );
       }
-      vBar->setMaxSize(utils::Sizef(100.0f, std::numeric_limits<float>::max()));
 
       // Create the scrollable widget.
       ScrollableWidget* viewport = new ScrollableWidget(getViewportName(), this);
