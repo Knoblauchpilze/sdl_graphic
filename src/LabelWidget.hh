@@ -88,7 +88,7 @@ namespace sdl {
         clearText();
 
         /**
-         * @brief - Used to determine whether any of the endering properties of the text has
+         * @brief - Used to determine whether any of the rendering properties of the text has
          *          been modified since the last `drawContentPrivate` operation.
          *          Internally uses the `m_textChanged` status to perform the check.
          *          Assumes that the `m_propsLocker` is already locked.

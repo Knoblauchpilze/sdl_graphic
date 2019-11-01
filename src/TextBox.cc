@@ -284,7 +284,7 @@ namespace sdl {
     TextBox::drawContentPrivate(const utils::Uuid& uuid,
                                 const utils::Boxf& area)
     {
-      // Lock the content using the locker provided by the parent class.
+      // Acquire the lock on the attributes of this widget.
       Guard guard(m_propsLocker);
 
       // Load the text: this should happen only if the text has changed since

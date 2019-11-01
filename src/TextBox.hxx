@@ -19,7 +19,7 @@ namespace sdl {
     inline
     std::string
     TextBox::getValue() {
-      // Lock this object.
+      // Acquire the lock on the attributes of this widget.
       Guard guard(m_propsLocker);
 
       // Check whether a validator is set for this object: if this is the case we
@@ -74,7 +74,7 @@ namespace sdl {
     inline
     bool
     TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
-      // Lock the content using the locker provided by the parent class.
+      // Acquire the lock on the attributes of this widget.
       Guard guard(m_propsLocker);
 
       // Update the cursor visible status, considering that as we just grabbed the
@@ -89,7 +89,7 @@ namespace sdl {
     inline
     bool
     TextBox::keyboardReleasedEvent(const core::engine::Event& e) {
-      // Lock the content using the locker provided by the parent class.
+      // Acquire the lock on the attributes of this widget.
       Guard guard(m_propsLocker);
 
       // Update the cursor visible status, considering that as we just lost the
