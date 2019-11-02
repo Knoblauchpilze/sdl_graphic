@@ -124,6 +124,14 @@ namespace sdl {
           std::string("Engine returned invalid uuid")
         );
       }
+
+      log("Palette is " + getPalette().toString());
+
+      // Fill the textures with the relevant color: otherwise we will get random non-sense
+      // when copying it on the area provided by `drawContentPrivate`.
+      getEngine().fillTexture(m_upArrowTex, getPalette());
+      getEngine().fillTexture(m_downArrowTex, getPalette());
+      getEngine().fillTexture(m_sliderTex, getPalette());
     }
 
     void
@@ -166,9 +174,9 @@ namespace sdl {
           downArrowPos = utils::Boxf(sizeBar.w() / 2.0f - arrow.w() / 2.0f, 0.0f, arrow);
           break;
         case Orientation::Vertical:
-          upArrowPos = utils::Boxf(0.0f, sizeBar.h() / 2.0f - arrow.w() / 2.0f, arrow);
+          upArrowPos = utils::Boxf(0.0f, sizeBar.h() / 2.0f - arrow.h() / 2.0f, arrow);
           sliderPos = utils::Boxf(0.0f, upArrowPos.y() - upArrowPos.h() / 2.0f - slider.h() / 2.0f, slider);
-          downArrowPos = utils::Boxf(0.0f, -sizeBar.h() / 2.0f + arrow.w() / 2.0f, arrow);
+          downArrowPos = utils::Boxf(0.0f, -sizeBar.h() / 2.0f + arrow.h() / 2.0f, arrow);
           break;
         default:
           error(
@@ -177,12 +185,6 @@ namespace sdl {
           );
           break;
       }
-
-      log("Arrows size is " + arrow.toString() + ", slider " + slider.toString());
-      log("Local area is " + sizeBar.toString() + ", env is " + env.toString());
-      log("Up arrow pos is " + upArrowPos.toString() + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::AlternateBase).toString());
-      log("Slider pos is " + sliderPos.toString() + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::Dark).toString());
-      log("Down arrow pos is " + downArrowPos.toString()+ + " with color " + getPalette().getColorForRole(core::engine::Palette::ColorRole::AlternateBase).toString());
 
       // Draw each element but only render the part which are actually requested
       // given the input area.
@@ -193,8 +195,6 @@ namespace sdl {
 
         utils::Boxf srcRect = convertToLocal(dstRectForUpArrow, upArrowPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
-
-        log("Drawing up arrow from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForUpArrow.toString() + " (engine: " + dstRectEngine.toString() + ")");
 
         // Draw the texture.
         getEngine().drawTexture(m_upArrowTex, &srcRectEngine, &uuid, &dstRectEngine);
@@ -208,8 +208,6 @@ namespace sdl {
         utils::Boxf srcRect = convertToLocal(dstRectForSlider, sliderPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(slider, true));
 
-        log("Drawing slider from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForSlider.toString() + " (engine: " + dstRectEngine.toString() + ")");
-
         // Draw the texture.
         getEngine().drawTexture(m_sliderTex, &srcRectEngine, &uuid, &dstRectEngine);
       }
@@ -221,8 +219,6 @@ namespace sdl {
 
         utils::Boxf srcRect = convertToLocal(dstRectForDownArrow, downArrowPos);
         utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
-
-        log("Drawing slider from " + srcRect.toString() + " (engine: " + srcRectEngine.toString() + ") to " + dstRectForDownArrow.toString() + " (engine: " + dstRectEngine.toString() + ")");
 
         // Draw the texture.
         getEngine().drawTexture(m_downArrowTex, &srcRectEngine, &uuid, &dstRectEngine);
