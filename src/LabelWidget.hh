@@ -71,7 +71,7 @@ namespace sdl {
          */
         void
         stateUpdatedFromFocus(const core::FocusState& state,
-                              const bool gainedFocus) override;
+                              bool gainedFocus) override;
 
       private:
 

@@ -157,7 +157,7 @@ namespace sdl {
 
     void
     LabelWidget::stateUpdatedFromFocus(const core::FocusState& state,
-                                       const bool gainedFocus)
+                                       bool gainedFocus)
     {
       // First apply the base class handler so that the base texture's role is set
       // to a value consistent with the current state.
