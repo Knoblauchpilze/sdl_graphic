@@ -109,6 +109,30 @@ namespace sdl {
     }
 
     inline
+    core::engine::Palette::ColorRole
+    ScrollBar::getArrowColorRole(bool highlight) noexcept {
+      switch (highlight) {
+        case true:
+          return core::engine::Palette::ColorRole::Light;
+        default:
+          // Assume default case is to not be highlighed.
+          return core::engine::Palette::ColorRole::Dark;
+      }
+    }
+
+    inline
+    core::engine::Palette::ColorRole
+    ScrollBar::getSliderColorRole(bool highlight) noexcept {
+      switch (highlight) {
+        case true:
+          return core::engine::Palette::ColorRole::Light;
+        default:
+          // Assume default case is to not be highlighed.
+          return core::engine::Palette::ColorRole::Mid;
+      }
+    }
+
+    inline
     void
     ScrollBar::setValuePrivate(int value) {
       // Assume that the locker is already acquired.
@@ -137,19 +161,19 @@ namespace sdl {
     void
     ScrollBar::clearElements() {
       // Clear any assigned texture.
-      if (m_upArrowTex.valid()) {
-        getEngine().destroyTexture(m_upArrowTex);
-        m_upArrowTex.invalidate();
+      if (m_upArrow.id.valid()) {
+        getEngine().destroyTexture(m_upArrow.id);
+        m_upArrow.id.invalidate();
       }
 
-      if (m_downArrowTex.valid()) {
-        getEngine().destroyTexture(m_downArrowTex);
-        m_downArrowTex.invalidate();
+      if (m_downArrow.id.valid()) {
+        getEngine().destroyTexture(m_downArrow.id);
+        m_downArrow.id.invalidate();
       }
 
-      if (m_sliderTex.valid()) {
-        getEngine().destroyTexture(m_sliderTex);
-        m_sliderTex.invalidate();
+      if (m_slider.id.valid()) {
+        getEngine().destroyTexture(m_slider.id);
+        m_slider.id.invalidate();
       }
     }
 

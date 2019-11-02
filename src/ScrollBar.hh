@@ -112,6 +112,37 @@ namespace sdl {
       protected:
 
         /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method in order to
+         *          provide drawing primitives for the textures used to represent the
+         *          scroll bar: this includes both motion arrows and the slider itself.
+         *          Note that as for most reimplementation we will try to reuse existing
+         *          textures as much as possible using a `dirty` mechanism which is
+         *          triggered when the size of this scroll area is changed or when the
+         *          position of the slider is modified.
+         *          Note that as for the base implementation the area is expressed in
+         *          LOCAL coordinate frame (so no conversion is required to use it).
+         * @param uuid - the identifier of the canvas which we can use to draw the scroll
+         *               bar representation.
+         * @param area - the area of the canvas to update.
+         */
+        void
+        drawContentPrivate(const utils::Uuid& uuid,
+                           const utils::Boxf& area) override;
+
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method in order to detect
+         *          when the focus is lost. This allows to reset the highlight of any of the
+         *          element composing the scroll bar to their default state.
+         * @param state - the current internal state which we will use to detect complete
+         *                loss of focus.
+         * @param gainedFocus - `true` if this method was triggered from a gain focus event
+         *                      and `false` otherwise.
+         */
+        void
+        stateUpdatedFromFocus(const core::FocusState& state,
+                              const bool gainedFocus) override;
+
+        /**
          * @brief - Reimplementation of the base `EngineObject` method in order to provide
          *          custom behavior when the user press the direction keys. Based on the
          *          orientation of the scroll bar some direction keys will allow to move
@@ -123,7 +154,7 @@ namespace sdl {
         keyReleaseEvent(const core::engine::KeyEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` class to detect when the
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
          *          scroll bar should be displayed as selected.
          * @param e - the event to be interpreted.
          * @return - `true` if the event was recognized and `false` otherwise.
@@ -132,7 +163,7 @@ namespace sdl {
         mouseButtonPressEvent(const core::engine::MouseEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` class to detect when the
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
          *          scroll bar should be released from the selection.
          * @param e - the event to be interpreted.
          * @return - `true` if the event was recognized and `false` otherwise.
@@ -141,7 +172,18 @@ namespace sdl {
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` class to detect when the
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
+         *          mouse overs over on of the component of this scroll bar (like the motion
+         *          arrows or the slider) which will allows to make the hovered over element
+         *          to stand out compared to the others.
+         * @param e - the evenv to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        mouseMoveEvent(const core::engine::MouseEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
          *          scroll bar should be dragged and its value updated. The drag event is
          *          responsible of the motion of the scroll bar and is usually linked to the
          *          main component which is `controlled` by this bar.
@@ -152,7 +194,7 @@ namespace sdl {
         mouseDragEvent(const core::engine::MouseEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` class to detect when the
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
          *          wheel is used: this should trigger the scroll bar behavior to change the
          *          active value.
          * @param e - the event to be interpreted.
@@ -197,6 +239,29 @@ namespace sdl {
         maxArrowSize() noexcept;
 
         /**
+         * @brief - Used to determine the color role to use for motion arrows depending on
+         *          whether the user hovers over them or not. This allows to visually tell
+         *          the user that an action is possible with these arrows
+         * @param highlight - `true` if the color should be retrieved for the case where the
+         *                    user hovers over the arrow and `false` otherwise.
+         * @return - a color role representing the role assumed by a motion arrow.
+         */
+        static
+        core::engine::Palette::ColorRole
+        getArrowColorRole(bool highlight) noexcept;
+
+        /**
+         * @brief - Similar method as `getArrowColorRole` but to determine the color assumed
+         *          by the slider object.
+         * @param highlight - `true` if the color should be retrieved for the case where the
+         *                    user hovers over the slider and `false` otherwise.
+         * @return - a color role representing the role assumed by the slider.
+         */
+        static
+        core::engine::Palette::ColorRole
+        getSliderColorRole(bool highlight) noexcept;
+
+        /**
          * @brief - Called by the constructor which allows to create the components
          *          needed by this scrollbar.
          */
@@ -232,6 +297,14 @@ namespace sdl {
         loadElements();
 
         /**
+         * @brief - Used to perform a fill operation on the textures representing the element
+         *          for this scroll bar. The fill operation allows to initialize the data of
+         *          the texture and potentially update it based on a color role change.
+         */
+        void
+        fillElements();
+
+        /**
          * @brief - Destroys the textures describing the elements representing the scroll
          *          bar and invalidate the corresponding identifiers.
          *          Should typically be used when recreating the elements after the size
@@ -262,24 +335,6 @@ namespace sdl {
         setElementsChanged() noexcept;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` method in order to
-         *          provide drawing primitives for the textures used to represent the
-         *          scroll bar: this includes both motion arrows and the slider itself.
-         *          Note that as for most reimplementation we will try to reuse existing
-         *          textures as much as possible using a `dirty` mechanism which is
-         *          triggered when the size of this scroll area is changed or when the
-         *          position of the slider is modified.
-         *          Note that as for the base implementation the area is expressed in
-         *          LOCAL coordinate frame (so no conversion is required to use it).
-         * @param uuid - the identifier of the canvas which we can use to draw the scroll
-         *               bar representation.
-         * @param area - the area of the canvas to update.
-         */
-        void
-        drawContentPrivate(const utils::Uuid& uuid,
-                           const utils::Boxf& area) override;
-
-        /**
          * @brief - Used to determine the size of the arrows to represent this scroll bar.
          *          Basically the arrows will grow up to a maximum size and then not change
          *          anymore. The input `total` area represents the total size available for
@@ -304,6 +359,19 @@ namespace sdl {
         getSliderSize(const utils::Sizef& total) const;
 
       private:
+
+        /**
+         * @brief - Used to hold rendering properties for any element representing the scroll
+         *          bar. This allows to conveniently group data in a meaningful way.
+         */
+        struct ElementDesc {
+          utils::Uuid id;                        //<! - The identifier of the texture to use to
+                                                 //     represent this element.
+          utils::Boxf box;                       //<! - The box to use to position this element.
+          core::engine::Palette::ColorRole role; //<! - The color role attached to this element.
+          bool roleUpdated;                      //<! - `true` when the role has been changed and
+                                                 //     requires an update of the texture.
+        };
 
         /**
          * @brief - A mutex allowing to protect this object from concurrent accesses.
@@ -367,27 +435,26 @@ namespace sdl {
         bool m_elementsChanged;
 
         /**
-         * @brief - The identifier of the texture representing the up arrow for this scroll bar. The
-         *          up arrow is only a logical term and does not mean that the texture actually does
-         *          represent an arrow.
-         *          This texture is allocated and drawn as long as the scroll bar does not change its
-         *          size. We have a minimum value to have in order to be able to draw this texture.
+         * @brief - The structure regrouping the rendering properties of the up arrow. Describes the
+         *          identifier of the texture used to represent it, its position and the role of the
+         *          texture (i.e. a loose indication of the color that will be used to draw it.
+         *          Using such a structure rather than individual data allows to reduce the number of
+         *          attributes declared for the scroll bar class and to group data in a meaningful
+         *          way.
          */
-        utils::Uuid m_upArrowTex;
+        ElementDesc m_upArrow;
 
         /**
-         * @brief - Similar to `m_upArrowTex` except for the bottom arrow. Adding the minimum size
-         *          required for these textures will give the minimum size to provide for the scroll
-         *          bar.
+         * @brief - Similar to `m_upArrow` but contains information about the slider element used to
+         *          navigate in the document attached to the scroll bar.
          */
-        utils::Uuid m_downArrowTex;
+        ElementDesc m_slider;
 
         /**
-         * @brief - Represents the slider to use to modify the value controlled by the scroll bar.
-         *          This slider has a size consistent with both the range of the scroll bar and
-         *          its size.
+         * @brief - Similar attribute as `m_downArrowBox` but holds the information related to the down
+         *          arrow.
          */
-        utils::Uuid m_sliderTex;
+        ElementDesc m_downArrow;
 
       public:
 
