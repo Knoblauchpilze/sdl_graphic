@@ -140,7 +140,7 @@ namespace sdl {
          */
         void
         stateUpdatedFromFocus(const core::FocusState& state,
-                              const bool gainedFocus) override;
+                              bool gainedFocus) override;
 
         /**
          * @brief - Reimplementation of the base `EngineObject` method in order to provide

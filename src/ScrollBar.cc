@@ -16,8 +16,8 @@ namespace sdl {
       m_orientation(orientation),
 
       m_minimum(0),
-      m_maximum(0),
-      m_pageStep(0),
+      m_maximum(2),
+      m_pageStep(1),
 
       m_value(0),
 
@@ -126,12 +126,14 @@ namespace sdl {
 
     void
     ScrollBar::stateUpdatedFromFocus(const core::FocusState& state,
-                                     const bool gainedFocus)
+                                     bool /*gainedFocus*/)
     {
       // Basically what we want here is react on complete loss of focus to deactivate the
       // highlight on any element that was highlighted until then.
-      // Any other scenario is not interesting to use and we should just fallback to the
-      // base class behavior.
+      // Any other scenario is not interesting to us and we should do nothing. Note also
+      // that the call to the base class behavior is purposefully deactivated in order not
+      // to have the area where nothing is displayed (i.e the area of the scroll bar where
+      // the slider is not) to be updated when the focus is received.
       if (!state.hasFocus()) {
         core::engine::Palette::ColorRole arrowRole = getArrowColorRole(false);
         core::engine::Palette::ColorRole sliderRole = getSliderColorRole(false);
@@ -160,9 +162,6 @@ namespace sdl {
           requestRepaint();
         }
       }
-
-      // Perform the base class behavior.
-      core::SdlWidget::stateUpdatedFromFocus(state, gainedFocus);
     }
 
     bool
@@ -312,8 +311,6 @@ namespace sdl {
 
     void
     ScrollBar::fillElements() {
-      log("Palette is " + getPalette().toString());
-
       // Fill the textures with the relevant color if needed.
       if (m_upArrow.roleUpdated) {
         getEngine().setTextureRole(m_upArrow.id, m_upArrow.role);
