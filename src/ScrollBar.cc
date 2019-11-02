@@ -101,7 +101,7 @@ namespace sdl {
 
       // Retrieve the dimensions of this scroll bar so that we can determine
       // the size of each element.
-      m_upArrowTex = getEngine().createTexture(getArrowSize(total), core::engine::Palette::ColorRole::AlternateBase);
+      m_upArrowTex = getEngine().createTexture(getArrowSize(total), core::engine::Palette::ColorRole::Dark);
       if (!m_upArrowTex.valid()) {
         error(
           std::string("Could not create up arrow to represent scroll bar"),
@@ -109,7 +109,7 @@ namespace sdl {
         );
       }
 
-      m_downArrowTex = getEngine().createTexture(getArrowSize(total), core::engine::Palette::ColorRole::AlternateBase);
+      m_downArrowTex = getEngine().createTexture(getArrowSize(total), core::engine::Palette::ColorRole::Dark);
       if (!m_downArrowTex.valid()) {
         error(
           std::string("Could not create down arrow to represent scroll bar"),
@@ -117,7 +117,7 @@ namespace sdl {
         );
       }
 
-      m_sliderTex = getEngine().createTexture(getSliderSize(total), core::engine::Palette::ColorRole::Dark);
+      m_sliderTex = getEngine().createTexture(getSliderSize(total), core::engine::Palette::ColorRole::Mid);
       if (!m_sliderTex.valid()) {
         error(
           std::string("Could not create slider to represent scroll bar"),
@@ -160,8 +160,9 @@ namespace sdl {
       utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
       utils::Boxf env = utils::Boxf::fromSize(sizeEnv, true);
 
-      utils::Sizef arrow = getArrowSize(sizeBar);
-      utils::Sizef slider = getSliderSize(sizeBar);
+      // Maybe replace this by query on the textures ?
+      utils::Sizef arrow = getEngine().queryTexture(m_upArrowTex);
+      utils::Sizef slider = getEngine().queryTexture(m_sliderTex);
 
       utils::Boxf upArrowPos;
       utils::Boxf sliderPos;
@@ -223,9 +224,6 @@ namespace sdl {
         // Draw the texture.
         getEngine().drawTexture(m_downArrowTex, &srcRectEngine, &uuid, &dstRectEngine);
       }
-
-
-      // TODO: Implementation.
     }
 
   }

@@ -86,6 +86,18 @@ namespace sdl {
         setMaximum(int maximum);
 
         /**
+         * @brief - Defines a new value for the page step for this scroll bar. The page
+         *          step describes the number of meaningful increment for scrolling in
+         *          the document linked to the scroll bar. The size of the page step is
+         *          relative to the total range and the smaller the value the smaller
+         *          the slider will appear in the scroll bar. This value is clamped in
+         *          order not to exceed the available range for the document.
+         * @param step - the new value for the page step.
+         */
+        void
+        setPageStep(int step);
+
+        /**
          * @brief - Used to assign a new value for the step of this scroll bar. This
          *          method will call the `setValuePrivate` method internally and trigger
          *          a signal `valueChanged` if the value is effectively different from
