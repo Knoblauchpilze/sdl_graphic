@@ -22,25 +22,6 @@ namespace sdl {
           Vertical    //<! - Scroll bar is vertical.
         };
 
-        /**
-         * @brief - Describes the possible action to be performed by a scroll bar.
-         *          Each action corresponds to some sort of motion in an abstract
-         *          way. It is up to the user who instantiated the scroll bar to
-         *          translate it into meaningful operation: depending on whether
-         *          the scroll bar is supposed to make a text move, an image, etc.
-         *          the action will be interpreted differently.
-         */
-        enum class Action {
-          NoAction,
-          SingleStepAdd,
-          SingleStepSub,
-          PageStepAdd,
-          PageStepSub,
-          ToMinimum,
-          ToMaximum,
-          Move
-        };
-
       public:
 
         /**
@@ -143,6 +124,16 @@ namespace sdl {
                               bool gainedFocus) override;
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method in order to detect
+         *          the case where the user finishes dragging the slider to a new location.
+         *          We need to update the corresponding document attached to the scroll bar.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        dropEvent(const core::engine::DropEvent& e) override;
+
+        /**
          * @brief - Reimplementation of the base `EngineObject` method in order to provide
          *          custom behavior when the user press the direction keys. Based on the
          *          orientation of the scroll bar some direction keys will allow to move
@@ -151,16 +142,7 @@ namespace sdl {
          * @return - `true` if the event was recognized and `false` otherwise.
          */
         bool
-        keyReleaseEvent(const core::engine::KeyEvent& e) override;
-
-        /**
-         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
-         *          scroll bar should be displayed as selected.
-         * @param e - the event to be interpreted.
-         * @return - `true` if the event was recognized and `false` otherwise.
-         */
-        bool
-        mouseButtonPressEvent(const core::engine::MouseEvent& e) override;
+        keyPressEvent(const core::engine::KeyEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
@@ -204,6 +186,25 @@ namespace sdl {
         mouseWheelEvent(const core::engine::MouseEvent& e) override;
 
       private:
+
+        /**
+         * @brief - Describes the possible action to be performed by a scroll bar.
+         *          Each action corresponds to some sort of motion in an abstract
+         *          way. It is up to the user who instantiated the scroll bar to
+         *          translate it into meaningful operation: depending on whether
+         *          the scroll bar is supposed to make a text move, an image, etc.
+         *          the action will be interpreted differently.
+         */
+        enum class Action {
+          NoAction,
+          SingleStepAdd,
+          SingleStepSub,
+          PageStepAdd,
+          PageStepSub,
+          ToMinimum,
+          ToMaximum,
+          Move
+        };
 
         /**
          * @brief - Returns the maximum size of the scroll bar along the slider dimensions.
@@ -281,6 +282,21 @@ namespace sdl {
          */
         void
         setValuePrivate(int value);
+
+        /**
+         * @brief - Used to try to performt he requested action and update the value of
+         *          the scroll bar within the admissible range. Note that the internal
+         *          conditions will be considered in order to only execute the action
+         *          if the consistency while doing so is preserved. If the action can
+         *          be at least partially performed the return value will be `true`.
+         *          Note that this function assumes that the locker protecting the scroll
+         *          bar from concurrent accesses is already locked.
+         * @param action - the action to perform.
+         * @return - `true` if the input `action` could at least be partially performed
+         *           and `false` otherwise.
+         */
+        bool
+        performAction(const Action& action);
 
         /**
          * @brief - Used to create the textures allowing to represent the scroll bar

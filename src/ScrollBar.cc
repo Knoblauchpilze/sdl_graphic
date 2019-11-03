@@ -165,20 +165,112 @@ namespace sdl {
     }
 
     bool
-    ScrollBar::keyReleaseEvent(const core::engine::KeyEvent& e) {
+    ScrollBar::dropEvent(const core::engine::DropEvent& e) {
       // TODO: Implementation.
-      return core::SdlWidget::keyReleaseEvent(e);
+      return core::SdlWidget::dropEvent(e);
     }
 
     bool
-    ScrollBar::mouseButtonPressEvent(const core::engine::MouseEvent& e) {
-      // TODO: Implementation.
-      return core::SdlWidget::mouseButtonPressEvent(e);
+    ScrollBar::keyPressEvent(const core::engine::KeyEvent& e) {
+      // Some keys are linked to specific scroll bar actions. This handler aims
+      // at detecting such keys and requesting the correct action to update the
+      // slider.
+      // Note that we voluntarily use the key press event in order to be able
+      // to react to repeated key events.
+      bool update = false;
+
+      switch (e.getRawKey()) {
+        case core::engine::RawKey::Up:
+        case core::engine::RawKey::Left:
+          // Based on the orientation both keys might trigger a step sub.
+          update = performAction(Action::SingleStepSub);
+          break;
+        case core::engine::RawKey::Down:
+        case core::engine::RawKey::Right:
+          // Based on the orientation both keys might trigger a step add.
+          update = performAction(Action::SingleStepAdd);
+          break;
+        case core::engine::RawKey::PageUp:
+          update = performAction(Action::PageStepSub);
+          break;
+        case core::engine::RawKey::PageDown:
+          update = performAction(Action::PageStepAdd);
+          break;
+        case core::engine::RawKey::Home:
+          update = performAction(Action::ToMinimum);
+          break;
+        case core::engine::RawKey::End:
+          update = performAction(Action::ToMaximum);
+          break;
+        default:
+          // Not a key binded to an action, do nothing.
+          break;
+      }
+
+      if (update) {
+        requestRepaint();
+      }
+
+      // Use the base handler to provide the return value.
+      return core::SdlWidget::keyPressEvent(e);
     }
 
     bool
     ScrollBar::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
-      // TODO: Implementation.
+      // We want to detect click on any of the element of the scroll bar to
+      // perform an update of the position of the slider. To do so we will
+      // use the position of the button when it was released and compare it
+      // to the internal position saved for each element.
+      bool update = false;
+
+      utils::Vector2f local = mapFromGlobal(e.getMousePosition());
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
+
+      bool isInUpArrow = m_upArrow.box.contains(local);
+      bool isInSlider = m_slider.box.contains(local);
+      bool isInDownArrow = m_downArrow.box.contains(local);
+
+      if (isInUpArrow) {
+        update = performAction(Action::SingleStepSub);
+      }
+
+      if (isInDownArrow) {
+        update = performAction(Action::SingleStepAdd);
+      }
+
+      if (!isInUpArrow && !isInSlider && !isInDownArrow) {
+        // Click on an empty region of the area used to move the slider around:
+        // we want to trigger a page step in this case. The precise value can
+        // be found by determining whether the click was _above_ (i.e. either
+        // above or on the left of the slider depending on the orientation or)
+        // or _below_ (so below or on the right of the slider).
+        bool onTop = true;
+        switch (m_orientation) {
+          case Orientation::Horizontal:
+            onTop = (m_slider.box.getLeftBound() >= local.x());
+            break;
+          case Orientation::Vertical:
+            onTop = (m_slider.box.getTopBound() <= local.y());
+            break;
+          default:
+            log(
+              std::string("Cannot perform page step motion for scroll bar, unknown orientation ") + std::to_string(static_cast<int>(m_orientation)),
+              utils::Level::Warning
+            );
+            break;
+        }
+
+        update = performAction(onTop ? Action::PageStepSub : Action::PageStepAdd);
+      }
+
+      // Request a repaint if needed.
+      if (update) {
+        requestRepaint();
+      }
+
+      // Use the base handler to provide a return value.
       return core::SdlWidget::mouseButtonReleaseEvent(e);
     }
 
@@ -273,6 +365,37 @@ namespace sdl {
 
       setMinSize(minSize);
       setMaxSize(maxSize);
+    }
+
+    bool
+    ScrollBar::performAction(const Action& action) {
+      // TODO: Implementation
+      auto nameForAction = [](const Action&action) {
+        switch (action) {
+          case Action::NoAction:
+            return "NoAction";
+          case Action::SingleStepAdd:
+            return "SingleStepAdd";
+          case Action::SingleStepSub:
+            return "SingleStepSub";
+          case Action::PageStepAdd:
+            return "PageStepAdd";
+          case Action::PageStepSub:
+            return "PageStepSub";
+          case Action::ToMinimum:
+            return "ToMinimum";
+          case Action::ToMaximum:
+            return "ToMaximum";
+          case Action::Move:
+            return "Move";
+          default:
+            return "Unknown";
+        }
+      };
+
+      log(std::string("Should perform action ") + nameForAction(action), utils::Level::Warning);
+
+      return false;
     }
 
     void
