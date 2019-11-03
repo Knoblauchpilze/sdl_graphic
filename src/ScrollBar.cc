@@ -66,25 +66,6 @@ namespace sdl {
       utils::Sizef arrow = getEngine().queryTexture(m_upArrow.id);
       utils::Sizef slider = getEngine().queryTexture(m_slider.id);
 
-      switch (m_orientation) {
-        case Orientation::Horizontal:
-          m_upArrow.box = utils::Boxf(-sizeBar.w() / 2.0f + arrow.w() / 2.0f, 0.0f, arrow);
-          m_slider.box = utils::Boxf(m_upArrow.box.x() + arrow.w() / 2.0f + slider.w() / 2.0f, 0.0f, slider);
-          m_downArrow.box = utils::Boxf(sizeBar.w() / 2.0f - arrow.w() / 2.0f, 0.0f, arrow);
-          break;
-        case Orientation::Vertical:
-          m_upArrow.box = utils::Boxf(0.0f, sizeBar.h() / 2.0f - arrow.h() / 2.0f, arrow);
-          m_slider.box = utils::Boxf(0.0f, m_upArrow.box.y() - arrow.h() / 2.0f - slider.h() / 2.0f, slider);
-          m_downArrow.box = utils::Boxf(0.0f, -sizeBar.h() / 2.0f + arrow.h() / 2.0f, arrow);
-          break;
-        default:
-          error(
-            std::string("Could not perform rendering of scroll bar"),
-            std::string("Unknown orientation ") + std::to_string(static_cast<int>(m_orientation))
-          );
-          break;
-      }
-
       // Draw each element but only render the part which are actually requested
       // given the input area.
       utils::Boxf dstRectForUpArrow = m_upArrow.box.intersect(area);
@@ -134,6 +115,14 @@ namespace sdl {
       // that the call to the base class behavior is purposefully deactivated in order not
       // to have the area where nothing is displayed (i.e the area of the scroll bar where
       // the slider is not) to be updated when the focus is received.
+
+      // TODO: Maybe we should disable click focus on this widget as for example when the
+      // user clicks on motion arrows it `select` the widget and thus prevents the arrows
+      // to be deselected when the mouse exits the scroll bar.
+      // TODO: Also we should prevent the wheell events to be produced to all the widgets.
+      // Either through real filtering or by checking that the mouse is inside the widget
+      // before interpreting the event.
+
       if (!state.hasFocus()) {
         core::engine::Palette::ColorRole arrowRole = getArrowColorRole(false);
         core::engine::Palette::ColorRole sliderRole = getSliderColorRole(false);
@@ -333,7 +322,37 @@ namespace sdl {
 
     bool
     ScrollBar::mouseWheelEvent(const core::engine::MouseEvent& e) {
-      // TODO: Implementation.
+      // We want to trigger some page step actions when the wheel is rolled
+      // on the scroll bar.
+      utils::Vector2i scroll = e.getScroll();
+
+      // Consolidate the action needed by this scroll event: we will consider
+      // that any step towards positive axis corresponds to a page step sub
+      // and any scroll towards negative axis corresponds to a page step add.
+      // Indeed the common semantic is to associate wheel up events with a
+      // positive scroll value which in our case would correspond to a motion
+      // of the scroll bar's slider to the up direction and thus a page step
+      // sub.
+      int pageStepSub = std::max(0, scroll.x()) + std::max(0, scroll.y());
+      int pageStepAdd = std::abs(std::min(0, scroll.x())) + std::abs(std::min(0, scroll.y()));
+
+      int total = pageStepAdd - pageStepSub;
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
+
+      bool update = false;
+      Action action = (total < 0 ? Action::PageStepSub : Action::PageStepAdd);
+
+      if (total != 0) {
+        update = performAction(action);
+      }
+
+      if (update) {
+        requestRepaint();
+      }
+
+      // Use base implementation to provide a return value.
       return core::SdlWidget::mouseWheelEvent(e);
     }
 
@@ -365,37 +384,119 @@ namespace sdl {
 
       setMinSize(minSize);
       setMaxSize(maxSize);
+
+      // Set the scroll bar to minimum.
+      performAction(Action::ToMinimum);
     }
 
     bool
     ScrollBar::performAction(const Action& action) {
-      // TODO: Implementation
-      auto nameForAction = [](const Action&action) {
-        switch (action) {
-          case Action::NoAction:
-            return "NoAction";
-          case Action::SingleStepAdd:
-            return "SingleStepAdd";
-          case Action::SingleStepSub:
-            return "SingleStepSub";
-          case Action::PageStepAdd:
-            return "PageStepAdd";
-          case Action::PageStepSub:
-            return "PageStepSub";
-          case Action::ToMinimum:
-            return "ToMinimum";
-          case Action::ToMaximum:
-            return "ToMaximum";
-          case Action::Move:
-            return "Move";
-          default:
-            return "Unknown";
-        }
-      };
+      // Assume that the locker is already acquired.
 
-      log(std::string("Should perform action ") + nameForAction(action), utils::Level::Warning);
+      // The input action describes the motion to apply to the slider. Depending
+      // on the range of the scroll bar and the page step we need to adapt the
+      // corresponding modification.
+      // A second task of this method is to update the position of the slider so
+      // that it is consistent with the actual value it is meant to represent.
+      // For example if the slider is at the minimum possible value it should be
+      // rendered right below (or on the right) of the top arrwo. As the value
+      // increases it should be drawn closer and closer to the down arrow.
 
-      return false;
+      // Handle trivial case of `NoAction`.
+      if (action == Action::NoAction) {
+        // Consider that `doing nothing` is never successful.
+        return false;
+      }
+
+      // First thing is to compute the target value pointed to by the slider.
+      int targetValue = m_value;
+
+      switch (action) {
+        case Action::SingleStepAdd:
+          ++targetValue;
+          break;
+        case Action::SingleStepSub:
+          --targetValue;
+          break;
+        case Action::PageStepAdd:
+          targetValue = m_value + m_pageStep;
+          break;
+        case Action::PageStepSub:
+          targetValue = m_value - m_pageStep;
+          break;
+        case Action::ToMinimum:
+          targetValue = m_minimum;
+          break;
+        case Action::ToMaximum:
+          targetValue = m_maximum;
+          break;
+        case Action::Move:
+        default:
+          // Note that this does not include the `NoAction` as it has been handled
+          // beforehand.
+          error(
+            std::string("Cannot perform requested action in scroll bar"),
+            std::string("Unknown action value ") + std::to_string(static_cast<int>(action))
+          );
+          break;
+      }
+
+      // Apply this value.
+      bool changed = setValuePrivate(targetValue);
+
+      // If the value could not be modified, nothing is left to do.
+      if (!changed) {
+        return false;
+      }
+
+      // The internal value has been changed: we need to update the position of the slider
+      // based on the value represented by this scroll bar.
+      updateSliderPosFromValue();
+
+      // The position of the slider has been updated.
+      return true;
+    }
+
+    void
+    ScrollBar::updateSliderPosFromValue() {
+      // The slider is supposed to represent a single page step in size.
+      // We know that the step `0` is right alongside the up arrow and
+      // that the last step is right alongisde the down arrow. Everything
+      // in between increases linearly between that.
+      float perc = (m_minimum == m_maximum ? 0.0f : 1.0f * m_value / (m_maximum - m_minimum));
+
+      float availableSpace = 0.0f;
+      switch (m_orientation) {
+        case Orientation::Horizontal:
+          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound() - m_slider.box.w();
+          break;
+        case Orientation::Vertical:
+          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound() - m_slider.box.h();
+          break;
+        default:
+          error(
+            std::string("Could not update slider position from value"),
+            std::string("Unknown scroll bar orientation ") + std::to_string(static_cast<int>(m_orientation))
+          );
+          break;
+      }
+
+      // The position of the slider is given by dividing fairly the `availableSpace`
+      // among all the possible steps.
+      utils::Vector2f sliderPos;
+
+      switch (m_orientation) {
+        case Orientation::Horizontal:
+          sliderPos = utils::Vector2f(m_upArrow.box.getRightBound() + m_slider.box.w() / 2.0f + perc * availableSpace, 0.0f);
+          break;
+        case Orientation::Vertical:
+          sliderPos = utils::Vector2f(0.0f, m_upArrow.box.getBottomBound() - m_slider.box.h() / 2.0f - perc * availableSpace);
+        default:
+          break;
+      }
+
+      m_slider.box.x() = sliderPos.x();
+      m_slider.box.y() = sliderPos.y();
     }
 
     void
@@ -429,6 +530,30 @@ namespace sdl {
           std::string("Could not create down arrow to represent scroll bar"),
           std::string("Engine returned invalid uuid")
         );
+      }
+
+      // Finally update the boxes associated to each element with the new textures
+      // dimensions: this will allow to correctly render each element.
+      utils::Sizef arrow = getEngine().queryTexture(m_upArrow.id);
+      utils::Sizef slider = getEngine().queryTexture(m_slider.id);
+
+      switch (m_orientation) {
+        case Orientation::Horizontal:
+          m_upArrow.box = utils::Boxf(-total.w() / 2.0f + arrow.w() / 2.0f, 0.0f, arrow);
+          m_slider.box = utils::Boxf(m_upArrow.box.x() + arrow.w() / 2.0f + slider.w() / 2.0f, 0.0f, slider);
+          m_downArrow.box = utils::Boxf(total.w() / 2.0f - arrow.w() / 2.0f, 0.0f, arrow);
+          break;
+        case Orientation::Vertical:
+          m_upArrow.box = utils::Boxf(0.0f, total.h() / 2.0f - arrow.h() / 2.0f, arrow);
+          m_slider.box = utils::Boxf(0.0f, m_upArrow.box.y() - arrow.h() / 2.0f - slider.h() / 2.0f, slider);
+          m_downArrow.box = utils::Boxf(0.0f, -total.h() / 2.0f + arrow.h() / 2.0f, arrow);
+          break;
+        default:
+          error(
+            std::string("Could not perform rendering of scroll bar"),
+            std::string("Unknown orientation ") + std::to_string(static_cast<int>(m_orientation))
+          );
+          break;
       }
     }
 

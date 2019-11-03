@@ -109,6 +109,12 @@ namespace sdl {
     }
 
     inline
+    float
+    ScrollBar::wheelStepToPageStepRatio() noexcept {
+      return 2.0f;
+    }
+
+    inline
     core::engine::Palette::ColorRole
     ScrollBar::getArrowColorRole(bool highlight) noexcept {
       switch (highlight) {
@@ -133,9 +139,10 @@ namespace sdl {
     }
 
     inline
-    void
+    bool
     ScrollBar::setValuePrivate(int value) {
       // Assume that the locker is already acquired.
+      bool update = false;
       int old = m_value;
 
       // Check whether the value is different from the current value.
@@ -145,6 +152,8 @@ namespace sdl {
         m_value = std::min(m_maximum, std::max(m_minimum, value));
 
         if (old != m_value) {
+          update = true;
+
           // Fire the signal to indicate that the value has been changed.
           log("Emitting on value changed for " + getName(), utils::Level::Notice);
           onValueChanged.emit(getName(), m_value);
@@ -155,6 +164,8 @@ namespace sdl {
           requestRepaint();
         }
       }
+
+      return update;
     }
 
     inline
@@ -236,7 +247,7 @@ namespace sdl {
       // First, determine how many page steps we can fit in the total range of this
       // scroll bar. Exact computations are not actually required because we already
       // have some sort of clamping mechanism in the `setValue` method.
-      int stepsCount = (m_pageStep == 0 ? 1 : (m_maximum - m_minimum) / m_pageStep);
+      int stepsCount = (m_pageStep == 0 ? 1 : (m_maximum - m_minimum + 1) / m_pageStep);
 
       // Compute the available space to display these `stepCount` steps.
       utils::Sizef sliderArea = total;

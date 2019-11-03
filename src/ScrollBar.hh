@@ -240,6 +240,16 @@ namespace sdl {
         maxArrowSize() noexcept;
 
         /**
+         * @brief - Defines the ratio of page step performed by a single wheel step. Basically
+         *          it indicates how many page steps are advanced when the mouse wheel is rolled
+         *          on a scroll bar.
+         * @return - a value describing the wheel step to page step ratio.
+         */
+        static
+        float
+        wheelStepToPageStepRatio() noexcept;
+
+        /**
          * @brief - Used to determine the color role to use for motion arrows depending on
          *          whether the user hovers over them or not. This allows to visually tell
          *          the user that an action is possible with these arrows
@@ -279,8 +289,12 @@ namespace sdl {
          *          from concurrent accesses is already locked.
          * @param value - the value to be assigned to this scroll bar's step. It will
          *                be checked against the valid range for this scroll bar.
+         * @return - `true` if the internal value has been changed and `false` otherwise.
+         *           Note that a `true` value does not mean that the `m_value` will be
+         *           exactly `value` but that it is different from the initial value
+         *           upon entering this method.
          */
-        void
+        bool
         setValuePrivate(int value);
 
         /**
@@ -297,6 +311,21 @@ namespace sdl {
          */
         bool
         performAction(const Action& action);
+
+        /**
+         * @brief - Used to update the slider's position based on the value currently
+         *          pointed at by the scroll bar. Basically when the value is set to the
+         *          minimum of the scroll bar the slider should be close to the up arrow
+         *          while it should be close to the down arrow when the value gets closer
+         *          to the maximum.
+         *          In between the slider's position should be somwhere in the available
+         *          region provided by the scroll bar. This method allows to easily set
+         *          it to what it should be.
+         *          Note that it does not trigger a repaint event and assumes that the
+         *          locker protecting this object is already acquired.
+         */
+        void
+        updateSliderPosFromValue();
 
         /**
          * @brief - Used to create the textures allowing to represent the scroll bar
