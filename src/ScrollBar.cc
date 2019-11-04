@@ -391,8 +391,10 @@ namespace sdl {
       setMinSize(minSize);
       setMaxSize(maxSize);
 
-      // Set the scroll bar to minimum.
-      performAction(Action::ToMinimum);
+      // We only want to handle hover over focus: the click is not something that
+      // is not really helpful as it is already handled by the mouse button release
+      // event.
+      setFocusPolicy(core::FocusPolicy(core::focus::Type::Hover));
     }
 
     bool
