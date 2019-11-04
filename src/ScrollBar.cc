@@ -323,7 +323,13 @@ namespace sdl {
     bool
     ScrollBar::mouseWheelEvent(const core::engine::MouseEvent& e) {
       // We want to trigger some page step actions when the wheel is rolled
-      // on the scroll bar.
+      // on the scroll bar. We only want to do so if the mouse is inside
+      // this widget though as otherwise it means that we currently react to
+      // the wheel event on an application wide basis.
+      if (!isMouseInside()) {
+        return core::SdlWidget::mouseWheelEvent(e);
+      }
+
       utils::Vector2i scroll = e.getScroll();
 
       // Consolidate the action needed by this scroll event: we will consider
