@@ -124,16 +124,6 @@ namespace sdl {
                               bool gainedFocus) override;
 
         /**
-         * @brief - Reimplementation of the base `EngineObject` method in order to detect
-         *          the case where the user finishes dragging the slider to a new location.
-         *          We need to update the corresponding document attached to the scroll bar.
-         * @param e - the event to be interpreted.
-         * @return - `true` if the event was recognized and `false` otherwise.
-         */
-        bool
-        dropEvent(const core::engine::DropEvent& e) override;
-
-        /**
          * @brief - Reimplementation of the base `EngineObject` method in order to provide
          *          custom behavior when the user press the direction keys. Based on the
          *          orientation of the scroll bar some direction keys will allow to move
@@ -303,14 +293,20 @@ namespace sdl {
          *          conditions will be considered in order to only execute the action
          *          if the consistency while doing so is preserved. If the action can
          *          be at least partially performed the return value will be `true`.
+         *          The value in argument is only used when the action is set to `Move`.
+         *          It represents in this case the new desired value which might not be
+         *          representable using a single action like `Step add` or `To minimum`.
+         *          Otherwise this value is ignored.
          *          Note that this function assumes that the locker protecting the scroll
          *          bar from concurrent accesses is already locked.
          * @param action - the action to perform.
+         * @param value - the value to assign in the case of a `Move` action.
          * @return - `true` if the input `action` could at least be partially performed
          *           and `false` otherwise.
          */
         bool
-        performAction(const Action& action);
+        performAction(const Action& action,
+                      int value = 0);
 
         /**
          * @brief - Used to update the slider's position based on the value currently
@@ -326,6 +322,21 @@ namespace sdl {
          */
         void
         updateSliderPosFromValue();
+
+        /**
+         * @brief - Reverse method of `updateSliderPosFromValue`. Given the input local
+         *          position (i.e. expressed in this widget's coordinate frame) this
+         *          method determines the equivalent value of the scroll bar which would
+         *          lead to a slider with this position.
+         *          Note that the output value might be out of the admissible range for
+         *          this scroll bar.
+         *          Note that it does not trigger a repaint event and assumes that the
+         *          locker protecting this object is already acquired.
+         * @param local - the desired position of the slider.
+         * @return - the value corresponding to a slider position as defined in input.
+         */
+        int
+        getValueFromSliderPos(const utils::Vector2f& local) const;
 
         /**
          * @brief - Used to create the textures allowing to represent the scroll bar

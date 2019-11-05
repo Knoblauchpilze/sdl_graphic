@@ -115,14 +115,6 @@ namespace sdl {
       // that the call to the base class behavior is purposefully deactivated in order not
       // to have the area where nothing is displayed (i.e the area of the scroll bar where
       // the slider is not) to be updated when the focus is received.
-
-      // TODO: Maybe we should disable click focus on this widget as for example when the
-      // user clicks on motion arrows it `select` the widget and thus prevents the arrows
-      // to be deselected when the mouse exits the scroll bar.
-      // TODO: Also we should prevent the wheell events to be produced to all the widgets.
-      // Either through real filtering or by checking that the mouse is inside the widget
-      // before interpreting the event.
-
       if (!state.hasFocus()) {
         core::engine::Palette::ColorRole arrowRole = getArrowColorRole(false);
         core::engine::Palette::ColorRole sliderRole = getSliderColorRole(false);
@@ -151,12 +143,6 @@ namespace sdl {
           requestRepaint();
         }
       }
-    }
-
-    bool
-    ScrollBar::dropEvent(const core::engine::DropEvent& e) {
-      // TODO: Implementation.
-      return core::SdlWidget::dropEvent(e);
     }
 
     bool
@@ -210,6 +196,12 @@ namespace sdl {
       // perform an update of the position of the slider. To do so we will
       // use the position of the button when it was released and compare it
       // to the internal position saved for each element.
+      // Also we don't want to handle events where the mouse button release
+      // event was actually issued after a drag event.
+      if (e.wasDragged()) {
+        return core::SdlWidget::mouseButtonReleaseEvent(e);
+      }
+
       bool update = false;
 
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
@@ -316,7 +308,26 @@ namespace sdl {
 
     bool
     ScrollBar::mouseDragEvent(const core::engine::MouseEvent& e) {
-      // TODO: Implementation.
+      // In the case of a drag event we want to move the slider to the position indicated
+      // by the mouse. This includes converting the current mouse position to the local
+      // coordinate frame and then determining the equivalent value required to have the
+      // slider at this location.
+      utils::Vector2f local = mapFromGlobal(e.getMousePosition());
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
+
+      // Convert in terms of `slider's reference frame`.
+      int desired = getValueFromSliderPos(local);
+
+      // Assign the value and request a repaint if needed.
+      bool update = performAction(Action::Move, desired);
+
+      if (update) {
+        requestRepaint();
+      }
+
+      // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDragEvent(e);
     }
 
@@ -398,7 +409,9 @@ namespace sdl {
     }
 
     bool
-    ScrollBar::performAction(const Action& action) {
+    ScrollBar::performAction(const Action& action,
+                             int value)
+    {
       // Assume that the locker is already acquired.
 
       // The input action describes the motion to apply to the slider. Depending
@@ -439,6 +452,8 @@ namespace sdl {
           targetValue = m_maximum;
           break;
         case Action::Move:
+          targetValue = value;
+          break;
         default:
           // Note that this does not include the `NoAction` as it has been handled
           // beforehand.
@@ -505,6 +520,51 @@ namespace sdl {
 
       m_slider.box.x() = sliderPos.x();
       m_slider.box.y() = sliderPos.y();
+    }
+
+    int
+    ScrollBar::getValueFromSliderPos(const utils::Vector2f& local) const {
+      // We want to compute the value of the scroll bar which would produce a position of the
+      // slider equal to the input `local`. To do so we have to determine the available space
+      // for the slider knowing that it represents the whole range.
+      float availableSpace = 0.0f;
+      switch (m_orientation) {
+        case Orientation::Horizontal:
+          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound() - m_slider.box.w();
+          break;
+        case Orientation::Vertical:
+          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound() - m_slider.box.h();
+          break;
+        default:
+          error(
+            std::string("Could not update slider position from value"),
+            std::string("Unknown scroll bar orientation ") + std::to_string(static_cast<int>(m_orientation))
+          );
+          break;
+      }
+
+      // The percentage of the slider is given by one of the two coordinates depending on the
+      // orientation. Note that we don't need to check for invalid orientation as we checked
+      // that just before.
+      float perc = 0.0f;
+      switch (m_orientation) {
+        case Orientation::Horizontal:
+          perc = local.x() - m_upArrow.box.getRightBound();
+          break;
+        case Orientation::Vertical:
+          // The vertical axis is inverted (meaning that high y values actually corresponds to
+          // low range values).
+          perc = m_upArrow.box.getBottomBound() - local.y();
+        default:
+          break;
+      }
+
+      perc /= availableSpace;
+
+      // Now compute the desired value for the slider: we know that the `available` space is
+      // meant to represent the whole range of this scroll bar so we can deduce the pointed
+      // value based on the input position.
+      return static_cast<int>(m_minimum + (m_maximum - m_minimum) * perc);
     }
 
     void

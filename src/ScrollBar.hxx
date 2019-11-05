@@ -131,7 +131,7 @@ namespace sdl {
     ScrollBar::getSliderColorRole(bool highlight) noexcept {
       switch (highlight) {
         case true:
-          return core::engine::Palette::ColorRole::Light;
+          return core::engine::Palette::ColorRole::HighlightedText;
         default:
           // Assume default case is to not be highlighed.
           return core::engine::Palette::ColorRole::Mid;
