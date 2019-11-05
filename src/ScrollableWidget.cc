@@ -68,6 +68,9 @@ namespace sdl {
 
         // Post the resize event for the support widget.
         // TODO: We should allow for interaction with the scrollable widget.
+        // TODO: Seems like there is an issue when the support widget is resized, it does
+        // not take its old size back which might be correct but in this case it means that
+        // the initial behavior is not correct.
         postEvent(
           std::make_shared<core::engine::ResizeEvent>(
             area,
