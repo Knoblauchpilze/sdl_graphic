@@ -91,6 +91,16 @@ namespace sdl {
     }
 
     inline
+    void
+    ScrollBar::updatePrivate(const utils::Boxf& /*window*/) {
+      // Acquire the lock on this object.
+      Guard guard(m_propsLocker);
+
+      // Invalidate the cache for internal elements.
+      setElementsChanged();
+    }
+
+    inline
     float
     ScrollBar::maxDimsAlongSlider() noexcept {
       return 100.0f;

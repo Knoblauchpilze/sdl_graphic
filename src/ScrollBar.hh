@@ -93,6 +93,14 @@ namespace sdl {
       protected:
 
         /**
+         * @brief - Reimplementation of the base class method to invalidate the elements
+         *          whenever this widget gets redrawn.
+         * @param window - the available size to perform the update.
+         */
+        void
+        updatePrivate(const utils::Boxf& window) override;
+
+        /**
          * @brief - Reimplementation of the base `core::SdlWidget` method in order to
          *          provide drawing primitives for the textures used to represent the
          *          scroll bar: this includes both motion arrows and the slider itself.
@@ -370,9 +378,14 @@ namespace sdl {
          * @brief - Used to perform a fill operation on the textures representing the element
          *          for this scroll bar. The fill operation allows to initialize the data of
          *          the texture and potentially update it based on a color role change.
+         *          The fill operation is usually triggered by the fact that the internal data
+         *          for an element request it but the user can force it using the input bool
+         *          if needed.
+         * @param force - `true` if the elements should be filled no matter what and `false`
+         *                if we should use the internal data to handle each case.
          */
         void
-        fillElements();
+        fillElements(bool force = false);
 
         /**
          * @brief - Destroys the textures describing the elements representing the scroll

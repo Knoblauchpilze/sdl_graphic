@@ -43,6 +43,8 @@ namespace sdl {
       // has changed since last draw operation. This can either mean that the way the
       // elements has changed or that one of the rendering properties to use to draw
       // the elements has been updated.
+      bool forceFill = m_elementsChanged;
+
       if (elementsChanged()) {
         loadElements();
 
@@ -51,7 +53,7 @@ namespace sdl {
       }
 
       // Fill up the textures with the relevant color.
-      fillElements();
+      fillElements(forceFill);
 
       // The arrows and slider are arranged in a linear fashion where the top arrow is
       // positionned first, then comes the slider and finally the bottom arrow. In the
@@ -644,21 +646,21 @@ namespace sdl {
     }
 
     void
-    ScrollBar::fillElements() {
+    ScrollBar::fillElements(bool force) {
       // Fill the textures with the relevant color if needed.
-      if (m_upArrow.roleUpdated) {
+      if (m_upArrow.roleUpdated || force) {
         getEngine().setTextureRole(m_upArrow.id, m_upArrow.role);
         getEngine().fillTexture(m_upArrow.id, getPalette());
         m_upArrow.roleUpdated = false;
       }
 
-      if (m_slider.roleUpdated) {
+      if (m_slider.roleUpdated || force) {
         getEngine().setTextureRole(m_slider.id, m_slider.role);
         getEngine().fillTexture(m_slider.id, getPalette());
         m_slider.roleUpdated = false;
       }
 
-      if (m_downArrow.roleUpdated) {
+      if (m_downArrow.roleUpdated || force) {
         getEngine().setTextureRole(m_downArrow.id, m_downArrow.role);
         getEngine().fillTexture(m_downArrow.id, getPalette());
         m_downArrow.roleUpdated = false;
