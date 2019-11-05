@@ -268,37 +268,11 @@ namespace sdl {
       // Convert the mouse position to local coordinate.
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
-      // Check whether the mouse is hovering over any of the elements representing
-      // the scroll bar: if this is the case we should request a repaint with the
-      // new info.
-      bool update = false;
-
       // Acquire the lock on the data contained in this widget.
       Guard guard(m_propsLocker);
 
-      core::engine::Palette::ColorRole r = getArrowColorRole(m_upArrow.box.contains(local));
-      if (m_upArrow.role != r) {
-        m_upArrow.role = r;
-        m_upArrow.roleUpdated = true;
-        update = true;
-      }
-
-      r = getSliderColorRole(m_slider.box.contains(local));
-      if (m_slider.role != r) {
-        m_slider.role = r;
-        m_slider.roleUpdated = true;
-        update = true;
-      }
-
-      r = getArrowColorRole(m_downArrow.box.contains(local));
-      if (m_downArrow.role != r) {
-        m_downArrow.role = r;
-        m_downArrow.roleUpdated = true;
-        update = true;
-      }
-
-      // Request an update if any of the element have been modified.
-      if (update) {
+      // Use the dedicated handler to handle roles update.
+      if (updateElementsRolesFromMousePos(local)) {
         requestRepaint();
       }
 
@@ -323,7 +297,7 @@ namespace sdl {
       // Assign the value and request a repaint if needed.
       bool update = performAction(Action::Move, desired);
 
-      if (update) {
+      if (update || updateElementsRolesFromMousePos(local)) {
         requestRepaint();
       }
 
@@ -527,6 +501,16 @@ namespace sdl {
       // We want to compute the value of the scroll bar which would produce a position of the
       // slider equal to the input `local`. To do so we have to determine the available space
       // for the slider knowing that it represents the whole range.
+      // Also note that we will only react to a position which is inside the admissible range
+      // for the slider: we will actually check that the input local position is contained in
+      // the `slider` box. If this is not the case we will consider that the desired value is
+      // the current one.
+      if (m_upArrow.box.contains(local) || m_downArrow.box.contains(local)) {
+        return m_value;
+      }
+
+      // The local position is inside the slider's admissible area: try to determine the value
+      // which would lead to a similar value.
       float availableSpace = 0.0f;
       switch (m_orientation) {
         case Orientation::Horizontal:
@@ -565,6 +549,40 @@ namespace sdl {
       // meant to represent the whole range of this scroll bar so we can deduce the pointed
       // value based on the input position.
       return static_cast<int>(m_minimum + (m_maximum - m_minimum) * perc);
+    }
+
+    bool
+    ScrollBar::updateElementsRolesFromMousePos(const utils::Vector2f& local) {
+      // Assume that the locker is already acquired.
+
+      // Check whether the mouse is hovering over any of the elements representing
+      // the scroll bar: if this is the case we should request a repaint with the
+      // new info.
+      bool update = false;
+
+      core::engine::Palette::ColorRole r = getArrowColorRole(m_upArrow.box.contains(local));
+      if (m_upArrow.role != r) {
+        m_upArrow.role = r;
+        m_upArrow.roleUpdated = true;
+        update = true;
+      }
+
+      r = getSliderColorRole(m_slider.box.contains(local));
+      if (m_slider.role != r) {
+        m_slider.role = r;
+        m_slider.roleUpdated = true;
+        update = true;
+      }
+
+      r = getArrowColorRole(m_downArrow.box.contains(local));
+      if (m_downArrow.role != r) {
+        m_downArrow.role = r;
+        m_downArrow.roleUpdated = true;
+        update = true;
+      }
+
+      // Return whether any role were updated.
+      return update;
     }
 
     void

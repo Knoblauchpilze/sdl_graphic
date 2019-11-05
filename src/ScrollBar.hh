@@ -339,6 +339,20 @@ namespace sdl {
         getValueFromSliderPos(const utils::Vector2f& local) const;
 
         /**
+         * @brief - Used to perform the update of the elements' roles considering that
+         *          the mouse is actually located at the `local` position. As its name
+         *          suggests this value is expected to be in local coordinate frame.
+         *          The user can determine whether any change were made using the out
+         *          value. No repaint event is issued by this method.
+         *          Note that this method assumes the that the locker protecting from
+         *          concurrency is already locked.
+         * @param local - the position at which the mouse is located.
+         * @return - `true` if any role were updated and `false` otherwise.
+         */
+        bool
+        updateElementsRolesFromMousePos(const utils::Vector2f& local);
+
+        /**
          * @brief - Used to create the textures allowing to represent the scroll bar
          *          components, namely the two arrows allowing to scroll and the slider
          *          which indicates the current position of the scroll bar in the
