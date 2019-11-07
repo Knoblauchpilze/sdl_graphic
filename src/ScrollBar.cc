@@ -562,7 +562,12 @@ namespace sdl {
       // new info.
       bool update = false;
 
+      // TODO: Seems to have a bug when the mouse is dragged slowly on the up arrow
+      // (so that it gets highlighted) and then outside of the window and then fast
+      // onto the slider: as long as it stays on the slider the up arrow still stays
+      // selected which is not correct.
       core::engine::Palette::ColorRole r = getArrowColorRole(m_upArrow.box.contains(local));
+      log("Role for up arrow is " + std::to_string(static_cast<int>(r)) + " and current is " + std::to_string(static_cast<int>(m_upArrow.role)));
       if (m_upArrow.role != r) {
         m_upArrow.role = r;
         m_upArrow.roleUpdated = true;
@@ -649,6 +654,7 @@ namespace sdl {
     ScrollBar::fillElements(bool force) {
       // Fill the textures with the relevant color if needed.
       if (m_upArrow.roleUpdated || force) {
+        log("Repainting up arrow with role " + std::to_string(static_cast<int>(m_upArrow.role)));
         getEngine().setTextureRole(m_upArrow.id, m_upArrow.role);
         getEngine().fillTexture(m_upArrow.id, getPalette());
         m_upArrow.roleUpdated = false;
