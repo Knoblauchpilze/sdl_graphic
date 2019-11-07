@@ -241,6 +241,19 @@ namespace sdl {
         void
         build();
 
+        /**
+         * @brief - Used when either a new content widget has been assigned or when
+         *          the size of this widget has been changed. This method is used to
+         *          update the controls like the scroll bars in order to make their
+         *          appearance reflect the actual content of the scroll are.
+         *          Input argument allow to get an idea of the size of this component
+         *          while the size of the scrollable widget displayed in this area is
+         *          retrieved through the `getMaximumViewportSize` method.
+         * @param internal - the total internal size of the scroll area.
+         */
+        void
+        updateControls(const utils::Sizef& internal);
+
       private:
 
         /**

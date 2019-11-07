@@ -109,6 +109,14 @@ namespace sdl {
 
     void
     ScrollArea::setViewport(core::SdlWidget* viewport) {
+      // Check consistency.
+      if (viewport == nullptr) {
+        error(
+          std::string("Could not assign new viewport to scroll area"),
+          std::string("New viewport is null")
+        );
+      }
+
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
@@ -121,6 +129,9 @@ namespace sdl {
       // Assign the viewport to the scrollable handler: it will handle whether
       // it is valid to specify a `null` widget or any kind of widget itself.
       wid->setSupport(viewport);
+
+      // Perform the update of the controls.
+      updateControls(getRenderingArea().toSize());
     }
 
     void
@@ -128,43 +139,9 @@ namespace sdl {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
-      // Compare the input size of the window and the preferred size of the
-      // viewport: if the preferred is larger than the newly assigned size,
-      // we need to display the scroll bars if this is permitted by policies.
-      // We only do that if this is not already the case.
-      // On the other hand if the window size is now larger than the size
-      // desired by the viewport we can hide the scroll bars.
-      utils::Sizef current = window.toSize();
+      // Use the dedicated handler.
+      updateControls(window.toSize());
 
-      bool needHBar = isHSBarVisible(current.w());
-      bool needVBar = isVSBarVisible(current.h());
-
-      // Handle horizontal scroll bar.
-      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
-
-      if (hBar != nullptr && needHBar) {
-        if (!hBar->isVisible()) {
-          hBar->setVisible(true);
-        }
-      }
-      else {
-        if (hBar->isVisible()) {
-          hBar->setVisible(false);
-        }
-      }
-
-      // Handle vertical scroll bar.
-      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
-      if (vBar != nullptr && needVBar) {
-        if (!vBar->isVisible()) {
-          vBar->setVisible(true);
-        }
-      }
-      else {
-        if (vBar->isVisible()) {
-          vBar->setVisible(false);
-        }
-      }
 
       // Also call the parent method to benefit from the base class behavior.
       core::SdlWidget::updatePrivate(window);
@@ -253,6 +230,79 @@ namespace sdl {
       setHorizontalScrollBar(hBar);
       setVerticalScrollBar(vBar);
       grid->addItem(viewport, 0, 0, 1, 1);
+    }
+
+    void
+    ScrollArea::updateControls(const utils::Sizef& internal) {
+      // This method should update the visiblility status of the scroll bars
+      // based on whether they should be visible and also update their range
+      // so that the indication is correct compared to how the size of the
+      // scrollable widget compares to the size of the scroll area.
+
+      // Assign visibility statuses for scroll bars.
+      bool needHBar = isHSBarVisible(internal.w());
+      bool needVBar = isVSBarVisible(internal.h());
+
+      // Handle horizontal scroll bar.
+      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
+
+      if (hBar != nullptr && needHBar) {
+        if (!hBar->isVisible()) {
+          hBar->setVisible(true);
+        }
+      }
+      else {
+        if (hBar->isVisible()) {
+          hBar->setVisible(false);
+        }
+      }
+
+      // Handle vertical scroll bar.
+      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
+      if (vBar != nullptr && needVBar) {
+        if (!vBar->isVisible()) {
+          vBar->setVisible(true);
+        }
+      }
+      else {
+        if (vBar->isVisible()) {
+          vBar->setVisible(false);
+        }
+      }
+
+      // Also set the dimensions of the scroll bars based on the ratio between
+      // the size of this component and the size of the displayed widget.
+      utils::Sizef viewport = getMaximumViewportSize();
+
+      float hRatio = internal.w() / viewport.w();
+      float vRatio = internal.h() / viewport.h();
+
+      // Now that we have a ratio we can deduce the expected range of the scroll
+      // bar and the corresponding page step.
+      int minH = 0;
+      int maxH = static_cast<int>(viewport.w());
+      int stepH = static_cast<int>(hRatio * viewport.w());
+
+      int minV = 0;
+      int maxV = static_cast<int>(viewport.h());
+      int stepV = static_cast<int>(vRatio * viewport.h());
+
+      // Assign the size of the controls to each scroll bar.
+      if (hBar != nullptr && needHBar) {
+        log(
+          "Setting range to [" + std::to_string(minH) + " - " + std::to_string(stepH) +
+          " - " + std::to_string(maxH) + "] for " + hBar->getName()
+        );
+        hBar->setRange(minH, stepH, maxH);
+      }
+
+      if (vBar != nullptr && needVBar) {
+        log(
+          "Setting range to [" + std::to_string(minV) + " - " + std::to_string(stepV) +
+          " - " + std::to_string(maxV) + "] for " + hBar->getName()
+        );
+        vBar->setRange(minV, stepV, maxV);
+      }
     }
 
   }
