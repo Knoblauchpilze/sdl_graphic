@@ -69,7 +69,7 @@ namespace sdl {
     ScrollArea::getMaximumViewportSize() const noexcept {
       // Assume the locker is already acquired.
 
-      ScrollableWidget* wid = getChildOrNull<ScrollableWidget>(getViewportName());
+      ScrollableWidget* wid = getViewportHandler();
 
       // Use the viewport to get the maximum size of the attached viewport.
       return wid->getPreferredSize();
