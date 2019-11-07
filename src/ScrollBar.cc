@@ -16,8 +16,8 @@ namespace sdl {
       m_orientation(orientation),
 
       m_minimum(0),
-      m_maximum(2),
-      m_pageStep(1),
+      m_maximum(100),
+      m_pageStep(10),
 
       m_value(0),
 

@@ -82,6 +82,18 @@ namespace sdl {
 
     inline
     void
+    ScrollBar::setRange(int minimum,
+                        int step,
+                        int maximum)
+    {
+      // Use the related method to assign each new value.
+      setMinimum(minimum);
+      setMaximum(maximum);
+      setPageStep(step);
+    }
+
+    inline
+    void
     ScrollBar::setValue(int value) {
       // Acquire the lock on this object.
       Guard guard(m_propsLocker);
@@ -257,7 +269,7 @@ namespace sdl {
       // First, determine how many page steps we can fit in the total range of this
       // scroll bar. Exact computations are not actually required because we already
       // have some sort of clamping mechanism in the `setValue` method.
-      int stepsCount = (m_pageStep == 0 ? 1 : (m_maximum - m_minimum + 1) / m_pageStep);
+      int stepsCount = (m_pageStep == 0 ? 1 : (m_maximum - m_minimum) / m_pageStep + 1);
 
       // Compute the available space to display these `stepCount` steps.
       utils::Sizef sliderArea = total;

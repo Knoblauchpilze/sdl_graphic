@@ -79,6 +79,21 @@ namespace sdl {
         setPageStep(int step);
 
         /**
+         * @brief - Used to assign the whole range for this scroll bar all at once. This
+         *          is basically a wrapper using the `setMinimum` and such handlers. It
+         *          does not do anything more.
+         *          Note that the values are assigned in the following order: minimum,
+         *          maximum and then page step.
+         * @param minimum - the new minimum value for the range of this scroll bar.
+         * @param step - the new value for the page step.
+         * @param maximum - the new maximum value for the range of this scroll bar.
+         */
+        void
+        setRange(int minimum,
+                 int step,
+                 int maximum);
+
+        /**
          * @brief - Used to assign a new value for the step of this scroll bar. This
          *          method will call the `setValuePrivate` method internally and trigger
          *          a signal `valueChanged` if the value is effectively different from
