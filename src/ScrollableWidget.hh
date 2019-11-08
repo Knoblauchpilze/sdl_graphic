@@ -93,7 +93,38 @@ namespace sdl {
         virtual void
         setupSupport(core::SdlWidget* widget);
 
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when
+         *          an action is performed to modify the position of the viewport widget
+         *          associated to this element. This allows to update the content to make
+         *          it match the desired position.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        mouseDragEvent(const core::engine::MouseEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
+         *          wheel is used: this should trigger a zooming behavior on the content of
+         *          the scrollable widget.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        mouseWheelEvent(const core::engine::MouseEvent& e) override;
+
       private:
+
+        /**
+         * @brief - Used to retrieve the button to use to scroll the content
+         *          of this widget.
+         * @return - the default button to use to perform scrolling in this
+         *           widget.
+         */
+        static
+        core::engine::mouse::Button
+        getScrollingButton() noexcept;
 
         /**
          * @brief - Used to determine whether this widget has a support widget

@@ -61,6 +61,12 @@ namespace sdl {
     }
 
     inline
+    core::engine::mouse::Button
+    ScrollableWidget::getScrollingButton() noexcept {
+      return core::engine::mouse::Button::Left;
+    }
+
+    inline
     bool
     ScrollableWidget::hasSupportWidget() const noexcept {
       return hasChild(m_supportName);

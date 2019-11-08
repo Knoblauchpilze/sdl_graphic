@@ -67,7 +67,6 @@ namespace sdl {
         );
 
         // Post the resize event for the support widget.
-        // TODO: We should allow for interaction with the scrollable widget.
         postEvent(
           std::make_shared<core::engine::ResizeEvent>(
             area,
@@ -79,6 +78,41 @@ namespace sdl {
 
       // Call the parent method to benefit from base class behavior.
       core::SdlWidget::updatePrivate(window);
+    }
+
+    bool
+    ScrollableWidget::mouseDragEvent(const core::engine::MouseEvent& e) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // We only want to event which started inside this widget. Indeed
+      // the point of the drag event is to bring the point that was pointed
+      // at by the mouse at the moment of the click to the current position
+      // of the mouse. This allows for intuitive navigation inside a large
+      // document.
+      // Also we only want to react to specific buttons which are able to
+      // trigger the scrolling operation.
+      if (!e.getButtons().isSet(getScrollingButton())) {
+        return core::SdlWidget::mouseDragEvent(e);
+      }
+
+      utils::Vector2f localStart = mapFromGlobal(e.getInitMousePosition(getScrollingButton()));
+      utils::Vector2f localEnd = mapFromGlobal(e.getMousePosition());
+
+      // TODO: We should allow for interaction with the scrollable widget.
+    }
+
+    bool
+    ScrollableWidget::mouseWheelEvent(const core::engine::MouseEvent& e) {
+      // We want to trigger some page step actions when the wheel is rolled
+      // on the scroll bar. We only want to do so if the mouse is inside
+      // this widget though as otherwise it means that we currently react to
+      // the wheel event on an application wide basis.
+      if (!isMouseInside()) {
+        return core::SdlWidget::mouseWheelEvent(e);
+      }
+
+      // TODO: Implementation.
     }
 
   }
