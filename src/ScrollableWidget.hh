@@ -62,6 +62,12 @@ namespace sdl {
          *          size that actually displayed. While the standard process uses this
          *          as a valid information to retrieve the item at the position we don't
          *          want this here.
+         *          More generally the interaction on the support widget should be reduced
+         *          so that this widget is able to control the way the support widget is
+         *          displayed. So in the case the best item corresponds to the support
+         *          widget we want to substitute this widget in lieu of the support widget.
+         *          This will prevent the regular events system to assign some events to
+         *          the support widget and rather send them to this widget.
          * @param pos - a vector describing the position which should be spanned by the items.
          * @return - a valid pointer if any of the children items spans the input position and
          *           `null` otherwise.
@@ -80,27 +86,6 @@ namespace sdl {
          */
         void
         updatePrivate(const utils::Boxf& window) override;
-
-        /**
-         * @brief - Reimplementation of the base `core::LayoutItem` method in order
-         *          to filter drop event for the support widget. Indeed the whole
-         *          scrolling behavior relies on drag events to be handled by this
-         *          wrapper and not directly transmitted to the content widget.
-         *          Right now no drawbacks can be forecast (apart from the obvious
-         *          filtering performed) in terms of interaction given the usage
-         *          of this widget where the support widget would not be root to a
-         *          very deep hierarchy (which might need some drag events to not be
-         *          filtered).
-         * @param watched - the element for which the drag and drop event should be filtered.
-         *                  If this method returns  `false` the event `e` will be transmitted
-         *                  to the `watched` object.
-         * @param e - the drag and drop event which should be filtered. If it is not the case
-         *            this method returns false.
-         * @return - `true` if this event should be filtered and `false` otherwise.
-         */
-        bool
-        filterDragAndDropEvents(const core::engine::EngineObject* watched,
-                                const core::engine::DropEventShPtr e) const noexcept override;
 
         /**
          * @brief - This method is called right after a new support widget has been

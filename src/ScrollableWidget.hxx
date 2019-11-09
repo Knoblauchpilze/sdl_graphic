@@ -53,34 +53,11 @@ namespace sdl {
         return nullptr;
       }
 
-      // The support widget is valid.
-      return wid;
-    }
-
-    inline
-    bool
-    ScrollableWidget::filterDragAndDropEvents(const core::engine::EngineObject* watched,
-                                              const core::engine::DropEventShPtr e) const noexcept
-    {
-      // Protect from concurrent accesses.
-      // TODO: We should maybe filter more stuff from the `getItemAt` method.
-      // And also probably reimplement the filtering of mouse events to filter
-      // the drag events for the support widget.
-      Guard guard(m_propsLocker);
-
-      // In case the `watched` element is the support widget we want to filter the
-      // drag events. Indeed they should be interpreted as such.
-      if (!hasSupportWidget()) {
-        return core::SdlWidget::filterDragAndDropEvents(watched, e);
-      }
-
-      core::SdlWidget* support = getSupportWidget();
-      if (support != watched) {
-        return core::SdlWidget::filterDragAndDropEvents(watched, e);
-      }
-
-      // The support widget should not receive drop events.
-      return false;
+      // Instead of the support widget we will assume that the best fit is
+      // `this` widget: this will redirect part of the events that would
+      // have landed to the support directly to this widget. We will handle
+      // them first and propagate them if needed to the support widget.
+      return this;
     }
 
     inline
