@@ -46,12 +46,13 @@ namespace sdl {
          *          the expected size of the underlying support widget and allows
          *          to get an idea of how big the widget should be if it was not
          *          constrained to fit in this element.
-         *          Note that inheriting classes might want to specialize this
-         *          behavior if needed.
+         *          Note that inheriting classes are encouraged to rather specialize
+         *          the `getPreferredSizePrivate` method as it is used internally
+         *          by this method.
          * @return - the size that this widget would occupy should it have all the
          *           space it needs.
          */
-        virtual utils::Sizef
+        utils::Sizef
         getPreferredSize() const noexcept;
 
         /**
@@ -86,6 +87,18 @@ namespace sdl {
          */
         void
         updatePrivate(const utils::Boxf& window) override;
+
+        /**
+         * @brief - Actual implementation of the `getPreferredSize` method. This is
+         *          mainly useful because it assumes that the locker protecting this
+         *          object is already locked so it can be used by internal methods.
+         *          Fills the same role as described by the `getPreferredSize` method.
+         *          Note that as discussed the locker is assumed to be acquired.
+         * @return - the size that this widget would occupy should it have all the
+         *           space it needs.
+         */
+        virtual utils::Sizef
+        getPreferredSizePrivate() const noexcept;
 
         /**
          * @brief - This method is called right after a new support widget has been
@@ -141,13 +154,18 @@ namespace sdl {
          *                  it is up to the implementation to know what to do (one
          *                  could generate more data, or forbid the requested move
          *                  for example).
+         * @param motion - the current motion applied which triggered the call to
+         *                 this content scrolling action. This motion corresponds
+         *                 to the actual change in `whereTo` position since the
+         *                 last call to this method.
          * @return - `true` if some modifications where made to the structure of
          *            the widget (usually a modification of the position of the
          *            content widget) and `false` otherwise.
          */
         virtual bool
         handleContentScrolling(const utils::Vector2f& posToFix,
-                               const utils::Vector2f& whereTo);
+                               const utils::Vector2f& whereTo,
+                               const utils::Vector2i& motion);
 
         /**
          * @brief - Reimplementation of the base `core::engine::EngineObject` in order
@@ -193,16 +211,6 @@ namespace sdl {
          */
         bool
         mouseDragEvent(const core::engine::MouseEvent& e) override;
-
-        /**
-         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
-         *          wheel is used: this should trigger a zooming behavior on the content of
-         *          the scrollable widget.
-         * @param e - the event to be interpreted.
-         * @return - `true` if the event was recognized and `false` otherwise.
-         */
-        bool
-        mouseWheelEvent(const core::engine::MouseEvent& e) override;
 
       private:
 

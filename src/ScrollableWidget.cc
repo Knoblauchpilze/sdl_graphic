@@ -59,8 +59,14 @@ namespace sdl {
         utils::Sizef hint = support->getSizeHint();
 
         // Compute the position of the rendering area to assign
-        // so that the top left corner of the widget coincide
-        // with the top left corner of this area.
+        // so that the old center is still at the center of the
+        // new viewport.
+        utils::Boxf old = support->getRenderingArea();
+
+        // TODO: We should probably handle the case where the widget is
+        // not on the top left corner and try to keep as much as the
+        // position of the support widget as possible (through determining
+        // the center and then use it as a reference point for the resize).
         utils::Boxf area(
           -window.w() / 2.0f + hint.w() / 2.0f,
           window.h() / 2.0f - hint.h() / 2.0f,
@@ -82,12 +88,82 @@ namespace sdl {
     }
 
     bool
-    ScrollableWidget::handleContentScrolling(const utils::Vector2f& posToFix,
-                                             const utils::Vector2f& whereTo)
+    ScrollableWidget::handleContentScrolling(const utils::Vector2f& /*posToFix*/,
+                                             const utils::Vector2f& /*whereTo*/,
+                                             const utils::Vector2i& motion)
     {
-      // TODO: Implementation.
-      log("Should scroll content so that " + posToFix.toString() + " is displayed at " + whereTo.toString(), utils::Level::Notice);
-      return false;
+      // The goal is to make the `posToFix` coincide with the `whereTo` position.
+      // Both positions should be expressed in local coordinate frame so we don't
+      // need any conversion.
+      // Note though that using the `posToFix` is usually not what we want to use
+      // because the drag event only ends when a drop event is issued. So indeed
+      // we will receive a lot of drag events (and thus call this method a lot of
+      // times) with the same `posToFix` but `whereTo` position farther and
+      // farther away from the `posToFix`. The `motion` is more interesting as it
+      // describes the last modification of the `whereTo` position. Basically we
+      // should have already made `posToFix` coincide with `whereTo - motion`.
+
+      if (!hasSupportWidget()) {
+        // Nothing to do.
+        return false;
+      }
+
+      // Compute the distance between the initial position and the desired one: it
+      // gives us an indication of the information of the translation to apply to
+      // the support widget.
+      utils::Vector2f delta(1.0f * motion.x(), 1.0f * motion.y());
+
+      // Retrieve the current rendering area of the support widget and update its
+      // position with the delta to apply.
+      core::SdlWidget* support = getSupportWidget();
+      utils::Boxf area = support->getRenderingArea();
+      utils::Boxf viewport = utils::Boxf(
+        area.getCenter(),
+        LayoutItem::getRenderingArea().toSize()
+      );
+
+      utils::Boxf save = area;
+
+      // Make sure that the delta does not mean displaying a non-existing part of
+      // the support widget. This can be checked by verifying that the area's center
+      // is still larger than half the size of the area.
+      bool updated = false;
+      utils::Sizef max = getPreferredSizePrivate();
+
+      if (delta.x() < 0.0f && viewport.getLeftBound() + delta.x() >= -max.w() / 2.0f) {
+        area.x() += delta.x();
+        updated = true;
+      }
+      if (delta.x() > 0.0f && viewport.getRightBound() + delta.x() <= max.w() / 2.0f) {
+        area.x() += delta.x();
+        updated = true;
+      }
+
+      if (delta.y() < 0.0f && viewport.getBottomBound() + delta.y() >= -max.h() / 2.0f) {
+        area.y() += delta.y();
+        updated = true;
+      }
+      if (delta.y() > 0.0f && viewport.getTopBound() + delta.y() <= max.h() / 2.0f) {
+        area.y() += delta.y();
+        updated = true;
+      }
+
+      // Check if anything was updated at all.
+      if (!updated) {
+        return false;
+      }
+
+      // Post the resize event for the support widget if needed.
+      postEvent(
+        std::make_shared<core::engine::ResizeEvent>(
+          area,
+          support->getRenderingArea(),
+          support
+        )
+      );
+
+      // We updated the rendering area of the support widget.
+      return true;
     }
 
     bool
@@ -142,28 +218,16 @@ namespace sdl {
       // Call the dedicated handler to do the necessary work in order to
       // handle scrolling: if the return value indicates that some changes
       // where made to this widget we should issue a repaint.
-      if (handleContentScrolling(start, localEnd)) {
+      if (handleContentScrolling(start, localEnd, e.getMove())) {
+        // TODO: Apparently we try to repaint larger areas than expected. Maybe
+        // we should try to specialize the repaint events received in this wid
+        // so that it never accounts for the larger scrollable widget.
+        // This causes issue when the right tab widget is active.
         requestRepaint();
       }
 
       // Use the base handler to provide the return value.
       return core::SdlWidget::mouseDragEvent(e);
-    }
-
-    bool
-    ScrollableWidget::mouseWheelEvent(const core::engine::MouseEvent& e) {
-      // We want to trigger some page step actions when the wheel is rolled
-      // on the scroll bar. We only want to do so if the mouse is inside
-      // this widget though as otherwise it means that we currently react to
-      // the wheel event on an application wide basis.
-      if (!isMouseInside()) {
-        return core::SdlWidget::mouseWheelEvent(e);
-      }
-
-      // TODO: Implementation, we want to zoom in/out of the widget.
-      log("Should perform zooming in/out", utils::Level::Warning);
-
-      return core::SdlWidget::mouseWheelEvent(e);
     }
 
   }

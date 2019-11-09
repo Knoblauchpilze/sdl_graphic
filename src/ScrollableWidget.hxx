@@ -12,13 +12,8 @@ namespace sdl {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
-      // If no support widget is assigned, return an empty size.
-      if (!hasSupportWidget()) {
-        return utils::Sizef();
-      }
-
-      // Return the size hint of the support widget.
-      return getSupportWidget()->getSizeHint();
+      // Use the dedicated handler.
+      return getPreferredSizePrivate();
     }
 
     inline
@@ -58,6 +53,20 @@ namespace sdl {
       // have landed to the support directly to this widget. We will handle
       // them first and propagate them if needed to the support widget.
       return this;
+    }
+
+    inline
+    utils::Sizef
+    ScrollableWidget::getPreferredSizePrivate() const noexcept {
+      // Assume the locker is already locked.
+
+      // If no support widget is assigned, return an empty size.
+      if (!hasSupportWidget()) {
+        return utils::Sizef();
+      }
+
+      // Return the size hint of the support widget.
+      return getSupportWidget()->getSizeHint();
     }
 
     inline
