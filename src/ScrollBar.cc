@@ -291,6 +291,7 @@ namespace sdl {
       // by the mouse. This includes converting the current mouse position to the local
       // coordinate frame and then determining the equivalent value required to have the
       // slider at this location.
+      // TODO: Maybe only handle drag events which occur completely within this widget ?
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
