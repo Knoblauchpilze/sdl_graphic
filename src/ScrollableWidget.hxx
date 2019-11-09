@@ -27,6 +27,9 @@ namespace sdl {
       // Use the base handler to retrieve the item spanning the position.
       const core::SdlWidget* wid = core::SdlWidget::getItemAt(pos);
 
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
       // Check whether the widget corresponds to the support widget.
       if (!hasSupportWidget()) {
         return wid;
@@ -55,9 +58,57 @@ namespace sdl {
     }
 
     inline
+    bool
+    ScrollableWidget::filterDragAndDropEvents(const core::engine::EngineObject* watched,
+                                              const core::engine::DropEventShPtr e) const noexcept
+    {
+      // Protect from concurrent accesses.
+      // TODO: We should maybe filter more stuff from the `getItemAt` method.
+      // And also probably reimplement the filtering of mouse events to filter
+      // the drag events for the support widget.
+      Guard guard(m_propsLocker);
+
+      // In case the `watched` element is the support widget we want to filter the
+      // drag events. Indeed they should be interpreted as such.
+      if (!hasSupportWidget()) {
+        return core::SdlWidget::filterDragAndDropEvents(watched, e);
+      }
+
+      core::SdlWidget* support = getSupportWidget();
+      if (support != watched) {
+        return core::SdlWidget::filterDragAndDropEvents(watched, e);
+      }
+
+      // The support widget should not receive drop events.
+      return false;
+    }
+
+    inline
     void
     ScrollableWidget::setupSupport(core::SdlWidget* /*widget*/) {
       // Empty implementation.
+    }
+
+    inline
+    bool
+    ScrollableWidget::dropEvent(const core::engine::DropEvent& e) {
+      // Use the dedicated handler to clear the coordinates to
+      // follow if needed.
+      attemptToClearCoords(e.getButton());
+
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::dropEvent(e);
+    }
+
+    inline
+    bool
+    ScrollableWidget::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
+      // Use the dedicated handler to clear the coordinates to
+      // follow if needed.
+      attemptToClearCoords(e.getButton());
+
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::mouseButtonReleaseEvent(e);
     }
 
     inline
@@ -77,6 +128,47 @@ namespace sdl {
     ScrollableWidget::getSupportWidget() const {
       // Use the base handler to retrieve the support widget if any.
       return getChildAs<core::SdlWidget>(m_supportName);
+    }
+
+    inline
+    void
+    ScrollableWidget::attemptToClearCoords(const core::engine::mouse::Button& button) noexcept {
+      // In case the button provided as inputdoes not corresponds to the one
+      // used for scrolling we won't do anything. Otherwise we need to reset
+      // the coordinates to follow.
+      if (button != getScrollingButton()) {
+        return;
+      }
+
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // Reset the coordinates to follow.
+      m_coordsToFollow.reset();
+    }
+
+    inline
+    utils::Vector2f
+    ScrollableWidget::createOrGetCoordsToFollow(const utils::Vector2f& coords,
+                                                bool force)
+    {
+      // Assume the locker is already locked.
+
+      // If some coordinates are already set to be followed, use it. A
+      // special case comes when we want to force the update of these
+      // coordinates.
+      if (m_coordsToFollow != nullptr && !force) {
+        return *m_coordsToFollow;
+      }
+
+      // Othewise create the new coordinates to follow from the input
+      // argument.
+      m_coordsToFollow = std::make_shared<utils::Vector2f>(coords);
+
+      log("Scrollable widget should follow " + coords.toString() + " on " + m_supportName, utils::Level::Notice);
+
+      // Return the input coordinates.
+      return coords;
     }
 
   }

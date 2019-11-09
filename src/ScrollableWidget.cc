@@ -9,7 +9,8 @@ namespace sdl {
                                        const utils::Sizef& area):
       core::SdlWidget(name, area, parent),
 
-      m_supportName()
+      m_supportName(),
+      m_coordsToFollow(nullptr)
     {
       // We don't want the widget to be sensitive to hover over events.
       setFocusPolicy(core::FocusPolicy());
@@ -81,10 +82,36 @@ namespace sdl {
     }
 
     bool
-    ScrollableWidget::mouseDragEvent(const core::engine::MouseEvent& e) {
+    ScrollableWidget::handleContentScrolling(const utils::Vector2f& posToFix,
+                                             const utils::Vector2f& whereTo)
+    {
+      // TODO: Implementation.
+      log("Should scroll content so that " + posToFix.toString() + " is displayed at " + whereTo.toString(), utils::Level::Notice);
+      return false;
+    }
+
+    bool
+    ScrollableWidget::mouseButtonPressEvent(const core::engine::MouseEvent& e) {
+      // In case the button corresponds to the button used for scrolling
+      // we want to assign new coordinates to follow based on the local
+      // position of the mouse.
+      utils::Vector2f local = mapFromGlobal(e.getMousePosition());
+
+      if (e.getButton() != getScrollingButton()) {
+        return core::SdlWidget::mouseButtonPressEvent(e);
+      }
+
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
+      // Assign the new coordinates.
+      createOrGetCoordsToFollow(local, true);
+
+      return core::SdlWidget::mouseButtonPressEvent(e);
+    }
+
+    bool
+    ScrollableWidget::mouseDragEvent(const core::engine::MouseEvent& e) {
       // We only want to event which started inside this widget. Indeed
       // the point of the drag event is to bring the point that was pointed
       // at by the mouse at the moment of the click to the current position
@@ -96,10 +123,31 @@ namespace sdl {
         return core::SdlWidget::mouseDragEvent(e);
       }
 
-      utils::Vector2f localStart = mapFromGlobal(e.getInitMousePosition(getScrollingButton()));
+      // Retrieve the coordinate to follow as described in the input event.
+      utils::Vector2f dragStart = mapFromGlobal(e.getInitMousePosition(getScrollingButton()));
+      utils::Boxf area = LayoutItem::getRenderingArea().toOrigin();
+
+      if (!area.contains(dragStart)) {
+        // The drag event did not originated from our widget, do not start
+        // a scrolling operation.
+        return core::SdlWidget::mouseDragEvent(e);
+      }
+
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      utils::Vector2f start = createOrGetCoordsToFollow(dragStart);
       utils::Vector2f localEnd = mapFromGlobal(e.getMousePosition());
 
-      // TODO: We should allow for interaction with the scrollable widget.
+      // Call the dedicated handler to do the necessary work in order to
+      // handle scrolling: if the return value indicates that some changes
+      // where made to this widget we should issue a repaint.
+      if (handleContentScrolling(start, localEnd)) {
+        requestRepaint();
+      }
+
+      // Use the base handler to provide the return value.
+      return core::SdlWidget::mouseDragEvent(e);
     }
 
     bool
@@ -112,7 +160,10 @@ namespace sdl {
         return core::SdlWidget::mouseWheelEvent(e);
       }
 
-      // TODO: Implementation.
+      // TODO: Implementation, we want to zoom in/out of the widget.
+      log("Should perform zooming in/out", utils::Level::Warning);
+
+      return core::SdlWidget::mouseWheelEvent(e);
     }
 
   }
