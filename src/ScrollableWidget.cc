@@ -108,8 +108,6 @@ namespace sdl {
         LayoutItem::getRenderingArea().toSize()
       );
 
-      utils::Boxf save = area;
-
       // Make sure that the delta does not mean displaying a non-existing part of
       // the support widget. This can be checked by verifying that the area's center
       // is still larger than half the size of the area.
@@ -156,37 +154,33 @@ namespace sdl {
     ScrollableWidget::onResize(const utils::Boxf& window,
                                core::SdlWidget* support)
     {
-      // TODO: Should implement that.
+      // Check consistency: we don't know how to handle resize
+      // in case the `support` widget is `null`. More precisely
+      // we don't have anything to do.
+      if (support == nullptr) {
+        return utils::Boxf();
+      }
 
       // We want to actualize the rendering area of the support
       // widget so that it stays the same in the display area.
-      // We will also consider that the initial position of the
-      // support widget is on the top-left corner of the widget.
+      // In case no valid area is assigned to the support widget
+      // yet we will try to display its top-left corner.
+      utils::Boxf old = support->getRenderingArea();
       utils::Sizef hint = support->getSizeHint();
 
-      // Compute the position of the rendering area to assign
-      // so that the old center is still at the center of the
-      // new viewport.
-      utils::Boxf old = support->getRenderingArea();
+      utils::Vector2f center = old.getCenter();
 
-      // TODO: We should probably handle the case where the widget is
-      // not on the top left corner and try to keep as much as the
-      // position of the support widget as possible (through determining
-      // the center and then use it as a reference point for the resize).
-      utils::Boxf area(
-        -window.w() / 2.0f + hint.w() / 2.0f,
-        window.h() / 2.0f - hint.h() / 2.0f,
-        hint
-      );
+      if (!old.valid()) {
+        // Display the top left corner of the support widget.
+        center = utils::Vector2f(
+          -window.w() / 2.0f + hint.w() / 2.0f,
+          window.h() / 2.0f - hint.h() / 2.0f
+        );
+      }
 
-      // Post the resize event for the support widget.
-      postEvent(
-        std::make_shared<core::engine::ResizeEvent>(
-          area,
-          support->getRenderingArea(),
-          support
-        )
-      );
+      // Return an area which has the specified center and spans
+      // the entirety of the support widget.
+      return utils::Boxf(center, hint);
     }
 
     bool
