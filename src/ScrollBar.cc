@@ -291,7 +291,26 @@ namespace sdl {
       // by the mouse. This includes converting the current mouse position to the local
       // coordinate frame and then determining the equivalent value required to have the
       // slider at this location.
-      // TODO: Maybe only handle drag events which occur completely within this widget ?
+      if (!e.getButtons().isSet(getScrollingButton())) {
+        return core::SdlWidget::mouseDragEvent(e);
+      }
+
+      // Retrieve the coordinate to follow as described in the input event.
+      utils::Vector2f dragStart = mapFromGlobal(e.getInitMousePosition(getScrollingButton()));
+      utils::Boxf area = LayoutItem::getRenderingArea().toOrigin();
+
+      if (!area.contains(dragStart)) {
+        // The drag event did not originated from our widget, do not start
+        // a scrolling operation.
+        return core::SdlWidget::mouseDragEvent(e);
+      }
+
+      // We checked that the start position of the event is inside the scroll bar: this
+      // means that we won't start scrolling when the user starts to drag the mouse out
+      // of the scroll bar and then bring it onto it, leading to possibly weird behavior
+      // where the content associated to the scroll bar is moved abruptly.
+
+      // Retrieve the current mouse position.
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.

@@ -263,6 +263,15 @@ namespace sdl {
         wheelStepToPageStepRatio() noexcept;
 
         /**
+         * @brief - Used to retrieve the button to use to trigger the elements representing the
+         *          scroll bar (arrows and sldier).
+         * @return - the default button to use to perform the scrolling operations.
+         */
+        static
+        core::engine::mouse::Button
+        getScrollingButton() noexcept;
+
+        /**
          * @brief - Used to determine the color role to use for motion arrows depending on
          *          whether the user hovers over them or not. This allows to visually tell
          *          the user that an action is possible with these arrows

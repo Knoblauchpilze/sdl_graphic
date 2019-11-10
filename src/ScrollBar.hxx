@@ -137,6 +137,12 @@ namespace sdl {
     }
 
     inline
+    core::engine::mouse::Button
+    ScrollBar::getScrollingButton() noexcept {
+      return core::engine::mouse::Button::Left;
+    }
+
+    inline
     core::engine::Palette::ColorRole
     ScrollBar::getArrowColorRole(bool highlight) noexcept {
       switch (highlight) {
