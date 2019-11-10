@@ -48,35 +48,21 @@ namespace sdl {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
-      // Transmit the resize event to the support widget if any.
+      // Use the dedicated handler to compute the new rendering area
+      // of the support widget.
+      core::SdlWidget* support = nullptr;
+
       if (hasSupportWidget()) {
-        core::SdlWidget* support = getSupportWidget();
+        support = getSupportWidget();
+      }
 
-        // We want to actualize the rendering area of the support
-        // widget so that it stays the same in the display area.
-        // We will also consider that the initial position of the
-        // support widget is on the top-left corner of the widget.
-        utils::Sizef hint = support->getSizeHint();
+      utils::Boxf newSize = onResize(window, support);
 
-        // Compute the position of the rendering area to assign
-        // so that the old center is still at the center of the
-        // new viewport.
-        utils::Boxf old = support->getRenderingArea();
-
-        // TODO: We should probably handle the case where the widget is
-        // not on the top left corner and try to keep as much as the
-        // position of the support widget as possible (through determining
-        // the center and then use it as a reference point for the resize).
-        utils::Boxf area(
-          -window.w() / 2.0f + hint.w() / 2.0f,
-          window.h() / 2.0f - hint.h() / 2.0f,
-          hint
-        );
-
-        // Post the resize event for the support widget.
+      // Assign the new size if the support widget is valid.
+      if (support != nullptr) {
         postEvent(
           std::make_shared<core::engine::ResizeEvent>(
-            area,
+            newSize,
             support->getRenderingArea(),
             support
           )
@@ -164,6 +150,43 @@ namespace sdl {
 
       // We updated the rendering area of the support widget.
       return true;
+    }
+
+    utils::Boxf
+    ScrollableWidget::onResize(const utils::Boxf& window,
+                               core::SdlWidget* support)
+    {
+      // TODO: Should implement that.
+
+      // We want to actualize the rendering area of the support
+      // widget so that it stays the same in the display area.
+      // We will also consider that the initial position of the
+      // support widget is on the top-left corner of the widget.
+      utils::Sizef hint = support->getSizeHint();
+
+      // Compute the position of the rendering area to assign
+      // so that the old center is still at the center of the
+      // new viewport.
+      utils::Boxf old = support->getRenderingArea();
+
+      // TODO: We should probably handle the case where the widget is
+      // not on the top left corner and try to keep as much as the
+      // position of the support widget as possible (through determining
+      // the center and then use it as a reference point for the resize).
+      utils::Boxf area(
+        -window.w() / 2.0f + hint.w() / 2.0f,
+        window.h() / 2.0f - hint.h() / 2.0f,
+        hint
+      );
+
+      // Post the resize event for the support widget.
+      postEvent(
+        std::make_shared<core::engine::ResizeEvent>(
+          area,
+          support->getRenderingArea(),
+          support
+        )
+      );
     }
 
     bool

@@ -168,6 +168,35 @@ namespace sdl {
                                const utils::Vector2i& motion);
 
         /**
+         * @brief - Interface method allowing to handle the positionning of the
+         *          support widget in case of a resize of the parent scrollable
+         *          container. This allows inheriting classes to specialize the
+         *          behavior if needed.
+         *          The base behavior tries to accomodate the new display area
+         *          so that the old center remains the same. The size of the
+         *          displayed content might vary depending on the new size of
+         *          the parent. Also we check for bounds so that we do not try
+         *          to display inexisting parts of the content widget.
+         *          Note that this method is called even when the support widget
+         *          is not defined which means that the `support` widget can be
+         *          `null`.
+         *          We expect this method to returns the new size of the support
+         *          widget as return value. In case this widget is valid a new
+         *          resize event will be issued towards the support: otherwise
+         *          nothing more will happen.
+         * @param window - the new area available for this widget. This can be
+         *                 used to display the support widget.
+         * @param support - the support widget (might be `null`) which rendering
+         *                  area should be adapted to the new `window`.
+         * @return - the new rendering area to assign to the support widget if
+         *           any or a suitable area to use to render the content of this
+         *           widget.
+         */
+        virtual utils::Boxf
+        onResize(const utils::Boxf& window,
+                 core::SdlWidget* support);
+
+        /**
          * @brief - Reimplementation of the base `core::engine::EngineObject` in order
          *          to handle the reset of the coordinates to follow. Indeed in case
          *          the scrolling stops we need to prepare to follow a new position.
