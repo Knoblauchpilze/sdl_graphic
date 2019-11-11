@@ -241,6 +241,22 @@ namespace sdl {
         bool
         mouseDragEvent(const core::engine::MouseEvent& e) override;
 
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method in order to crop
+         *          repaint events sent by the support widget to its parent (i.e. this item)
+         *          so that we don't try to repaint larger areas than actually covered by
+         *          the scrollable content.
+         *          It is important to filter events at this point because the whole point
+         *          of having a scrollable component is so that we don't have to care about
+         *          the whole content: if we were to use the regular system which allow for
+         *          larger items to be displayed on top of others we would lose the benefit
+         *          of having such a scrollable content.
+         * @param e - the paint event to process.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        repaintEvent(const core::engine::PaintEvent& e) override;
+
       private:
 
         /**

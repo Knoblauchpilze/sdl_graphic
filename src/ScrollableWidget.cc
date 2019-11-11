@@ -236,15 +236,71 @@ namespace sdl {
       // handle scrolling: if the return value indicates that some changes
       // where made to this widget we should issue a repaint.
       if (handleContentScrolling(start, localEnd, e.getMove())) {
-        // TODO: Apparently we try to repaint larger areas than expected. Maybe
-        // we should try to specialize the repaint events received in this wid
-        // so that it never accounts for the larger scrollable widget.
-        // This causes issue when the right tab widget is active.
         requestRepaint();
       }
 
       // Use the base handler to provide the return value.
       return core::SdlWidget::mouseDragEvent(e);
+    }
+
+    bool
+    ScrollableWidget::repaintEvent(const core::engine::PaintEvent& e) {
+      // We want to filter out some events produced by the support widget so
+      // that we don't try to repaint areas which are outside of this item.
+      // Indeed as we're handling an area larger than the parent scrollable
+      // widget, we *will* receive the entirety of the support widget as a
+      // repaint area.
+
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // First check whether there is a support widget: if this is not the
+      // case we are sure that we won't receive such repaint events.
+      if (!hasSupportWidget()) {
+        return core::SdlWidget::repaintEvent(e);
+      }
+
+      // Check whether the source of the paint event is the support widget.
+      core::SdlWidget* support = getSupportWidget();
+
+      if (!e.isEmittedBy(support)) {
+        return core::SdlWidget::repaintEvent(e);
+      }
+
+      // We need to make sure that any area provided in the repaint event is
+      // not larger than the dimensions of this element.
+      std::vector<utils::Boxf> cropped;
+      utils::Boxf thisArea = LayoutItem::getRenderingArea().toOrigin();
+
+      const std::vector<core::engine::update::Region>& regions = e.getUpdateRegions();
+      for (unsigned id = 0u ; id < regions.size() ; ++id) {
+        // Convert the region to local coordinate frame.
+        utils::Boxf local = (
+          regions[id].frame == core::engine::update::Frame::Local ?
+          regions[id].area :
+          mapFromGlobal(regions[id].area)
+        );
+
+        // Check whether it is contained inside the area assigned to this widget.
+        if (!thisArea.contains(local)) {
+          // Only consider the intersection of the area to repaint with this area
+          // to only notify changes on this area to the parent elements.
+          local = thisArea.intersect(local);
+        }
+
+        cropped.push_back(mapToGlobal(local));
+      }
+
+      // Create a new repaint event from the new areas.
+      core::engine::PaintEvent pe(this);
+      pe.setEmitter(e.getEmitter());
+
+      for (unsigned id = 0u ; id < cropped.size() ; ++id) {
+        pe.addUpdateRegion(cropped[id]);
+      }
+
+      // Call the paint event with the newly created event.
+      return core::SdlWidget::repaintEvent(pe);
     }
 
   }
