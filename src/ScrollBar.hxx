@@ -275,7 +275,7 @@ namespace sdl {
       // First, determine how many page steps we can fit in the total range of this
       // scroll bar. Exact computations are not actually required because we already
       // have some sort of clamping mechanism in the `setValue` method.
-      int stepsCount = (m_pageStep == 0 ? 1 : (m_maximum - m_minimum) / m_pageStep + 1);
+      float stepsCount = (m_pageStep == 0 ? 1.0f : 1.0 * (m_maximum - m_minimum) / m_pageStep + 1.0f);
 
       // Compute the available space to display these `stepCount` steps.
       utils::Sizef sliderArea = total;
