@@ -240,6 +240,10 @@ namespace sdl {
       // scrollable widget compares to the size of the scroll area.
 
       // Assign visibility statuses for scroll bars.
+      // TODO: This should include the this of the horizontal/vertical bar
+      // so that we don't falsely consider that there is enough space along
+      // the horizontal axis for example and then proceed to show the v bar
+      // effectively providing *not enough* space.
       bool needHBar = isHSBarVisible(internal.w());
       bool needVBar = isVSBarVisible(internal.h());
 
