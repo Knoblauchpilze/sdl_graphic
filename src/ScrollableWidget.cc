@@ -178,9 +178,34 @@ namespace sdl {
         );
       }
 
-      // Return an area which has the specified center and spans
-      // the entirety of the support widget.
-      return utils::Boxf(center, hint);
+      // With the center and the expected size we can determine
+      // the expected box to apply to the support widget. We now
+      // need to clamp it so that we don't try to display invalid
+      // areas of the support widget.
+      // We will handle the right and bottom bounds last so that
+      // in case the support widget is too small to occupy the
+      // whole area available it gets nicely displayed on the top
+      // left corner: this comes from the fact that we're indeed
+      // trying to r
+      utils::Boxf expected(center, window.toSize());
+      utils::Boxf bounds = utils::Boxf::fromSize(hint, true);
+
+      if (expected.getLeftBound() < bounds.getLeftBound()) {
+        expected.x() += (bounds.getLeftBound() - expected.getLeftBound());
+      }
+      if (expected.getRightBound() > bounds.getRightBound()) {
+        expected.x() -= (expected.getRightBound() - bounds.getRightBound());
+      }
+
+      if (expected.getBottomBound() < bounds.getBottomBound()) {
+        expected.y() += (bounds.getBottomBound() - expected.getBottomBound());
+      }
+      if (expected.getTopBound() > bounds.getTopBound()) {
+        expected.y() -= (expected.getTopBound() - bounds.getTopBound());
+      }
+
+      // Return the built-in area.
+      return utils::Boxf(expected.getCenter(), hint);
     }
 
     bool
