@@ -167,15 +167,15 @@ namespace sdl {
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
-         *          mouse overs over on of the component of this scroll bar (like the motion
-         *          arrows or the slider) which will allows to make the hovered over element
-         *          to stand out compared to the others.
-         * @param e - the evenv to be interpreted.
-         * @return - `true` if the event was recognized and `false` otherwise.
+         * @brief - Reimplementation of the base `EngineObject` method in order to provide a
+         *          similar behavior on double click as on mouse button release event. This
+         *          makes the navigation much easier as it will move the cursor with a larger
+         *          value than a single step but still not much compared to the page step.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized, `false` otherwise.
          */
         bool
-        mouseMoveEvent(const core::engine::MouseEvent& e) override;
+        mouseDoubleClickEvent(const core::engine::MouseEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
@@ -187,6 +187,17 @@ namespace sdl {
          */
         bool
         mouseDragEvent(const core::engine::MouseEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
+         *          mouse overs over on of the component of this scroll bar (like the motion
+         *          arrows or the slider) which will allows to make the hovered over element
+         *          to stand out compared to the others.
+         * @param e - the evenv to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        mouseMoveEvent(const core::engine::MouseEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
@@ -261,6 +272,18 @@ namespace sdl {
         static
         float
         wheelStepToPageStepRatio() noexcept;
+
+        /**
+         * @brief - Defines the advancement to perform when double clicking on the control arrows.
+         *          This value is meant as an intermediate between the single step and the page
+         *          step motion.
+         * @param pageStep - the page step currently associated to the scroll bar.
+         * @return - a value describing an intermediate value between the page step in argument
+         *           and the single step add.
+         */
+        static
+        int
+        getDoubleClickAdvance(int pageStep) noexcept;
 
         /**
          * @brief - Used to retrieve the button to use to trigger the elements representing the

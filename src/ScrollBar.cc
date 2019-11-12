@@ -207,6 +207,10 @@ namespace sdl {
         return core::SdlWidget::mouseButtonReleaseEvent(e);
       }
 
+      if (e.getButton() != getScrollingButton()) {
+        return core::SdlWidget::mouseButtonReleaseEvent(e);
+      }
+
       bool update = false;
 
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
@@ -261,28 +265,45 @@ namespace sdl {
     }
 
     bool
-    ScrollBar::mouseMoveEvent(const core::engine::MouseEvent& e) {
-      // Given the events system we know that these events are only produced when
-      // the mouse is actually inside the widget. This is very convenient because
-      // it means that we can use it to detect and update the elements composing
-      // the scroll bar in order to react to user input.
-      // Basically we want to change the color of the slider and motion arrows if
-      // the mouse hovers over them: this will help the user understand what they
-      // can do with the scroll bar.
+    ScrollBar::mouseDoubleClickEvent(const core::engine::MouseEvent& e) {
+      // We will try to perform a motion of some fraction of the page step
+      // which allows to move faster when double clicking on elements like
+      // the arrows.
+      if (e.wasDragged()) {
+        return core::SdlWidget::mouseButtonReleaseEvent(e);
+      }
 
-      // Convert the mouse position to local coordinate.
+      if (e.getButton() != getScrollingButton()) {
+        return core::SdlWidget::mouseButtonReleaseEvent(e);
+      }
+
+      bool update = false;
+
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
       Guard guard(m_propsLocker);
 
-      // Use the dedicated handler to handle roles update.
-      if (updateElementsRolesFromMousePos(local)) {
+      bool isInUpArrow = m_upArrow.box.contains(local);
+      bool isInDownArrow = m_downArrow.box.contains(local);
+
+      // Note that as a click on the up arrow actually means *decrementing*
+      // the value of the slider.
+      if (isInUpArrow) {
+        update = performAction(Action::Move, m_value - getDoubleClickAdvance(m_pageStep));
+      }
+
+      if (isInDownArrow) {
+        update = performAction(Action::Move, m_value + getDoubleClickAdvance(m_pageStep));
+      }
+
+      // Request a repaint if needed.
+      if (update) {
         requestRepaint();
       }
 
-      // Perform the base class behavior.
-      return core::SdlWidget::mouseMoveEvent(e);
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::mouseDoubleClickEvent(e);
     }
 
     bool
@@ -332,6 +353,31 @@ namespace sdl {
 
       // Use the base handler to provide a return value.
       return core::SdlWidget::mouseDragEvent(e);
+    }
+
+    bool
+    ScrollBar::mouseMoveEvent(const core::engine::MouseEvent& e) {
+      // Given the events system we know that these events are only produced when
+      // the mouse is actually inside the widget. This is very convenient because
+      // it means that we can use it to detect and update the elements composing
+      // the scroll bar in order to react to user input.
+      // Basically we want to change the color of the slider and motion arrows if
+      // the mouse hovers over them: this will help the user understand what they
+      // can do with the scroll bar.
+
+      // Convert the mouse position to local coordinate.
+      utils::Vector2f local = mapFromGlobal(e.getMousePosition());
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
+
+      // Use the dedicated handler to handle roles update.
+      if (updateElementsRolesFromMousePos(local)) {
+        requestRepaint();
+      }
+
+      // Perform the base class behavior.
+      return core::SdlWidget::mouseMoveEvent(e);
     }
 
     bool

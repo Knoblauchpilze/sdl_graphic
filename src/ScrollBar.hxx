@@ -146,6 +146,12 @@ namespace sdl {
     }
 
     inline
+    int
+    ScrollBar::getDoubleClickAdvance(int pageStep) noexcept {
+      return std::min(pageStep / 2, 10);
+    }
+
+    inline
     core::engine::mouse::Button
     ScrollBar::getScrollingButton() noexcept {
       return core::engine::mouse::Button::Left;
