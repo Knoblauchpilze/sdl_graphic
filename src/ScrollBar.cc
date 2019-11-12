@@ -494,10 +494,10 @@ namespace sdl {
       float availableSpace = 0.0f;
       switch (m_orientation) {
         case Orientation::Horizontal:
-          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound() - m_slider.box.w();
+          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound();
           break;
         case Orientation::Vertical:
-          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound() - m_slider.box.h();
+          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound();
           break;
         default:
           error(
@@ -543,10 +543,10 @@ namespace sdl {
       float availableSpace = 0.0f;
       switch (m_orientation) {
         case Orientation::Horizontal:
-          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound() - m_slider.box.w();
+          availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound();
           break;
         case Orientation::Vertical:
-          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound() - m_slider.box.h();
+          availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound();
           break;
         default:
           error(
@@ -577,7 +577,10 @@ namespace sdl {
       // Now compute the desired value for the slider: we know that the `available` space is
       // meant to represent the whole range of this scroll bar so we can deduce the pointed
       // value based on the input position.
-      return static_cast<int>(m_minimum + (m_maximum - m_minimum) * perc);
+      // Also we make a slight adjustment by decreasing the returned value by half the page
+      // step so that the slider's center is displayed at the location of the mouse, which
+      // has proved to be a nicer interaction.
+      return static_cast<int>(m_minimum + (m_maximum - m_minimum) * perc - m_pageStep / 2.0f);
     }
 
     bool

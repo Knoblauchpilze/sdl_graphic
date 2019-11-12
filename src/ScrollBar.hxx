@@ -34,6 +34,10 @@ namespace sdl {
         if (m_value < m_minimum) {
           setValuePrivate(m_minimum);
         }
+
+        // Request a repaint and a repaint of the internal controls.
+        setElementsChanged();
+        requestRepaint();
       }
     }
 
@@ -58,6 +62,10 @@ namespace sdl {
         if (m_value > m_maximum) {
           setValuePrivate(m_maximum);
         }
+
+        // Request a repaint and a repaint of the internal controls.
+        setElementsChanged();
+        requestRepaint();
       }
     }
 
@@ -76,6 +84,7 @@ namespace sdl {
         // Also request a repaint to indicate that the scroll bar should
         // be updated: indeed it probably means that the slider's size
         // needs to be updated.
+        setElementsChanged();
         requestRepaint();
       }
     }
@@ -176,8 +185,10 @@ namespace sdl {
       // Check whether the value is different from the current value.
       if (value != m_value) {
         // Assign the value and check whether it is consistent with the
-        // admissible range for this scroll bar.
-        m_value = std::min(m_maximum, std::max(m_minimum, value));
+        // admissible range for this scroll bar: we need the value not
+        // to be smaller then the minimum and not to be greater than
+        // that maximum minus the page step.
+        m_value = std::min(m_maximum - m_pageStep, std::max(m_minimum, value));
 
         if (old != m_value) {
           update = true;
@@ -275,7 +286,7 @@ namespace sdl {
       // First, determine how many page steps we can fit in the total range of this
       // scroll bar. Exact computations are not actually required because we already
       // have some sort of clamping mechanism in the `setValue` method.
-      float stepsCount = (m_pageStep == 0 ? 1.0f : 1.0 * (m_maximum - m_minimum) / m_pageStep + 1.0f);
+      float stepsCount = (m_pageStep == 0 ? 1.0f : 1.0 * (m_maximum - m_minimum) / m_pageStep);
 
       // Compute the available space to display these `stepCount` steps.
       utils::Sizef sliderArea = total;
