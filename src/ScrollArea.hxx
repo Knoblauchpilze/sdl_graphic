@@ -77,36 +77,62 @@ namespace sdl {
 
     inline
     bool
-    ScrollArea::isHSBarVisible(float width) const noexcept {
+    ScrollArea::isHSBarVisible(float width,
+                               float* remaining) const noexcept
+    {
       // The horizontal scroll bar is visible if:
       // 1. the policy allows it.
       // 2. the size of the viewport requires it.
+      bool visible = false;
+
       switch (m_hBarPolicy) {
         case BarPolicy::AlwaysOff:
-          return false;
+          visible = false;
+          break;
         case BarPolicy::AlwaysOn:
-          return true;
+          visible = true;
+          break;
         case BarPolicy::AsNeeded:
         default:
-          return getMaximumViewportSize().w() > width;
+          visible = (getMaximumViewportSize().w() > width);
+          break;
       }
+
+      if (remaining != nullptr) {
+        *remaining = width - getMaximumViewportSize().w();
+      }
+
+      return visible;
     }
 
     inline
     bool
-    ScrollArea::isVSBarVisible(float height) const noexcept {
+    ScrollArea::isVSBarVisible(float height,
+                               float* remaining) const noexcept
+    {
       // The vertical scroll bar is visible if:
       // 1. the policy allows it.
       // 2. the size of the viewport requires it.
+      bool visible = false;
+
       switch (m_vBarPolicy) {
         case BarPolicy::AlwaysOff:
-          return false;
+          visible = false;
+          break;
         case BarPolicy::AlwaysOn:
-          return true;
+          visible =  true;
+          break;
         case BarPolicy::AsNeeded:
         default:
-          return getMaximumViewportSize().h() > height;
+          visible = (getMaximumViewportSize().h() > height);
+          break;
       }
+
+      if (remaining != nullptr) {
+        *remaining = height - getMaximumViewportSize().h();
+      }
+
+      return visible;
     }
 
     inline

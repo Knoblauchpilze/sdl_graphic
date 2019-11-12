@@ -186,11 +186,16 @@ namespace sdl {
          *          Note that this method assumes that the locker protecting the
          *          internal attributes from concurrent access is already locked.
          * @param width - the size of the area to check.
+         * @param remaining - the available space remaining considering the size
+         *                    of the scroll bar. Typically this value will be a
+         *                    positive value if the return value is `false` and a
+         *                    negative value if the return value is `true`.
          * @return - `true` if the horizontal scroll bar is visible, and `false`
          *           otherwise.
          */
         bool
-        isHSBarVisible(float width) const noexcept;
+        isHSBarVisible(float width,
+                       float* remaining = nullptr) const noexcept;
 
         /**
          * @brief - Similar to the `isHSBarVisible` method but for vertical scroll
@@ -200,11 +205,16 @@ namespace sdl {
          *          Note that this method assumes that the locker protecting the
          *          internal attributes from concurrent access is already locked.
          * @param height - the size of the area to check.
+         * @param remaining - the available space remaining considering the size
+         *                    of the scroll bar. Typically this value will be a
+         *                    positive value if the return value is `false` and a
+         *                    negative value if the return value is `true`.
          * @return - `true` if the vertical scroll bar is visible, and `false`
          *           otherwise.
          */
         bool
-        isVSBarVisible(float height) const noexcept;
+        isVSBarVisible(float height,
+                       float* remaining = nullptr) const noexcept;
 
         /**
          * @brief - Retrieves the layout associated to this scroll area as a valid

@@ -240,16 +240,40 @@ namespace sdl {
       // scrollable widget compares to the size of the scroll area.
 
       // Assign visibility statuses for scroll bars.
-      // TODO: This should include the this of the horizontal/vertical bar
-      // so that we don't falsely consider that there is enough space along
-      // the horizontal axis for example and then proceed to show the v bar
-      // effectively providing *not enough* space.
-      bool needHBar = isHSBarVisible(internal.w());
-      bool needVBar = isVSBarVisible(internal.h());
+      float leftW, leftH;
+      bool needHBar = isHSBarVisible(internal.w(), &leftW);
+      bool needVBar = isVSBarVisible(internal.h(), &leftH);
+
+      utils::Sizef sHBar;
+      utils::Sizef sVBar;
+
+      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
+      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
+      if (hBar != nullptr) {
+        sHBar = hBar->getRenderingArea().toSize();
+      }
+      if (vBar != nullptr) {
+        sVBar = vBar->getRenderingArea().toSize();
+      }
+
+      // Update visibility status in case one of the status bar makes the
+      // available space too small for the other. Typically imagine the
+      // following scenario:
+      //  - available space is 1500x300
+      //  - size needed for the widget is 1550x280
+      //  - size of scroll bars are (h: 1500x30, v: 30x300)
+      //  - there is enough space to display the widget vertically
+      //  - but not enough horizontally
+      //  - we thus display the horizontal scroll bar
+      //  - and now there's not enough space vertically
+      if (needHBar && sHBar.h() > leftH) {
+        needVBar = true;
+      }
+      if (needVBar && sVBar.w() > leftW) {
+        needHBar = true;
+      }
 
       // Handle horizontal scroll bar.
-      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
-
       if (hBar != nullptr && needHBar) {
         if (!hBar->isVisible()) {
           hBar->setVisible(true);
@@ -262,7 +286,6 @@ namespace sdl {
       }
 
       // Handle vertical scroll bar.
-      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
       if (vBar != nullptr && needVBar) {
         if (!vBar->isVisible()) {
           vBar->setVisible(true);
