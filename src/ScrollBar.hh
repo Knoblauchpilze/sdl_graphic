@@ -158,6 +158,16 @@ namespace sdl {
         keyPressEvent(const core::engine::KeyEvent& e) override;
 
         /**
+         * @brief - Reimplementation of the base `EngineObject` method in order to scroll
+         *          the slider to reach the position of the mouse at the moment of the
+         *          click in order to provide easy navigation.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        mouseButtonPressEvent(const core::engine::MouseEvent& e) override;
+
+        /**
          * @brief - Reimplementation of the base `core::SdlWidget` method to detect when the
          *          scroll bar should be released from the selection.
          * @param e - the event to be interpreted.

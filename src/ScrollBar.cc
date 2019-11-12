@@ -196,6 +196,48 @@ namespace sdl {
     }
 
     bool
+    ScrollBar::mouseButtonPressEvent(const core::engine::MouseEvent& e) {
+      // We want to detect click outside of any control element: if this
+      // is the case the goal is to bring the slider at this position so
+      // that the user has a fast way to move the cursor somewhere.
+      if (e.getButton() != getScrollingButton()) {
+        return core::SdlWidget::mouseButtonPressEvent(e);
+      }
+
+      utils::Vector2f local = mapFromGlobal(e.getMousePosition());
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
+
+      bool isInUpArrow = m_upArrow.box.contains(local);
+      bool isInSlider = m_slider.box.contains(local);
+      bool isInDownArrow = m_downArrow.box.contains(local);
+
+      if (!isInUpArrow && !isInSlider && !isInDownArrow) {
+        // Click on an empty region of the area used to move the slider
+        // around: we want to bring the slider at this position so that
+        // the user can start draggint is anywhere. The precise value
+        // can be found by using the dedicated handler.
+        int desired = getValueFromSliderPos(local);
+
+        // Assign the value and request a repaint if needed.
+        bool update = performAction(Action::Move, desired);
+
+        // Request a repaint if needed.
+        if (update) {
+          // As we brought the slider right under the mouse we want to
+          // perform the update of the roles of the elements.
+          updateElementsRolesFromMousePos(local);
+
+          requestRepaint();
+        }
+      }
+
+      // Use the base handler to provide a return value.
+      return core::SdlWidget::mouseButtonPressEvent(e);
+    }
+
+    bool
     ScrollBar::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
       // We want to detect click on any of the element of the scroll bar to
       // perform an update of the position of the slider. To do so we will
@@ -219,7 +261,6 @@ namespace sdl {
       Guard guard(m_propsLocker);
 
       bool isInUpArrow = m_upArrow.box.contains(local);
-      bool isInSlider = m_slider.box.contains(local);
       bool isInDownArrow = m_downArrow.box.contains(local);
 
       if (isInUpArrow) {
@@ -228,31 +269,6 @@ namespace sdl {
 
       if (isInDownArrow) {
         update = performAction(Action::SingleStepAdd);
-      }
-
-      if (!isInUpArrow && !isInSlider && !isInDownArrow) {
-        // Click on an empty region of the area used to move the slider around:
-        // we want to trigger a page step in this case. The precise value can
-        // be found by determining whether the click was _above_ (i.e. either
-        // above or on the left of the slider depending on the orientation or)
-        // or _below_ (so below or on the right of the slider).
-        bool onTop = true;
-        switch (m_orientation) {
-          case Orientation::Horizontal:
-            onTop = (m_slider.box.getLeftBound() >= local.x());
-            break;
-          case Orientation::Vertical:
-            onTop = (m_slider.box.getTopBound() <= local.y());
-            break;
-          default:
-            log(
-              std::string("Cannot perform page step motion for scroll bar, unknown orientation ") + std::to_string(static_cast<int>(m_orientation)),
-              utils::Level::Warning
-            );
-            break;
-        }
-
-        update = performAction(onTop ? Action::PageStepSub : Action::PageStepAdd);
       }
 
       // Request a repaint if needed.
@@ -269,12 +285,8 @@ namespace sdl {
       // We will try to perform a motion of some fraction of the page step
       // which allows to move faster when double clicking on elements like
       // the arrows.
-      if (e.wasDragged()) {
-        return core::SdlWidget::mouseButtonReleaseEvent(e);
-      }
-
       if (e.getButton() != getScrollingButton()) {
-        return core::SdlWidget::mouseButtonReleaseEvent(e);
+        return core::SdlWidget::mouseDoubleClickEvent(e);
       }
 
       bool update = false;
