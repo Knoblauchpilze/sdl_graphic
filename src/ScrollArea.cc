@@ -301,8 +301,8 @@ namespace sdl {
       // the size of this component and the size of the displayed widget.
       utils::Sizef viewport = getMaximumViewportSize();
 
-      float hRatio = internal.w() / viewport.w();
-      float vRatio = internal.h() / viewport.h();
+      float hRatio = (internal.w() - sVBar.w()) / viewport.w();
+      float vRatio = (internal.h() - sHBar.h()) / viewport.h();
 
       // Now that we have a ratio we can deduce the expected range of the scroll
       // bar and the corresponding page step.
