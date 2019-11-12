@@ -249,6 +249,16 @@ namespace sdl {
 
       ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
       ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
+
+      // Disclaimer: note that retrieving the size of the scroll bars here might
+      // not be the best strategy as we might modify it right away because we're
+      // processing a resize event here. So we should maybe try to determine in
+      // some other ways the size that the scroll bars will reach given the input
+      // `internal` size (which *is* applied to this component).
+      // As for now the small size of the scroll bars makes it very probable that
+      // no matter the input `internal` size the dimensions of the scroll bars
+      // will not be modified, hence the fact that we can use it and still get
+      // accurate results.
       if (hBar != nullptr) {
         sHBar = hBar->getRenderingArea().toSize();
       }
