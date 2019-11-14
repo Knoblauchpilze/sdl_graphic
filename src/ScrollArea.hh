@@ -271,13 +271,11 @@ namespace sdl {
          *           controls.
          * @param name - the name of the control which emitted the signal.
          * @param min - the minimum value visible as defined by the control.
-         * @param val - the central value pointed at by the control.
          * @param max - the maximum value visible as defined by the control.
          */
         void
         onControlScrolled(const std::string& name,
                           float min,
-                          float val,
                           float max);
 
       private:
@@ -308,6 +306,21 @@ namespace sdl {
         std::string m_cornerName;
         std::string m_hBarName;
         std::string m_vBarName;
+
+        /**
+         * @brief - Describes the index of the signal emitted by the horizontal
+         *          scroll bar. This identifier can be used when the scroll bar
+         *          is changed to perform the disconnection of this object as
+         *          listener. This prevents unused scroll bars to still send some
+         *          signal to this area.
+         */
+        int m_hBarSignalID;
+
+        /**
+         * @brief - Similar to `m_hBarSignalID` but related to the vertical scroll
+         *          bar.
+         */
+        int m_vBarSignalID;
     };
 
     using ScrollAreaShPtr = std::shared_ptr<ScrollArea>;

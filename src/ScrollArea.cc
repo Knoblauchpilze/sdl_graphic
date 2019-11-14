@@ -19,7 +19,10 @@ namespace sdl {
 
       m_cornerName(),
       m_hBarName(),
-      m_vBarName()
+      m_vBarName(),
+
+      m_hBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
+      m_vBarSignalID(utils::Signal<const std::string, float, float, float>::NoID)
     {
       build();
     }
@@ -84,7 +87,7 @@ namespace sdl {
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
 
         // Connect the value changed signal to the local handler.
-        scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
+        m_hBarSignalID = scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
       }
     }
 
@@ -119,7 +122,7 @@ namespace sdl {
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
 
         // Connect the value changed signal to the local handler.
-        scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
+        m_vBarSignalID = scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
       }
     }
 
@@ -361,11 +364,14 @@ namespace sdl {
     void
     ScrollArea::onControlScrolled(const std::string& name,
                                   float min,
-                                  float val,
                                   float max)
     {
       // TODO: Handle modification of the viewport by changing its rendering area.
-      log("Should handle scrolling from \"" + name + "\"", utils::Level::Warning);
+      log(
+        "Should handle scrolling from \"" + name + "\" to [" +
+        std::to_string(min) + " - " + std::to_string(max) + "]",
+        utils::Level::Warning
+      );
     }
 
   }
