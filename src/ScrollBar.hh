@@ -603,10 +603,10 @@ namespace sdl {
          *          this scrollbar is modified. The listener can react on modifications of the
          *          scroll bar's pointed value.
          *          Note that the signal includes the name of the scroll bar emitting the signal
-         *          along with the minimum value visible, the current value and the maximum visible
-         *          value. The minimum and maximum are usually separated by a page step.
+         *          along with the minimum value visible and the maximum visible value. The minimum
+         *          and maximum are usually separated by a page step.
          */
-        utils::Signal<const std::string&, float, float, float> onValueChanged;
+        utils::Signal<const std::string&, float, float> onValueChanged;
     };
 
     using ScrollBarShPtr = std::shared_ptr<ScrollBar>;

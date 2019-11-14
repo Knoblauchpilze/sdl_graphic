@@ -201,16 +201,15 @@ namespace sdl {
 
           log(
             "Emitting on value changed for " + getName() + " with range " +
-            "[" + std::to_string(m_value - m_pageStep / 2.0f) + ", " + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep / 2.0f) + "]",
+            "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "]",
             utils::Level::Notice
           );
 
           // Fire the signal to indicate that the value has been changed.
           onValueChanged.emit(
             getName(),
-            m_value - m_pageStep / 2.0f,
             1.0f * m_value,
-            m_value + m_pageStep / 2.0f
+            1.0f * m_value + m_pageStep
           );
 
           // Also request a repaint to indicate that the scroll bar should
