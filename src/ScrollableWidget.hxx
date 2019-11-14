@@ -31,6 +31,8 @@ namespace sdl {
         return wid;
       }
 
+      const utils::Vector2f local = mapFromGlobal(pos);
+
       // We have a valid support widget assigned to us. For all intent and
       // purposes the returned value from `getItemAt` returned an element
       // from our hierarchy: in any case we want to reduce the position of
@@ -40,9 +42,9 @@ namespace sdl {
       // area defined for `this` widget.
       // Thus we want to filter the event in case the input position is not
       // inside the area assigned to this element.
-      utils::Boxf b = LayoutItem::getRenderingArea();
+      utils::Boxf b = LayoutItem::getRenderingArea().toOrigin();
 
-      if (!b.contains(pos)) {
+      if (!b.contains(local)) {
         // The area is not contained in this widget, consider that we have
         // no valid item at this point.
         return nullptr;
