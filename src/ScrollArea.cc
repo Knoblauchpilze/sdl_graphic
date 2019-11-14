@@ -67,7 +67,6 @@ namespace sdl {
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
         // Disconnect from the signal indicating a value change.
-        // TODO: Should save this signal id.
         bar->onValueChanged.disconnect(m_hBarSignalID);
 
         // Remove the item from the layout.
@@ -102,7 +101,6 @@ namespace sdl {
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
         // Disconnect from the signal indicating a value change.
-        // TODO: Should save this signal id.
         bar->onValueChanged.disconnect(m_vBarSignalID);
 
         // Remove the item from the layout.

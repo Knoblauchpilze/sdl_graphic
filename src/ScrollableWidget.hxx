@@ -33,6 +33,7 @@ namespace sdl {
       core::SdlWidget* support = getSupportWidget();
 
       if (wid != support) {
+        // TODO: We should probably check whether the `wid` is part of the hierarchy of the `support`.
         // The best fit is not the support widget, we can return it.
         return wid;
       }
