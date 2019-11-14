@@ -63,6 +63,11 @@ namespace sdl {
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
+        // Disconnect from the signal indicating a value change.
+        // TODO: Should save this signal id.
+        bar->onValueChanged.disconnect(m_hBarSignalID);
+
+        // Remove the item from the layout.
         removeItem(bar);
       }
 
@@ -77,6 +82,9 @@ namespace sdl {
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
+
+        // Connect the value changed signal to the local handler.
+        scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
       }
     }
 
@@ -90,6 +98,11 @@ namespace sdl {
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
+        // Disconnect from the signal indicating a value change.
+        // TODO: Should save this signal id.
+        bar->onValueChanged.disconnect(m_vBarSignalID);
+
+        // Remove the item from the layout.
         removeItem(bar);
       }
 
@@ -104,6 +117,9 @@ namespace sdl {
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
+
+        // Connect the value changed signal to the local handler.
+        scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
       }
     }
 
@@ -340,6 +356,16 @@ namespace sdl {
         );
         vBar->setRange(minV, stepV, maxV);
       }
+    }
+
+    void
+    ScrollArea::onControlScrolled(const std::string& name,
+                                  float min,
+                                  float val,
+                                  float max)
+    {
+      // TODO: Handle modification of the viewport by changing its rendering area.
+      log("Should handle scrolling from \"" + name + "\"", utils::Level::Warning);
     }
 
   }

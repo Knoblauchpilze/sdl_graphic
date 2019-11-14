@@ -264,6 +264,22 @@ namespace sdl {
         void
         updateControls(const utils::Sizef& internal);
 
+        /**
+         * @brief -  Used to receive the signal emitted by a control of this scroll
+         *           area (typically one of the scroll bars) and to perform modifs
+         *           to the content area so that it matches the value entered in the
+         *           controls.
+         * @param name - the name of the control which emitted the signal.
+         * @param min - the minimum value visible as defined by the control.
+         * @param val - the central value pointed at by the control.
+         * @param max - the maximum value visible as defined by the control.
+         */
+        void
+        onControlScrolled(const std::string& name,
+                          float min,
+                          float val,
+                          float max);
+
       private:
 
         /**
