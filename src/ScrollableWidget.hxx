@@ -25,22 +25,21 @@ namespace sdl {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
-      // Check whether the widget corresponds to the support widget.
+      // Check whether this widget has a support: if this is not the case
+      // whatever we found is considered valid.
       if (!hasSupportWidget()) {
         return wid;
       }
 
-      core::SdlWidget* support = getSupportWidget();
-
-      if (wid != support) {
-        // TODO: We should probably check whether the `wid` is part of the hierarchy of the `support`.
-        // The best fit is not the support widget, we can return it.
-        return wid;
-      }
-
-      // The best fit is the support widget: we need to make sure that the
-      // area does correspond to the area specified for this widget. We do
-      // check it against the area of `this` widget.
+      // We have a valid support widget assigned to us. For all intent and
+      // purposes the returned value from `getItemAt` returned an element
+      // from our hierarchy: in any case we want to reduce the position of
+      // the widgets which are considered valid for interaction. This is
+      // important to make sure that we can safely assign a larger size to
+      // the support widget without it reacting to elements outside of the
+      // area defined for `this` widget.
+      // Thus we want to filter the event in case the input position is not
+      // inside the area assigned to this element.
       utils::Boxf b = LayoutItem::getRenderingArea();
 
       if (!b.contains(pos)) {
@@ -53,6 +52,8 @@ namespace sdl {
       // `this` widget: this will redirect part of the events that would
       // have landed to the support directly to this widget. We will handle
       // them first and propagate them if needed to the support widget.
+      // Typically we need that so that the drag events are sent to this
+      // element rather than the child.
       return this;
     }
 
