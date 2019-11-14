@@ -199,9 +199,19 @@ namespace sdl {
         if (old != m_value) {
           update = true;
 
+          log(
+            "Emitting on value changed for " + getName() + " with range " +
+            "[" + std::to_string(m_value - m_pageStep / 2.0f) + ", " + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep / 2.0f) + "]",
+            utils::Level::Notice
+          );
+
           // Fire the signal to indicate that the value has been changed.
-          log("Emitting on value changed for " + getName(), utils::Level::Notice);
-          onValueChanged.emit(getName(), m_value);
+          onValueChanged.emit(
+            getName(),
+            m_value - m_pageStep / 2.0f,
+            1.0f * m_value,
+            m_value + m_pageStep / 2.0f
+          );
 
           // Also request a repaint to indicate that the scroll bar should
           // be updated: indeed it probably means that the slider should be
