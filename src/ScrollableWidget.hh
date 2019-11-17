@@ -382,6 +382,24 @@ namespace sdl {
          */
         OptionalPos m_coordsToFollow;
 
+      public:
+
+        /**
+         * @brief - This signal can be used for external objects to register whenever the
+         *          area displayed by this component is updated. It is emitted whenver the
+         *          user scrolls the content of the support widget displayed in this item.
+         *          The box contains information about the content of the area displayed
+         *          using percentage formalism.
+         *          The center represents the position of the center of the area displayed
+         *          and the dimensions the percentage of the area visible through the view
+         *          port.
+         *          The possible range for the box is actually `[-1; 1]` for the center
+         *          and `[0; 1]` for the dimensions. To give an example, if the displayed
+         *          area is `[0.3, 0.25]` of the total viewport, the center can vary from
+         *          `[-0.85; 0.85]` along the horizontal axis and from `[-0.875; 0.875]`
+         *          along the vertical axis.
+         */
+        utils::Signal<utils::Boxf> onAreaChanged;
     };
 
     using ScrollableWidgetShPtr = std::shared_ptr<ScrollableWidget>;

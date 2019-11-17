@@ -116,6 +116,7 @@ namespace sdl {
       // position with the delta to apply.
       core::SdlWidget* support = getSupportWidget();
       utils::Boxf area = support->getRenderingArea();
+      utils::Sizef supportDims = area.toSize();
       utils::Boxf viewport = utils::Boxf(
         area.getCenter(),
         LayoutItem::getRenderingArea().toSize()
@@ -158,6 +159,25 @@ namespace sdl {
           support
         )
       );
+
+      // Emit a signal to notify listeners of the new area of the support widget
+      // displayed. Note that as we want to return the area visible for the support
+      // widget and not from the `ScrollableWidget` perspective we should negate 
+      // the center of the area (inversion of coordinate frame).
+      utils::Boxf box(
+        -area.x() / supportDims.w(),
+        -area.y() / supportDims.h(),
+        viewport.w() / supportDims.w(),
+        viewport.h() / supportDims.h()
+      );
+
+      log(
+        getName() + " changed visible area to " + box.toString() + " (support: " + supportDims.toString() +
+        ", visible: " + utils::Boxf(-area.getCenter(), viewport.toSize()).toString() + ")",
+        utils::Level::Notice
+      );
+
+      onAreaChanged.emit(box);
 
       // We updated the rendering area of the support widget.
       return true;
