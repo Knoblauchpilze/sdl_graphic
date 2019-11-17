@@ -289,6 +289,12 @@ namespace sdl {
       // no matter the input `internal` size the dimensions of the scroll bars
       // will not be modified, hence the fact that we can use it and still get
       // accurate results.
+      // TODO: Note that for now we have an issue because as we request the size
+      // before the layout is updated we use invalid size for the scroll bars so
+      // we get an invalid page step assigned to the scroll bars which then fails
+      // when the viewport is updated (see Scrollbar.cc:55).
+      // We should find a way to get notified whenever the layout is effectively
+      // recomputed.
       if (hBar != nullptr) {
         sHBar = hBar->getRenderingArea().toSize();
       }
@@ -353,6 +359,11 @@ namespace sdl {
       int minV = 0;
       int maxV = static_cast<int>(viewport.h());
       int stepV = static_cast<int>(vRatio * viewport.h());
+
+      log(
+        "Internal is " + internal.toString() + ", viewport is " + viewport.toString() + ", " +
+        "hBar is " + sHBar.toString() + ", vBar is " + sVBar.toString()
+      );
 
       // Assign the size of the controls to each scroll bar.
       if (hBar != nullptr && needHBar) {
