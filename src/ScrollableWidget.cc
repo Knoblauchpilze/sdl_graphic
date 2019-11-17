@@ -44,6 +44,19 @@ namespace sdl {
     }
 
     void
+    ScrollableWidget::onControlScrolled(scroll::Orientation orientation,
+                                        float min,
+                                        float max)
+    {
+      // TODO: Handle modification of the viewport by changing its rendering area.
+      log(
+        "Should handle scrolling from \"" + std::to_string(static_cast<int>(orientation)) + "\" to [" +
+        std::to_string(min) + " - " + std::to_string(max) + "]",
+        utils::Level::Warning
+      );
+    }
+
+    void
     ScrollableWidget::updatePrivate(const utils::Boxf& window) {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);

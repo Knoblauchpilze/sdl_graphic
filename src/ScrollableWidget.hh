@@ -5,6 +5,7 @@
 # include <memory>
 # include <sdl_core/SdlWidget.hh>
 # include <maths_utils/Vector2.hh>
+# include "ScrollOrientation.hh"
 
 namespace sdl {
   namespace graphic {
@@ -75,6 +76,26 @@ namespace sdl {
          */
         const core::SdlWidget*
         getItemAt(const utils::Vector2f& pos) const noexcept override;
+
+        /**
+         * @brief -  Used to receive the signal emitted by a control of this item in order
+         *           to adapt the area displayed by this widget to the expected value. The
+         *           input values indicate both the orientation of the scroll motion (i.e.
+         *           either horizontal or vertical) along with the new expected range. The
+         *           range is to be interpreted by this widget and represent a percentage
+         *           of the total available area to display.
+         * @param orientation - the orientation of the scrolling motion to handle. It is
+         *                      loosely linked to the control which emitted the event but
+         *                      we'd rather use the orientation as is and note determine
+         *                      which control have emitted it (which allows to add more
+         *                      controls if needed).
+         * @param min - the minimum value visible as defined by the control.
+         * @param max - the maximum value visible as defined by the control.
+         */
+        void
+        onControlScrolled(scroll::Orientation orientation,
+                          float min,
+                          float max);
 
       protected:
 

@@ -85,8 +85,12 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
 
-        // Connect the value changed signal to the local handler.
-        m_hBarSignalID = scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
+        // Connect the value changed signal to the dedicated support widget's handler.
+        ScrollableWidget* viewport = getViewportHandler();
+        m_hBarSignalID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
+          viewport,
+          &ScrollableWidget::onControlScrolled
+        );
       }
     }
 
@@ -119,8 +123,12 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
 
-        // Connect the value changed signal to the local handler.
-        m_vBarSignalID = scrollBar->onValueChanged.connect_member<ScrollArea>(this, &ScrollArea::onControlScrolled);
+        // Connect the value changed signal to the dedicated support widget's handler.
+        ScrollableWidget* viewport = getViewportHandler();
+        m_vBarSignalID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
+          viewport,
+          &ScrollableWidget::onControlScrolled
+        );
       }
     }
 
@@ -210,7 +218,7 @@ namespace sdl {
       // Create scroll bars.
       ScrollBar* hBar = new ScrollBar(
         getHBarName(),
-        ScrollBar::Orientation::Horizontal,
+        scroll::Orientation::Horizontal,
         core::engine::Color::NamedColor::Magenta,
         this
       );
@@ -223,7 +231,7 @@ namespace sdl {
 
       ScrollBar* vBar = new ScrollBar(
         getVBarName(),
-        ScrollBar::Orientation::Vertical,
+        scroll::Orientation::Vertical,
         core::engine::Color::NamedColor::Yellow,
         this
       );
@@ -357,19 +365,6 @@ namespace sdl {
         );
         vBar->setRange(minV, stepV, maxV);
       }
-    }
-
-    void
-    ScrollArea::onControlScrolled(const std::string& name,
-                                  float min,
-                                  float max)
-    {
-      // TODO: Handle modification of the viewport by changing its rendering area.
-      log(
-        "Should handle scrolling from \"" + name + "\" to [" +
-        std::to_string(min) + " - " + std::to_string(max) + "]",
-        utils::Level::Warning
-      );
     }
 
   }
