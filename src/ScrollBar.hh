@@ -6,21 +6,13 @@
 # include <sdl_core/SdlWidget.hh>
 # include <core_utils/Signal.hh>
 # include "LinearLayout.hh"
+# include "ScrollOrientation.hh"
 
 namespace sdl {
   namespace graphic {
 
     class ScrollBar: public core::SdlWidget {
       public:
-
-        /**
-         * @brief - Describes the possible orientation of the scroll bar which
-         *          allows to produce both horizontal and vertical layouts.
-         */
-        enum class Orientation {
-          Horizontal, //<! - Scroll bar is horizontal.
-          Vertical    //<! - Scroll bar is vertical.
-        };
 
       public:
 
@@ -35,7 +27,7 @@ namespace sdl {
          * @param area - the preferred size of this scroll bar.
          */
         ScrollBar(const std::string& name,
-                  const Orientation& orientation,
+                  const scroll::Orientation& orientation,
                   const core::engine::Color& color,
                   core::SdlWidget* parent = nullptr,
                   const utils::Sizef& area = utils::Sizef());
@@ -525,7 +517,7 @@ namespace sdl {
          *          both main orientation (horizontal or vertical) to know how the
          *          components of the scroll bar should be represented.
          */
-        Orientation m_orientation;
+        scroll::Orientation m_orientation;
 
         /**
          * @brief - Describes the minimum value possible for this scroll bar. The value
@@ -606,7 +598,7 @@ namespace sdl {
          *          along with the minimum value visible and the maximum visible value. The minimum
          *          and maximum are usually separated by a page step.
          */
-        utils::Signal<const std::string&, float, float> onValueChanged;
+        utils::Signal<scroll::Orientation, float, float> onValueChanged;
     };
 
     using ScrollBarShPtr = std::shared_ptr<ScrollBar>;

@@ -207,7 +207,7 @@ namespace sdl {
 
           // Fire the signal to indicate that the value has been changed.
           onValueChanged.emit(
-            getName(),
+            m_orientation,
             1.0f * m_value,
             1.0f * m_value + m_pageStep
           );
@@ -267,10 +267,10 @@ namespace sdl {
       utils::Sizef arrow = total;
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           arrow.w() = std::min(total.w(), maxArrowSize());
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           arrow.h() = std::min(total.h(), maxArrowSize());
           break;
         default:
@@ -308,10 +308,10 @@ namespace sdl {
       utils::Sizef arrow = getArrowSize(total);
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           sliderArea.w() = total.w() - 2.0f * arrow.w();
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           sliderArea.h() = total.h() - 2.0f * arrow.h();
           break;
         default:
@@ -328,10 +328,10 @@ namespace sdl {
       utils::Sizef slider = sliderArea;
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           slider.w() = sliderArea.w() / stepsCount;
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
         default:
           // No need to check for errors as the previous switch already handled it.
           slider.h() = sliderArea.h() / stepsCount;

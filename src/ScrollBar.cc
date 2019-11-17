@@ -5,7 +5,7 @@ namespace sdl {
   namespace graphic {
 
     ScrollBar::ScrollBar(const std::string& name,
-                         const Orientation& orientation,
+                         const scroll::Orientation& orientation,
                          const core::engine::Color& color,
                          core::SdlWidget* parent,
                          const utils::Sizef& area):
@@ -158,6 +158,9 @@ namespace sdl {
       // Note that we voluntarily use the key press event in order to be able
       // to react to repeated key events.
       bool update = false;
+
+      // Acquire the lock on the data contained in this widget.
+      Guard guard(m_propsLocker);
 
       switch (e.getRawKey()) {
         case core::engine::RawKey::Up:
@@ -444,11 +447,11 @@ namespace sdl {
       utils::Sizef maxSize = utils::Sizef::max();
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           minSize.w() = 2.0f * minArrowSize();
           maxSize.h() = maxDimsAlongSlider();
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           minSize.h() = 2.0f * minArrowSize();
           maxSize.w() = maxDimsAlongSlider();
           break;
@@ -551,10 +554,10 @@ namespace sdl {
 
       float availableSpace = 0.0f;
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound();
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound();
           break;
         default:
@@ -570,10 +573,10 @@ namespace sdl {
       utils::Vector2f sliderPos;
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           sliderPos = utils::Vector2f(m_upArrow.box.getRightBound() + m_slider.box.w() / 2.0f + perc * availableSpace, 0.0f);
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           sliderPos = utils::Vector2f(0.0f, m_upArrow.box.getBottomBound() - m_slider.box.h() / 2.0f - perc * availableSpace);
         default:
           break;
@@ -600,10 +603,10 @@ namespace sdl {
       // which would lead to a similar value.
       float availableSpace = 0.0f;
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           availableSpace = m_downArrow.box.getLeftBound() - m_upArrow.box.getRightBound();
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           availableSpace = m_upArrow.box.getBottomBound() - m_downArrow.box.getTopBound();
           break;
         default:
@@ -619,10 +622,10 @@ namespace sdl {
       // that just before.
       float perc = 0.0f;
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           perc = local.x() - m_upArrow.box.getRightBound();
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           // The vertical axis is inverted (meaning that high y values actually corresponds to
           // low range values).
           perc = m_upArrow.box.getBottomBound() - local.y();
@@ -714,12 +717,12 @@ namespace sdl {
       utils::Sizef slider = getEngine().queryTexture(m_slider.id);
 
       switch (m_orientation) {
-        case Orientation::Horizontal:
+        case scroll::Orientation::Horizontal:
           m_upArrow.box = utils::Boxf(-total.w() / 2.0f + arrow.w() / 2.0f, 0.0f, arrow);
           m_slider.box = utils::Boxf(m_upArrow.box.x() + arrow.w() / 2.0f + slider.w() / 2.0f, 0.0f, slider);
           m_downArrow.box = utils::Boxf(total.w() / 2.0f - arrow.w() / 2.0f, 0.0f, arrow);
           break;
-        case Orientation::Vertical:
+        case scroll::Orientation::Vertical:
           m_upArrow.box = utils::Boxf(0.0f, total.h() / 2.0f - arrow.h() / 2.0f, arrow);
           m_slider.box = utils::Boxf(0.0f, m_upArrow.box.y() - arrow.h() / 2.0f - slider.h() / 2.0f, slider);
           m_downArrow.box = utils::Boxf(0.0f, -total.h() / 2.0f + arrow.h() / 2.0f, arrow);
