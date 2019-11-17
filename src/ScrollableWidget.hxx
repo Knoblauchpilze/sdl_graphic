@@ -108,6 +108,12 @@ namespace sdl {
     }
 
     inline
+    float
+    ScrollableWidget::getPercentageThreshold() noexcept {
+      return 0.001f;
+    }
+
+    inline
     bool
     ScrollableWidget::hasSupportWidget() const noexcept {
       return hasChild(m_supportName);

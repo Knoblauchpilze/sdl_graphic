@@ -186,7 +186,7 @@ namespace sdl {
         virtual bool
         handleContentScrolling(const utils::Vector2f& posToFix,
                                const utils::Vector2f& whereTo,
-                               const utils::Vector2i& motion);
+                               const utils::Vector2f& motion);
 
         /**
          * @brief - Interface method allowing to handle the positionning of the
@@ -291,6 +291,18 @@ namespace sdl {
         getScrollingButton() noexcept;
 
         /**
+         * @brief - Defines the threshold above which the a percentage of visibility (typically
+         *          one received in the `onControlScrolled` method) is not considered to be exact
+         *          when compared to the internal visible size of the support widget.
+         *          This allows to enforce some sort of consistency between both values.
+         * @return - a value indicating from which point a range received when assigning the value
+         *           from a percentage is assumed to be different from the internal range.
+         */
+        static
+        float
+        getPercentageThreshold() noexcept;
+
+        /**
          * @brief - Used to determine whether this widget has a support widget
          *          attached to it. This allows to simplify a lot of methods
          *          by easily detecting when we should or shouldn't perform
@@ -393,11 +405,12 @@ namespace sdl {
          *          The center represents the position of the center of the area displayed
          *          and the dimensions the percentage of the area visible through the view
          *          port.
-         *          The possible range for the box is actually `[-1; 1]` for the center
-         *          and `[0; 1]` for the dimensions. To give an example, if the displayed
-         *          area is `[0.3, 0.25]` of the total viewport, the center can vary from
-         *          `[-0.85; 0.85]` along the horizontal axis and from `[-0.875; 0.875]`
+         *          The possible range for the box is actually `[0; 1]` for the center and
+         *          `[0; 1]` for the dimensions. To give an example, if the displayed area
+         *          is `[0.3, 0.25]` of the total viewport, the center can vary from
+         *          `[0.15; 0.85]` along the horizontal axis and from `[0.075; 0.875]`
          *          along the vertical axis.
+         *          Note that the vertical axis starts form the *bottom* of the widget.
          */
         utils::Signal<utils::Boxf> onAreaChanged;
     };

@@ -33,6 +33,54 @@ namespace sdl {
     }
 
     void
+    ScrollBar::setFromPercentage(float min,
+                                 float max)
+    {
+      // Acquire the lock on this object.
+      Guard guard(m_propsLocker);
+
+      // The input percentage represent the range that is visible on the content
+      // associated to this area. The minimal value represents the smallest part
+      // of the content which is visible and similarly for the maximum.
+      // Theoretically we should have a range `max - min` which should represent
+      // approximately the page step of the scroll bar: indeed both components
+      // are tightly correlated and should be updated at roughly the same time.
+      float tMin = std::min(min, max);
+      float tMax = std::max(min, max);
+
+      int iRange = m_maximum - m_minimum;
+      float range = tMax - tMin;
+      float localRange = (iRange == 0 ? 0.0f : 1.0f * m_pageStep / iRange);
+
+      if (std::abs(range - localRange) > getPercentageThreshold()) {
+        error(
+          std::string("Could not set value from percentage [") +
+          std::to_string(min) + "; " + std::to_string(max) + "]",
+          std::string("Computed range ") + std::to_string(range) +
+          " is too different from local range " + std::to_string(localRange)
+        );
+      }
+
+      // Compute the desired value by taking the midpoint of the input range.
+      // Note that we need to convert it to a valid range using the internal
+      // values.
+      float desired = tMin + range / 2.0f;
+      int target = static_cast<int>(m_minimum + 1.0f * desired * iRange);
+
+      log(
+        std::string("Handling range [") + std::to_string(min) + "; " + std::to_string(max) + "], " +
+        "moving from " + std::to_string(m_value) + " to " + std::to_string(target),
+        utils::Level::Notice
+      );
+
+      bool updated = performAction(Action::Move, target);
+
+      if (updated) {
+        requestRepaint();
+      }
+    }
+
+    void
     ScrollBar::drawContentPrivate(const utils::Uuid& uuid,
                                   const utils::Boxf& area)
     {

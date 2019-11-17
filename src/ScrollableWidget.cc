@@ -48,12 +48,95 @@ namespace sdl {
                                         float min,
                                         float max)
     {
-      // TODO: Handle modification of the viewport by changing its rendering area.
-      log(
-        "Should handle scrolling from \"" + std::to_string(static_cast<int>(orientation)) + "\" to [" +
-        std::to_string(min) + " - " + std::to_string(max) + "]",
-        utils::Level::Warning
-      );
+      // Acquire the lock on this object.
+      Guard guard(m_propsLocker);
+
+      // We should update the rendering area of the support widget assigned to
+      // this element based on the new values provided by the input event. The
+      // orientation allows to determine which direction of the rendering area
+      // should be updated while the range `[min; max]` values represent some
+      // percentage of the admissible range that is now visible.
+      // Theoretically we should have a range `max - min` roughly matching the
+      // current size assigned to the support widget: indeed both components
+      // are tightly correlated and should be updated at roughly the same time.
+      // If this is not the case an error is raised.
+
+      // Check whether a support widget is assigned: if this is not the case
+      // we don't need to do anything.
+      core::SdlWidget* support = nullptr;
+
+      if (!hasSupportWidget()) {
+        return;
+      }
+
+      support = getSupportWidget();
+
+      // Compare the provided range with the current size assigned to this item
+      // to verify that we're not trying to do something unusual.
+      float tMin = std::min(min, max);
+      float tMax = std::max(min, max);
+
+      utils::Sizef thisSize = getRenderingArea().toSize();
+      utils::Boxf viewport = support->getRenderingArea();
+
+      float range = tMax - tMin;
+      float localRange = 0.0f;
+      switch (orientation) {
+        case scroll::Orientation::Horizontal:
+          localRange = thisSize.w() / viewport.w();
+          break;
+        case scroll::Orientation::Vertical:
+          localRange = thisSize.h() / viewport.h();
+          break;
+        default:
+          error(
+            std::string("Cannot interpret orientation to scroll content"),
+            std::string("Orientation is ") + std::to_string(static_cast<int>(orientation))
+          );
+          break;
+      }
+
+      if (std::abs(range - localRange) > getPercentageThreshold()) {
+        error(
+          std::string("Could not update support from control [") +
+          std::to_string(min) + "; " + std::to_string(max) + "]",
+          std::string("Computed range ") + std::to_string(range) +
+          " is too different from local range " + std::to_string(localRange)
+        );
+      }
+
+      // Compute the new rendering area to assign to the support widget by
+      // interpreting the input range. Note that as the input range is a
+      // percentage, we need to convert it to raw value first.
+      utils::Vector2f center = viewport.getCenter();
+      float rMin = 0.0f, rMax = 0.0f;
+
+      switch (orientation) {
+        case scroll::Orientation::Horizontal:
+          rMin = -viewport.w() / 2.0f + min * viewport.w();
+          rMax = -viewport.w() / 2.0f + max * viewport.w();
+          center.x() = (rMin + rMax) / 2.0f;
+          break;
+        case scroll::Orientation::Vertical:
+        default:
+          // No need to handle the case where the orientation is not known,
+          // we already did that.
+          rMin = -viewport.h() / 2.0f + min * viewport.h();
+          rMax = -viewport.h() / 2.0f + max * viewport.h();
+          center.y() = (rMin + rMax) / 2.0f;
+          break;
+      }
+
+      utils::Vector2f motion = viewport.getCenter() - center;
+
+      // Compute the start and end position from the motion itself.
+      utils::Vector2f start = viewport.getCenter();
+      utils::Vector2f localEnd = viewport.getCenter() + motion;
+
+      // Handle scrolling.
+      if (handleContentScrolling(start, localEnd, motion)) {
+        requestRepaint();
+      }
     }
 
     void
@@ -89,7 +172,7 @@ namespace sdl {
     bool
     ScrollableWidget::handleContentScrolling(const utils::Vector2f& /*posToFix*/,
                                              const utils::Vector2f& /*whereTo*/,
-                                             const utils::Vector2i& motion)
+                                             const utils::Vector2f& motion)
     {
       // The goal is to make the `posToFix` coincide with the `whereTo` position.
       // Both positions should be expressed in local coordinate frame so we don't
@@ -165,8 +248,8 @@ namespace sdl {
       // widget and not from the `ScrollableWidget` perspective we should negate 
       // the center of the area (inversion of coordinate frame).
       utils::Boxf box(
-        -area.x() / supportDims.w(),
-        -area.y() / supportDims.h(),
+        (area.x() + supportDims.w() / 2.0f) / supportDims.w(),
+        (area.y() + supportDims.w() / 2.0f) / supportDims.w(),
         viewport.w() / supportDims.w(),
         viewport.h() / supportDims.h()
       );
@@ -177,7 +260,14 @@ namespace sdl {
         utils::Level::Notice
       );
 
-      onAreaChanged.emit(box);
+      utils::Signal<utils::Boxf>& ref = onAreaChanged;
+
+      withSafetyNet(
+        [&box, &ref](){
+          ref.emit(box);
+        },
+        std::string("onAreaChanged::emit(") + box.toString() + ")"
+      );
 
       // We updated the rendering area of the support widget.
       return true;
@@ -293,7 +383,9 @@ namespace sdl {
       // Call the dedicated handler to do the necessary work in order to
       // handle scrolling: if the return value indicates that some changes
       // where made to this widget we should issue a repaint.
-      if (handleContentScrolling(start, localEnd, e.getMove())) {
+      utils::Vector2f move(e.getMove().x(), e.getMove().y());
+
+      if (handleContentScrolling(start, localEnd, move)) {
         requestRepaint();
       }
 

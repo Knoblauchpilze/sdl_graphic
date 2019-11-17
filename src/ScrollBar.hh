@@ -301,6 +301,18 @@ namespace sdl {
         getDoubleClickAdvance(int pageStep) noexcept;
 
         /**
+         * @brief - Defines the threshold above which the a percentage of visibility (typically one
+         *          received in the `setFromPercentage` method) is not considered to be exact when
+         *          compared to the internal `m_pageStep`.
+         *          This allows to enforce some sort of consistency between both values.
+         * @return - a value indicating from which point a range received when assigning the value
+         *           from a percentage is assumed to be different from the internal range.
+         */
+        static
+        float
+        getPercentageThreshold() noexcept;
+
+        /**
          * @brief - Used to retrieve the button to use to trigger the elements representing the
          *          scroll bar (arrows and sldier).
          * @return - the default button to use to perform the scrolling operations.
@@ -609,7 +621,9 @@ namespace sdl {
          *          scroll bar's pointed value.
          *          Note that the signal includes the name of the scroll bar emitting the signal
          *          along with the minimum value visible and the maximum visible value. The minimum
-         *          and maximum are usually separated by a page step.
+         *          and maximum are usually separated by a page step and are expressed in percentage
+         *          of the total range of possible values.
+         *          The range of possible value is thus `[0; 100]`.
          */
         utils::Signal<scroll::Orientation, float, float> onValueChanged;
     };

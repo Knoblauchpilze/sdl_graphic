@@ -2,6 +2,7 @@
 # define   SCROLL_BAR_HXX
 
 # include "ScrollBar.hh"
+# include <core_utils/CoreWrapper.hh>
 
 namespace sdl {
   namespace graphic {
@@ -103,20 +104,6 @@ namespace sdl {
 
     inline
     void
-    ScrollBar::setFromPercentage(float min,
-                                 float max)
-    {
-      // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
-
-      log(
-        std::string("Should assign control to match range [") + std::to_string(min) + ", " + std::to_string(max) + "]",
-        utils::Level::Warning
-      );
-    }
-
-    inline
-    void
     ScrollBar::setValue(int value) {
       // Acquire the lock on this object.
       Guard guard(m_propsLocker);
@@ -163,6 +150,12 @@ namespace sdl {
     int
     ScrollBar::getDoubleClickAdvance(int pageStep) noexcept {
       return std::min(pageStep / 2, 10);
+    }
+
+    inline
+    float
+    ScrollBar::getPercentageThreshold() noexcept {
+      return 0.001f;
     }
 
     inline
@@ -219,11 +212,21 @@ namespace sdl {
             utils::Level::Notice
           );
 
-          // Fire the signal to indicate that the value has been changed.
-          onValueChanged.emit(
-            m_orientation,
-            1.0f * m_value,
-            1.0f * m_value + m_pageStep
+          // Fire the signal to indicate that the value has been changed
+          // after converting to percentage.
+          int iRange = m_maximum - m_minimum;
+          float min = 1.0f * m_value / iRange;
+          float max = 1.0f * (m_value + m_pageStep) / iRange;
+
+          scroll::Orientation o = m_orientation;
+          utils::Signal<scroll::Orientation, float, float>& ref = onValueChanged;
+
+          withSafetyNet(
+            [&min, &max, &o, &ref](){
+              ref.emit(o, min, max);
+            },
+            std::string("onValueChanged::emit(") + std::to_string(static_cast<int>(o)) +
+            ", " + std::to_string(min) + std::to_string(max) + ")"
           );
 
           // Also request a repaint to indicate that the scroll bar should
