@@ -86,6 +86,19 @@ namespace sdl {
                  int maximum);
 
         /**
+         * @brief - Used to assign the value currently represented in the scroll bar from
+         *          a percentage-based range. Each bound is interpreted in terms of the
+         *          values provided internally for the range.
+         * @param min - the minimum value visible for this scroll bar as a percentage of
+         *              the internal minimum value.
+         * @param max - the maximum value visible for this scroll bar as a percentage of
+         *              the internal maximum value.
+         */
+        void
+        setFromPercentage(float min,
+                          float max);
+
+        /**
          * @brief - Used to assign a new value for the step of this scroll bar. This
          *          method will call the `setValuePrivate` method internally and trigger
          *          a signal `valueChanged` if the value is effectively different from

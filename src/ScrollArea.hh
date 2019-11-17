@@ -264,6 +264,21 @@ namespace sdl {
         void
         updateControls(const utils::Sizef& internal);
 
+        /**
+         * @brief - Used to handle any modification to the area displayed by the support
+         *          widget. This information should be interpreted and transferred over
+         *          to the controls of this area. This allows to guarantee that the info
+         *          displayed on the controls is always up-to-date with what is displayed
+         *          and conversely.
+         *          The box is expressed in percentage of the total area available for
+         *          the support widget. Note that we transmit the events no matter whether
+         *          it actually changed or not and we assume that the controls are smart
+         *          enough to handle redundancy.
+         * @param box - the new visible area for the support widget.
+         */
+        void
+        onViewportChanged(utils::Boxf box);
+
       private:
 
         /**

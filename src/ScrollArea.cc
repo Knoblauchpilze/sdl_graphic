@@ -251,6 +251,11 @@ namespace sdl {
         );
       }
 
+      // Connect the signal emitted when the viewport's area is modified to
+      // the local handler. This will allow to notify controls of any change
+      // in the viewport.
+      viewport->onAreaChanged.connect_member<ScrollArea>(this, &ScrollArea::onViewportChanged);
+
       // Add scroll bars and viewport to the layout.
       setHorizontalScrollBar(hBar);
       setVerticalScrollBar(vBar);
@@ -364,6 +369,29 @@ namespace sdl {
           " - " + std::to_string(maxV) + "] for " + hBar->getName()
         );
         vBar->setRange(minV, stepV, maxV);
+      }
+    }
+
+    void
+    ScrollArea::onViewportChanged(utils::Boxf box) {
+      // Retrieve the controls to update. In this case it will mostly be the
+      // scroll bars. We want to only update them if they are visible. The
+      // update will be expressed in terms of the relevant axis for each one
+      // of the scroll bar.
+      Guard guard(m_propsLocker);
+
+      utils::Sizef sHBar;
+      utils::Sizef sVBar;
+
+      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
+      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
+
+      if (hBar != nullptr && hBar->isVisible()) {
+        hBar->setFromPercentage(box.getLeftBound(), box.getRightBound());
+      }
+
+      if (vBar != nullptr && vBar->isVisible()) {
+        vBar->setFromPercentage(box.getBottomBound(), box.getTopBound());
       }
     }
 

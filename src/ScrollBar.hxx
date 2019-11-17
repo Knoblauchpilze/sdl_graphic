@@ -103,6 +103,20 @@ namespace sdl {
 
     inline
     void
+    ScrollBar::setFromPercentage(float min,
+                                 float max)
+    {
+      // Acquire the lock on this object.
+      Guard guard(m_propsLocker);
+
+      log(
+        std::string("Should assign control to match range [") + std::to_string(min) + ", " + std::to_string(max) + "]",
+        utils::Level::Warning
+      );
+    }
+
+    inline
+    void
     ScrollBar::setValue(int value) {
       // Acquire the lock on this object.
       Guard guard(m_propsLocker);
