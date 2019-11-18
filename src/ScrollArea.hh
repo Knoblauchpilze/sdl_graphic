@@ -6,6 +6,7 @@
 # include "ScrollBar.hh"
 # include "GridLayout.hh"
 # include "ScrollableWidget.hh"
+# include "VirtualLayoutItem.hh"
 
 namespace sdl {
   namespace graphic {
@@ -252,6 +253,13 @@ namespace sdl {
         build();
 
         /**
+         * @brief - Used internally in the `build` method to allocate and initialize
+         *          the order data.
+         */
+        void
+        initLayoutData();
+
+        /**
          * @brief - Used when either a new content widget has been assigned or when
          *          the size of this widget has been changed. This method is used to
          *          update the controls like the scroll bars in order to make their
@@ -280,6 +288,23 @@ namespace sdl {
         onViewportChanged(utils::Boxf box);
 
       private:
+
+        /**
+         * @brief - Convenience structure which helps gathering the data used to predict
+         *          the size of the scrollable widget and of the bars.
+         */
+        struct LayoutData {
+          GridLayoutShPtr layout;
+          VirtualLayoutItemShPtr scrollable;
+          VirtualLayoutItemShPtr hBar;
+          VirtualLayoutItemShPtr vBar;
+          VirtualLayoutItemShPtr corner;
+        };
+
+        /**
+         * @brief - A pointer to some layout data.
+         */
+        using LayoutDataShPtr = std::shared_ptr<LayoutData>;
 
         /**
          * @brief - Contains the policy to display the horizontal scroll bar in
@@ -322,6 +347,12 @@ namespace sdl {
          *          bar.
          */
         int m_vBarSignalID;
+
+        /**
+         * @brief - A convenience structure to gather all the data needed to create
+         *          the layout for this scroll area.
+         */
+        LayoutDataShPtr m_orderData;
     };
 
     using ScrollAreaShPtr = std::shared_ptr<ScrollArea>;

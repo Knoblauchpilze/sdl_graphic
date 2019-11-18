@@ -22,7 +22,9 @@ namespace sdl {
       m_vBarName(),
 
       m_hBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
-      m_vBarSignalID(utils::Signal<const std::string, float, float, float>::NoID)
+      m_vBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
+
+      m_orderData(nullptr)
     {
       build();
     }
@@ -53,6 +55,14 @@ namespace sdl {
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(corner, 1, 1, 1, 1);
+
+        m_orderData->corner = std::make_shared<VirtualLayoutItem>(
+          std::string("vitem_for_") + m_cornerName,
+          corner->getMinSize(),
+          corner->getSizeHint(),
+          corner->getMaxSize()
+        );
+        // TODO: Should add this item to the virtual layout.
       }
     }
 
@@ -84,6 +94,14 @@ namespace sdl {
 
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
+
+        m_orderData->hBar = std::make_shared<VirtualLayoutItem>(
+          std::string("vitem_for_") + m_hBarName,
+          scrollBar->getMinSize(),
+          scrollBar->getSizeHint(),
+          scrollBar->getMaxSize()
+        );
+        // TODO: Should add this item to the virtual layout.
 
         // Connect the value changed signal to the dedicated support widget's handler.
         ScrollableWidget* viewport = getViewportHandler();
@@ -123,6 +141,14 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
 
+        m_orderData->vBar = std::make_shared<VirtualLayoutItem>(
+          std::string("vitem_for_") + m_vBarName,
+          scrollBar->getMinSize(),
+          scrollBar->getSizeHint(),
+          scrollBar->getMaxSize()
+        );
+        // TODO: Should add this item to the virtual layout.
+
         // Connect the value changed signal to the dedicated support widget's handler.
         ScrollableWidget* viewport = getViewportHandler();
         m_vBarSignalID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
@@ -155,6 +181,8 @@ namespace sdl {
       // it is valid to specify a `null` widget or any kind of widget itself.
       wid->setSupport(viewport);
 
+      // TODO: Should update the virtual handler.
+
       // Perform the update of the controls.
       updateControls(getRenderingArea().toSize());
     }
@@ -182,6 +210,8 @@ namespace sdl {
         );
       }
 
+      // TODO: Should also remove from virtual layout.
+
       // Remove the widget from the layout.
       getLayout().removeItem(widget);
 
@@ -195,6 +225,10 @@ namespace sdl {
       // use of a `GridLyaout` quite natural so we'll go with this. The scroll
       // bars should be clamped in size because we don't really need them to
       // become too big.
+      // Also we should allocate the needed data to hold the predicted values
+      // through the `m_orderData` attribute to replicate the architecture of
+      // the scroll area and use the provided sizes.
+      initLayoutData();
 
       // Create the layout and check for errors.
       GridLayoutShPtr grid = std::make_shared<GridLayout>(
@@ -260,6 +294,49 @@ namespace sdl {
       setHorizontalScrollBar(hBar);
       setVerticalScrollBar(vBar);
       grid->addItem(viewport, 0, 0, 1, 1);
+
+      m_orderData->scrollable = std::make_shared<VirtualLayoutItem>(
+        std::string("vitem_for_") + viewport->getName(),
+        viewport->getMinSize(),
+        viewport->getSizeHint(),
+        viewport->getMaxSize()
+      );
+    }
+
+    void
+    ScrollArea::initLayoutData() {
+      // Create the order data.
+      m_orderData = std::make_shared<LayoutData>();
+
+      if (m_orderData == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store the order data")
+        );
+      }
+
+      // Initialize data.
+      m_orderData->layout = nullptr;
+      m_orderData->scrollable = nullptr;
+      m_orderData->hBar = nullptr;
+      m_orderData->vBar = nullptr;
+      m_orderData->corner = nullptr;
+
+      // Initialize the layout.
+      m_orderData->layout = std::make_shared<GridLayout>(
+        std::string("virtual_glayout_for_scroll_area"),
+        this,
+        2u,
+        2u,
+        0.0f
+      );
+
+      if (m_orderData->layout == nullptr) {
+        error(
+          std::string("Could not create scroll area"),
+          std::string("Failed to allocate memory to store the layout")
+        );
+      }
     }
 
     void
