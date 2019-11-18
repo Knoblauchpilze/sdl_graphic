@@ -15,6 +15,7 @@ set (SOURCES
   TextBox.cc
   IntValidator.cc
   FloatValidator.cc
+  VirtualLayoutItem.cc
   ScrollArea.cc
   ScrollBar.cc
   ScrollableWidget.cc
