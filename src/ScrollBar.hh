@@ -361,13 +361,16 @@ namespace sdl {
          *          from concurrent accesses is already locked.
          * @param value - the value to be assigned to this scroll bar's step. It will
          *                be checked against the valid range for this scroll bar.
+         * @param notify - `true` if the listeners should be notified of this change and
+         *                 `false` otherwise.
          * @return - `true` if the internal value has been changed and `false` otherwise.
          *           Note that a `true` value does not mean that the `m_value` will be
          *           exactly `value` but that it is different from the initial value
          *           upon entering this method.
          */
         bool
-        setValuePrivate(int value);
+        setValuePrivate(int value,
+                        bool notify = true);
 
         /**
          * @brief - Used to try to performt he requested action and update the value of
@@ -383,12 +386,16 @@ namespace sdl {
          *          bar from concurrent accesses is already locked.
          * @param action - the action to perform.
          * @param value - the value to assign in the case of a `Move` action.
+         * @param notify - transmitted as is to the `setValuePrivate` method in case it
+         *                 needs to be called, allows to specify whether listeners should
+         *                 be notified of this change.
          * @return - `true` if the input `action` could at least be partially performed
          *           and `false` otherwise.
          */
         bool
         performAction(const Action& action,
-                      int value = 0);
+                      int value = 0,
+                      bool notify = true);
 
         /**
          * @brief - Used to update the slider's position based on the value currently

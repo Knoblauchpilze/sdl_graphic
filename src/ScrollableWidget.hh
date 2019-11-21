@@ -179,6 +179,8 @@ namespace sdl {
          *                 this content scrolling action. This motion corresponds
          *                 to the actual change in `whereTo` position since the
          *                 last call to this method.
+         * @param notify - `true` if the function should emit a signal to indicate
+         *                 that the content has been scrolled and `false` otherwise.
          * @return - `true` if some modifications where made to the structure of
          *            the widget (usually a modification of the position of the
          *            content widget) and `false` otherwise.
@@ -186,7 +188,8 @@ namespace sdl {
         virtual bool
         handleContentScrolling(const utils::Vector2f& posToFix,
                                const utils::Vector2f& whereTo,
-                               const utils::Vector2f& motion);
+                               const utils::Vector2f& motion,
+                               bool notify = true);
 
         /**
          * @brief - Interface method allowing to handle the positionning of the

@@ -73,7 +73,7 @@ namespace sdl {
         utils::Level::Notice
       );
 
-      bool updated = performAction(Action::Move, target);
+      bool updated = performAction(Action::Move, target, false);
 
       if (updated) {
         requestRepaint();
@@ -522,7 +522,8 @@ namespace sdl {
 
     bool
     ScrollBar::performAction(const Action& action,
-                             int value)
+                             int value,
+                             bool notify)
     {
       // Assume that the locker is already acquired.
 
@@ -577,7 +578,7 @@ namespace sdl {
       }
 
       // Apply this value.
-      bool changed = setValuePrivate(targetValue);
+      bool changed = setValuePrivate(targetValue, notify);
 
       // If the value could not be modified, nothing is left to do.
       if (!changed) {

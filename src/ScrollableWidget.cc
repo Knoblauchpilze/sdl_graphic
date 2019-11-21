@@ -134,7 +134,7 @@ namespace sdl {
       utils::Vector2f localEnd = viewport.getCenter() + motion;
 
       // Handle scrolling.
-      if (handleContentScrolling(start, localEnd, motion)) {
+      if (handleContentScrolling(start, localEnd, motion, false)) {
         requestRepaint();
       }
     }
@@ -172,7 +172,8 @@ namespace sdl {
     bool
     ScrollableWidget::handleContentScrolling(const utils::Vector2f& /*posToFix*/,
                                              const utils::Vector2f& /*whereTo*/,
-                                             const utils::Vector2f& motion)
+                                             const utils::Vector2f& motion,
+                                             bool notify)
     {
       // The goal is to make the `posToFix` coincide with the `whereTo` position.
       // Both positions should be expressed in local coordinate frame so we don't
@@ -247,6 +248,10 @@ namespace sdl {
       // displayed. Note that as we want to return the area visible for the support
       // widget and not from the `ScrollableWidget` perspective we should negate 
       // the center of the area (inversion of coordinate frame).
+      if (!notify) {
+        return true;
+      }
+
       utils::Boxf box(
         (area.x() + supportDims.w() / 2.0f) / supportDims.w(),
         (area.y() + supportDims.w() / 2.0f) / supportDims.w(),

@@ -190,7 +190,9 @@ namespace sdl {
 
     inline
     bool
-    ScrollBar::setValuePrivate(int value) {
+    ScrollBar::setValuePrivate(int value,
+                               bool notify)
+    {
       // Assume that the locker is already acquired.
       bool update = false;
       int old = m_value;
@@ -214,20 +216,22 @@ namespace sdl {
 
           // Fire the signal to indicate that the value has been changed
           // after converting to percentage.
-          int iRange = m_maximum - m_minimum;
-          float min = 1.0f * m_value / iRange;
-          float max = 1.0f * (m_value + m_pageStep) / iRange;
+          if (notify) {
+            int iRange = m_maximum - m_minimum;
+            float min = 1.0f * m_value / iRange;
+            float max = 1.0f * (m_value + m_pageStep) / iRange;
 
-          scroll::Orientation o = m_orientation;
-          utils::Signal<scroll::Orientation, float, float>& ref = onValueChanged;
+            scroll::Orientation o = m_orientation;
+            utils::Signal<scroll::Orientation, float, float>& ref = onValueChanged;
 
-          withSafetyNet(
-            [&min, &max, &o, &ref](){
-              ref.emit(o, min, max);
-            },
-            std::string("onValueChanged::emit(") + std::to_string(static_cast<int>(o)) +
-            ", " + std::to_string(min) + std::to_string(max) + ")"
-          );
+            withSafetyNet(
+              [&min, &max, &o, &ref](){
+                ref.emit(o, min, max);
+              },
+              std::string("onValueChanged::emit(") + std::to_string(static_cast<int>(o)) +
+              ", " + std::to_string(min) + std::to_string(max) + ")"
+            );
+          }
 
           // Also request a repaint to indicate that the scroll bar should
           // be updated: indeed it probably means that the slider should be
