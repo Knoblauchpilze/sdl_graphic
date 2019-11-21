@@ -253,7 +253,7 @@ namespace sdl {
       }
 
       utils::Boxf box(
-        (area.x() + supportDims.w() / 2.0f) / supportDims.w(),
+        (-area.x() + supportDims.w() / 2.0f) / supportDims.w(),
         (area.y() + supportDims.w() / 2.0f) / supportDims.w(),
         viewport.w() / supportDims.w(),
         viewport.h() / supportDims.h()

@@ -61,10 +61,11 @@ namespace sdl {
         );
       }
 
-      // Compute the desired value by taking the midpoint of the input range.
-      // Note that we need to convert it to a valid range using the internal
-      // values.
-      float desired = tMin + range / 2.0f;
+      // Compute the desired value by taking the minimum value of the range.
+      // Indeed as we will then position the slider based on the middle of
+      // the range pointed by the value and the page step, it makes sense.
+      // Basically the range here represents the position of the scroll bar.
+      float desired = tMin;
       int target = static_cast<int>(m_minimum + 1.0f * desired * iRange);
 
       log(
