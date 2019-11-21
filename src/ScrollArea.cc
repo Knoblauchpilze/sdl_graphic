@@ -24,7 +24,7 @@ namespace sdl {
       m_hBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
       m_vBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
 
-      m_orderData(nullptr)
+      m_orderData(LayoutData{nullptr, nullptr, nullptr, nullptr, nullptr})
     {
       build();
     }
@@ -56,13 +56,14 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(corner, 1, 1, 1, 1);
 
-        m_orderData->corner = std::make_shared<VirtualLayoutItem>(
-          std::string("vitem_for_") + m_cornerName,
-          corner->getMinSize(),
-          corner->getSizeHint(),
-          corner->getMaxSize()
-        );
-        // TODO: Should add this item to the virtual layout.
+        // Also we need to refresh the data for this corner widget in the virtual
+        // layout so that we can still determine which elements are visible based
+        // on the desired size.
+        m_orderData.corner->setVisible(true);
+
+        m_orderData.corner->setMinSize(corner->getMinSize());
+        m_orderData.corner->setSizeHint(corner->getSizeHint());
+        m_orderData.corner->setMaxSize(corner->getMaxSize());
       }
     }
 
@@ -95,13 +96,14 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 0, 1, 1, 1);
 
-        m_orderData->hBar = std::make_shared<VirtualLayoutItem>(
-          std::string("vitem_for_") + m_hBarName,
-          scrollBar->getMinSize(),
-          scrollBar->getSizeHint(),
-          scrollBar->getMaxSize()
-        );
-        // TODO: Should add this item to the virtual layout.
+        // Also we need to refresh the data for this scroll bar in the virtual
+        // layout so that we can still determine which elements are visible
+        // based on the desired size.
+        m_orderData.hBar->setVisible(true);
+
+        m_orderData.hBar->setMinSize(scrollBar->getMinSize());
+        m_orderData.hBar->setSizeHint(scrollBar->getSizeHint());
+        m_orderData.hBar->setMaxSize(scrollBar->getMaxSize());
 
         // Connect the value changed signal to the dedicated support widget's handler.
         ScrollableWidget* viewport = getViewportHandler();
@@ -132,7 +134,8 @@ namespace sdl {
       // Now perform the insertion of the input corner widget
       // if it is valid.
       if (scrollBar != nullptr) {
-        // Insert the input widget as child of this widget so that it gets redrawn.
+        // Insert the input widget as child of this widget so that it gets
+        // redrawn.
         scrollBar->setParent(this);
 
         // Assign the new name of the scroll bar.
@@ -141,13 +144,14 @@ namespace sdl {
         // We rely on the internal layout method to perform the insertion.
         getLayout().addItem(scrollBar, 1, 0, 1, 1);
 
-        m_orderData->vBar = std::make_shared<VirtualLayoutItem>(
-          std::string("vitem_for_") + m_vBarName,
-          scrollBar->getMinSize(),
-          scrollBar->getSizeHint(),
-          scrollBar->getMaxSize()
-        );
-        // TODO: Should add this item to the virtual layout.
+        // Also we need to refresh the data for this scroll bar in the virtual
+        // layout so that we can still determine which elements are visible
+        // based on the desired size.
+        m_orderData.vBar->setVisible(true);
+
+        m_orderData.vBar->setMinSize(scrollBar->getMinSize());
+        m_orderData.vBar->setSizeHint(scrollBar->getSizeHint());
+        m_orderData.vBar->setMaxSize(scrollBar->getMaxSize());
 
         // Connect the value changed signal to the dedicated support widget's handler.
         ScrollableWidget* viewport = getViewportHandler();
@@ -181,7 +185,10 @@ namespace sdl {
       // it is valid to specify a `null` widget or any kind of widget itself.
       wid->setSupport(viewport);
 
-      // TODO: Should update the virtual handler.
+      // Note that we don't want to update the virtual item for this one because
+      // it's precisely what will happen when the real layout will assign a size
+      // to the support: it shoul dbe completely transparent and not request more
+      // space than needed.
 
       // Perform the update of the controls.
       updateControls(getRenderingArea().toSize());
@@ -210,10 +217,20 @@ namespace sdl {
         );
       }
 
-      // TODO: Should also remove from virtual layout.
-
-      // Remove the widget from the layout.
+      // Remove the widget from the layout: both the real
+      // layout and the virtual layout used to detect the
+      // size of the elements.
       getLayout().removeItem(widget);
+
+      if (widget->getName() == m_cornerName) {
+        m_orderData.corner->setVisible(false);
+      }
+      if (widget->getName() == m_hBarName) {
+        m_orderData.hBar->setVisible(false);
+      }
+      if (widget->getName() == m_vBarName) {
+        m_orderData.vBar->setVisible(false);
+      }
 
       // Now we can remove the input `widget` from the children' list.
       removeWidget(widget);
@@ -294,36 +311,19 @@ namespace sdl {
       setHorizontalScrollBar(hBar);
       setVerticalScrollBar(vBar);
       grid->addItem(viewport, 0, 0, 1, 1);
-
-      m_orderData->scrollable = std::make_shared<VirtualLayoutItem>(
-        std::string("vitem_for_") + viewport->getName(),
-        viewport->getMinSize(),
-        viewport->getSizeHint(),
-        viewport->getMaxSize()
-      );
     }
 
     void
     ScrollArea::initLayoutData() {
-      // Create the order data.
-      m_orderData = std::make_shared<LayoutData>();
-
-      if (m_orderData == nullptr) {
-        error(
-          std::string("Could not create scroll area"),
-          std::string("Failed to allocate memory to store the order data")
-        );
-      }
-
       // Initialize data.
-      m_orderData->layout = nullptr;
-      m_orderData->scrollable = nullptr;
-      m_orderData->hBar = nullptr;
-      m_orderData->vBar = nullptr;
-      m_orderData->corner = nullptr;
+      m_orderData.layout = nullptr;
+      m_orderData.scrollable = std::make_shared<VirtualLayoutItem>(std::string("vitem_for_scrollable"));
+      m_orderData.hBar = std::make_shared<VirtualLayoutItem>(std::string("vitem_for_hBar"));
+      m_orderData.vBar = std::make_shared<VirtualLayoutItem>(std::string("vitem_for_vBar"));
+      m_orderData.corner = std::make_shared<VirtualLayoutItem>(std::string("vitem_for_corner"));
 
       // Initialize the layout.
-      m_orderData->layout = std::make_shared<GridLayout>(
+      m_orderData.layout = std::make_shared<GridLayout>(
         std::string("virtual_glayout_for_scroll_area"),
         this,
         2u,
@@ -331,12 +331,38 @@ namespace sdl {
         0.0f
       );
 
-      if (m_orderData->layout == nullptr) {
+      if (m_orderData.layout == nullptr) {
         error(
           std::string("Could not create scroll area"),
           std::string("Failed to allocate memory to store the layout")
         );
       }
+
+      m_orderData.layout->addItem(m_orderData.scrollable.get(), 0, 0, 1, 1);
+      m_orderData.layout->addItem(m_orderData.hBar.get(), 0, 1, 1, 1);
+      m_orderData.layout->addItem(m_orderData.vBar.get(), 1, 0, 1, 1);
+      m_orderData.layout->addItem(m_orderData.corner.get(), 1, 1, 1, 1);
+
+      // The `scrollable` widget is always visible, the rest will be
+      // assigned from the `build` method if needed.
+      m_orderData.scrollable->setVisible(true);
+      m_orderData.hBar->setVisible(false);
+      m_orderData.vBar->setVisible(false);
+      m_orderData.corner->setVisible(false);
+
+      // Each component manage both the width and height of the corresponding
+      // element.
+      m_orderData.scrollable->setManageWidth(true);
+      m_orderData.scrollable->setManageHeight(true);
+
+      m_orderData.hBar->setManageWidth(true);
+      m_orderData.hBar->setManageHeight(true);
+
+      m_orderData.vBar->setManageWidth(true);
+      m_orderData.vBar->setManageHeight(true);
+
+      m_orderData.corner->setManageWidth(true);
+      m_orderData.corner->setManageHeight(true);
     }
 
     void
@@ -354,30 +380,21 @@ namespace sdl {
       utils::Sizef sHBar;
       utils::Sizef sVBar;
 
+      // Retrieve the size of each scroll bar in case we have a valid widget
+      // assigned to it. To do so we need to request a new update of the
+      // virtual layout: hopefully this will not happen too often and we can
+      // recompute the whole size.
+      m_orderData.layout->update(utils::Boxf::fromSize(internal, true));
+
+      if (m_orderData.hBar->isVisible()) {
+        sHBar = m_orderData.hBar->getRenderingArea().toSize();
+      }
+      if (m_orderData.vBar->isVisible()) {
+        sVBar = m_orderData.vBar->getRenderingArea().toSize();
+      }
+
       ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
       ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
-
-      // Disclaimer: note that retrieving the size of the scroll bars here might
-      // not be the best strategy as we might modify it right away because we're
-      // processing a resize event here. So we should maybe try to determine in
-      // some other ways the size that the scroll bars will reach given the input
-      // `internal` size (which *is* applied to this component).
-      // As for now the small size of the scroll bars makes it very probable that
-      // no matter the input `internal` size the dimensions of the scroll bars
-      // will not be modified, hence the fact that we can use it and still get
-      // accurate results.
-      // TODO: Note that for now we have an issue because as we request the size
-      // before the layout is updated we use invalid size for the scroll bars so
-      // we get an invalid page step assigned to the scroll bars which then fails
-      // when the viewport is updated (see Scrollbar.cc:55).
-      // We should find a way to get notified whenever the layout is effectively
-      // recomputed.
-      if (hBar != nullptr) {
-        sHBar = hBar->getRenderingArea().toSize();
-      }
-      if (vBar != nullptr) {
-        sVBar = vBar->getRenderingArea().toSize();
-      }
 
       // Update visibility status in case one of the status bar makes the
       // available space too small for the other. Typically imagine the

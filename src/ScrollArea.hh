@@ -352,7 +352,7 @@ namespace sdl {
          * @brief - A convenience structure to gather all the data needed to create
          *          the layout for this scroll area.
          */
-        LayoutDataShPtr m_orderData;
+        LayoutData m_orderData;
     };
 
     using ScrollAreaShPtr = std::shared_ptr<ScrollArea>;
