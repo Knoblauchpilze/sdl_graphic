@@ -272,21 +272,6 @@ namespace sdl {
         void
         updateControls(const utils::Sizef& internal);
 
-        /**
-         * @brief - Used to handle any modification to the area displayed by the support
-         *          widget. This information should be interpreted and transferred over
-         *          to the controls of this area. This allows to guarantee that the info
-         *          displayed on the controls is always up-to-date with what is displayed
-         *          and conversely.
-         *          The box is expressed in percentage of the total area available for
-         *          the support widget. Note that we transmit the events no matter whether
-         *          it actually changed or not and we assume that the controls are smart
-         *          enough to handle redundancy.
-         * @param box - the new visible area for the support widget.
-         */
-        void
-        onViewportChanged(utils::Boxf box);
-
       private:
 
         /**
@@ -299,6 +284,15 @@ namespace sdl {
           VirtualLayoutItemShPtr hBar;
           VirtualLayoutItemShPtr vBar;
           VirtualLayoutItemShPtr corner;
+        };
+
+        /**
+         * @brief - Convenience structure allowing to hold the signals related to a
+         *          particular scroll bar.
+         */
+        struct ScrollBarSignals {
+          int valueChangedID;
+          int axisChangedID;
         };
 
         /**
@@ -334,19 +328,17 @@ namespace sdl {
         std::string m_vBarName;
 
         /**
-         * @brief - Describes the index of the signal emitted by the horizontal
-         *          scroll bar. This identifier can be used when the scroll bar
-         *          is changed to perform the disconnection of this object as
-         *          listener. This prevents unused scroll bars to still send some
-         *          signal to this area.
+         * @brief - Describes the index of the signals connected to the horizontal
+         *          scroll bar. This is interesting to know how to properly unlink
+         *          the scroll bar whenever it is replaced.
          */
-        int m_hBarSignalID;
+        ScrollBarSignals m_hBarSignals;
 
         /**
-         * @brief - Similar to `m_hBarSignalID` but related to the vertical scroll
+         * @brief - Similar to `m_hBarSignals` but related to the vertical scroll
          *          bar.
          */
-        int m_vBarSignalID;
+        ScrollBarSignals m_vBarSignals;
 
         /**
          * @brief - A convenience structure to gather all the data needed to create

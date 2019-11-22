@@ -265,13 +265,20 @@ namespace sdl {
         utils::Level::Notice
       );
 
-      utils::Signal<utils::Boxf>& ref = onAreaChanged;
-
+      utils::Signal<float, float>& hRef = onHorizontalAxisChanged;
       withSafetyNet(
-        [&box, &ref](){
-          ref.emit(box);
+        [&box, &hRef](){
+          hRef.emit(box.getLeftBound(), box.getRightBound());
         },
-        std::string("onAreaChanged::emit(") + box.toString() + ")"
+        std::string("onHorizontalAxisChanged::emit([") + std::to_string(box.getLeftBound()) + " - " + std::to_string(box.getRightBound()) + "])"
+      );
+
+      utils::Signal<float, float>& vRef = onVerticalAxisChanged;
+      withSafetyNet(
+        [&box, &vRef](){
+          vRef.emit(box.getBottomBound(), box.getTopBound());
+        },
+        std::string("onVerticalAxisChanged::emit([") + std::to_string(box.getBottomBound()) + " - " + std::to_string(box.getTopBound()) + "])"
       );
 
       // We updated the rendering area of the support widget.

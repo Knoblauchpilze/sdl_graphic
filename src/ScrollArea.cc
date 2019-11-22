@@ -21,8 +21,18 @@ namespace sdl {
       m_hBarName(),
       m_vBarName(),
 
-      m_hBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
-      m_vBarSignalID(utils::Signal<const std::string, float, float, float>::NoID),
+      m_hBarSignals(
+        ScrollBarSignals{
+          utils::Signal<const std::string, float, float, float>::NoID,
+          utils::Signal<const std::string, float, float, float>::NoID
+        }
+      ),
+      m_vBarSignals(
+        ScrollBarSignals{
+          utils::Signal<const std::string, float, float, float>::NoID,
+          utils::Signal<const std::string, float, float, float>::NoID
+        }
+      ),
 
       m_orderData(LayoutData{nullptr, nullptr, nullptr, nullptr, nullptr})
     {
@@ -74,11 +84,13 @@ namespace sdl {
 
       // First thing is to remove any existing scroll bar.
       ScrollBar* bar = getChildOrNull<ScrollBar>(m_hBarName);
+      ScrollableWidget* viewport = getViewportHandler();
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
-        // Disconnect from the signal indicating a value change.
-        bar->onValueChanged.disconnect(m_hBarSignalID);
+        // Disconnect from the signals associated to this scroll bar.
+        bar->onValueChanged.disconnect(m_hBarSignals.valueChangedID);
+        viewport->onHorizontalAxisChanged.disconnect(m_hBarSignals.valueChangedID);
 
         // Remove the item from the layout.
         removeItem(bar);
@@ -105,11 +117,16 @@ namespace sdl {
         m_orderData.hBar->setSizeHint(scrollBar->getSizeHint());
         m_orderData.hBar->setMaxSize(scrollBar->getMaxSize());
 
-        // Connect the value changed signal to the dedicated support widget's handler.
-        ScrollableWidget* viewport = getViewportHandler();
-        m_hBarSignalID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
+        // Connect the value changed and the axis changed signals to the dedicated
+        // support widget's handler.
+        m_hBarSignals.valueChangedID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
           viewport,
           &ScrollableWidget::onControlScrolled
+        );
+
+        m_hBarSignals.axisChangedID = viewport->onHorizontalAxisChanged.connect_member<ScrollBar>(
+          scrollBar,
+          &ScrollBar::setFromPercentage
         );
       }
     }
@@ -121,11 +138,13 @@ namespace sdl {
 
       // First thing is to remove any existing scroll bar.
       ScrollBar* bar = getChildOrNull<ScrollBar>(m_vBarName);
+      ScrollableWidget* viewport = getViewportHandler();
 
       // If this item is not null we need to remove it.
       if (bar != nullptr) {
         // Disconnect from the signal indicating a value change.
-        bar->onValueChanged.disconnect(m_vBarSignalID);
+        bar->onValueChanged.disconnect(m_vBarSignals.valueChangedID);
+        viewport->onVerticalAxisChanged.disconnect(m_vBarSignals.valueChangedID);
 
         // Remove the item from the layout.
         removeItem(bar);
@@ -153,11 +172,16 @@ namespace sdl {
         m_orderData.vBar->setSizeHint(scrollBar->getSizeHint());
         m_orderData.vBar->setMaxSize(scrollBar->getMaxSize());
 
-        // Connect the value changed signal to the dedicated support widget's handler.
-        ScrollableWidget* viewport = getViewportHandler();
-        m_vBarSignalID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
+        // Connect the value changed and the axis changed signals to the dedicated
+        // support widget's handler.
+        m_vBarSignals.valueChangedID = scrollBar->onValueChanged.connect_member<ScrollableWidget>(
           viewport,
           &ScrollableWidget::onControlScrolled
+        );
+
+        m_vBarSignals.axisChangedID = viewport->onVerticalAxisChanged.connect_member<ScrollBar>(
+          scrollBar,
+          &ScrollBar::setFromPercentage
         );
       }
     }
@@ -201,7 +225,6 @@ namespace sdl {
 
       // Use the dedicated handler.
       updateControls(window.toSize());
-
 
       // Also call the parent method to benefit from the base class behavior.
       core::SdlWidget::updatePrivate(window);
@@ -301,11 +324,6 @@ namespace sdl {
           std::string("Failed to allocate memory to store the viewport")
         );
       }
-
-      // Connect the signal emitted when the viewport's area is modified to
-      // the local handler. This will allow to notify controls of any change
-      // in the viewport.
-      viewport->onAreaChanged.connect_member<ScrollArea>(this, &ScrollArea::onViewportChanged);
 
       // Add scroll bars and viewport to the layout.
       setHorizontalScrollBar(hBar);
@@ -474,29 +492,6 @@ namespace sdl {
           " - " + std::to_string(maxV) + "] for " + hBar->getName()
         );
         vBar->setRange(minV, stepV, maxV);
-      }
-    }
-
-    void
-    ScrollArea::onViewportChanged(utils::Boxf box) {
-      // Retrieve the controls to update. In this case it will mostly be the
-      // scroll bars. We want to only update them if they are visible. The
-      // update will be expressed in terms of the relevant axis for each one
-      // of the scroll bar.
-      Guard guard(m_propsLocker);
-
-      utils::Sizef sHBar;
-      utils::Sizef sVBar;
-
-      ScrollBar* hBar = getChildOrNull<ScrollBar>(m_hBarName);
-      ScrollBar* vBar = getChildOrNull<ScrollBar>(m_vBarName);
-
-      if (hBar != nullptr && hBar->isVisible()) {
-        hBar->setFromPercentage(box.getLeftBound(), box.getRightBound());
-      }
-
-      if (vBar != nullptr && vBar->isVisible()) {
-        vBar->setFromPercentage(box.getBottomBound(), box.getTopBound());
       }
     }
 

@@ -208,15 +208,15 @@ namespace sdl {
         if (old != m_value) {
           update = true;
 
-          log(
-            "Emitting on value changed for " + getName() + " with range " +
-            "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "]",
-            utils::Level::Notice
-          );
-
           // Fire the signal to indicate that the value has been changed
           // after converting to percentage.
           if (notify) {
+            log(
+              "Emitting on value changed for " + getName() + " with range " +
+              "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "]",
+              utils::Level::Notice
+            );
+
             int iRange = m_maximum - m_minimum;
             float min = 1.0f * m_value / iRange;
             float max = 1.0f * (m_value + m_pageStep) / iRange;

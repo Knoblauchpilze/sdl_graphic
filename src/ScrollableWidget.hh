@@ -400,11 +400,14 @@ namespace sdl {
       public:
 
         /**
-         * @brief - This signal can be used for external objects to register whenever the
-         *          area displayed by this component is updated. It is emitted whenver the
-         *          user scrolls the content of the support widget displayed in this item.
-         *          The box contains information about the content of the area displayed
-         *          using percentage formalism.
+         * @brief - These signals can be used for external objects to be notified whenever
+         *          the area displayed by this component is updated. It is emitted whenver
+         *          the user scrolls the content of the support widget displayed in this
+         *          item.
+         *          Each signal notify modifications along a specified axis so that objects
+         *          can register precisely for what they're interested in. The values of
+         *          the signal are expressed through a percentage formalism representing
+         *          the minimum and maximum range currently displayed in this widget.
          *          The center represents the position of the center of the area displayed
          *          and the dimensions the percentage of the area visible through the view
          *          port.
@@ -413,9 +416,10 @@ namespace sdl {
          *          is `[0.3, 0.25]` of the total viewport, the center can vary from
          *          `[0.15; 0.85]` along the horizontal axis and from `[0.075; 0.875]`
          *          along the vertical axis.
-         *          Note that the vertical axis starts form the *bottom* of the widget.
+         *          Note that the vertical axis starts frrm the *bottom* of the widget.
          */
-        utils::Signal<utils::Boxf> onAreaChanged;
+        utils::Signal<float, float> onHorizontalAxisChanged;
+        utils::Signal<float, float> onVerticalAxisChanged;
     };
 
     using ScrollableWidgetShPtr = std::shared_ptr<ScrollableWidget>;
