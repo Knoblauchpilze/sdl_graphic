@@ -211,18 +211,19 @@ namespace sdl {
           // Fire the signal to indicate that the value has been changed
           // after converting to percentage.
           if (notify) {
-            log(
-              "Emitting on value changed for " + getName() + " with range " +
-              "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "]",
-              utils::Level::Notice
-            );
-
             int iRange = m_maximum - m_minimum;
             float min = 1.0f * m_value / iRange;
             float max = 1.0f * (m_value + m_pageStep) / iRange;
 
             scroll::Orientation o = m_orientation;
             utils::Signal<scroll::Orientation, float, float>& ref = onValueChanged;
+
+            log(
+              "Emitting on value changed for " + getName() + " with range " +
+              "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "] " +
+              "(" + std::to_string(min) + " - " + std::to_string(max) + ")",
+              utils::Level::Notice
+            );
 
             withSafetyNet(
               [&min, &max, &o, &ref](){

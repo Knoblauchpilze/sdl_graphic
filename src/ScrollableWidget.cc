@@ -115,7 +115,8 @@ namespace sdl {
         case scroll::Orientation::Horizontal:
           rMin = -viewport.w() / 2.0f + min * viewport.w();
           rMax = -viewport.w() / 2.0f + max * viewport.w();
-          center.x() = (rMin + rMax) / 2.0f;
+          // Reverse the motion along the `x` axis.
+          center.x() = -(rMin + rMax) / 2.0f;
           break;
         case scroll::Orientation::Vertical:
         default:
@@ -127,7 +128,11 @@ namespace sdl {
           break;
       }
 
-      utils::Vector2f motion = viewport.getCenter() - center;
+      // Note that as we're computing the position of the support widget compared
+      // to this rendering area we have to negate the computed center. Indeed the
+      // `viewport.getCenter()` retrieves the position of this widget compared to
+      // support one.
+      utils::Vector2f motion = center - viewport.getCenter();
 
       // Compute the start and end position from the motion itself.
       utils::Vector2f start = viewport.getCenter();
