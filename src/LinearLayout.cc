@@ -75,7 +75,6 @@ namespace sdl {
 
       // Loop until no more items can be used to adjust the space needed or all the
       // available space has been used up.
-      // TODO: Handle cases where the items are too large to fit into the layout ?
       while (!itemsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each item still

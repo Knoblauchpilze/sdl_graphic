@@ -673,7 +673,6 @@ namespace sdl {
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a column is available for adjustment: we only avoid another
       // indirection to fetch the item when performing the adjustments.
-      // TODO: Handle cases where the items are too large to fit into the columns ?
       while (!itemsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each column still
@@ -1078,7 +1077,6 @@ namespace sdl {
       // available space has been used up. As discussed, this is roughly equivalent to
       // checking whether a row is available for adjustment: we only avoid another
       // indirection to fetch the item when performing the adjustments.
-      // TODO: Handle cases where the items are too large to fit into the rows ?
       while (!itemsToAdjust.empty() && !allSpaceUsed) {
 
         // Compute the amount of space we will try to allocate to each row still
