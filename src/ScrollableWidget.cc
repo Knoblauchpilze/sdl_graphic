@@ -217,21 +217,25 @@ namespace sdl {
       bool updated = false;
       utils::Sizef max = getPreferredSizePrivate();
 
-      if (delta.x() < 0.0f && viewport.getLeftBound() + delta.x() >= -max.w() / 2.0f) {
-        area.x() += delta.x();
+      if (delta.x() < 0.0f) {
+        float offset = std::max(viewport.getLeftBound() + delta.x(), -max.w() / 2.0f);
+        area.x() = offset + viewport.w() / 2.0f;
         updated = true;
       }
-      if (delta.x() > 0.0f && viewport.getRightBound() + delta.x() <= max.w() / 2.0f) {
-        area.x() += delta.x();
+      if (delta.x() > 0.0f) {
+        float offset = std::min(viewport.getRightBound() + delta.x(), max.w() / 2.0f);
+        area.x() = offset - viewport.w() / 2.0f;
         updated = true;
       }
 
-      if (delta.y() < 0.0f && viewport.getBottomBound() + delta.y() >= -max.h() / 2.0f) {
-        area.y() += delta.y();
+      if (delta.y() < 0.0f) {
+        float offset = std::max(viewport.getBottomBound() + delta.y(), -max.h() / 2.0f);
+        area.y() = offset + viewport.h() / 2.0f;
         updated = true;
       }
-      if (delta.y() > 0.0f && viewport.getTopBound() + delta.y() <= max.h() / 2.0f) {
-        area.y() += delta.y();
+      if (delta.y() > 0.0f) {
+        float offset = std::min(viewport.getTopBound() + delta.y(), max.h() / 2.0f);
+        area.y() = offset - viewport.h() / 2.0f;
         updated = true;
       }
 
