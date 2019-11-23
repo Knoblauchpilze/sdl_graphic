@@ -77,6 +77,7 @@ namespace sdl {
     void
     ScrollableWidget::setupSupport(core::SdlWidget* /*widget*/) {
       // Empty implementation.
+      // TODO: Maybe we should assign a rendering area on the top left corner.
     }
 
     inline
