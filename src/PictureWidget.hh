@@ -4,6 +4,7 @@
 # include <memory>
 # include <string>
 # include <sdl_core/SdlWidget.hh>
+# include <sdl_engine/Image.hh>
 
 namespace sdl {
   namespace graphic {
@@ -65,15 +66,39 @@ namespace sdl {
 
       private:
 
-        std::string m_file;
-        Mode m_mode;
-        mutable utils::Uuid m_picture;
-        mutable bool m_picChanged;
-
         /**
-         * @brief - Used to protect concurrent accesses to the internal data of this label widget.
+         * @brief - Used to protect concurrent accesses to the internal data of this label
+         *          widget.
          */
         mutable std::mutex m_propsLocker;
+
+        /**
+         * @brief - The display mode of the picture. Allows to precisely place the picture in
+         *          the space available for this widget. Typical values include `Crop` and `Fit`.
+         */
+        Mode m_mode;
+
+        /**
+         * @brief - Holds the picture to use to represent this widget. This value is created
+         *          right upon building this widget and is used to provide an indication of
+         *          the expected size of this widget.
+         */
+        core::engine::ImageShPtr m_img;
+
+        /**
+         * @brief - Holds the identifier of the texture associated to this picture widget as
+         *          provided by the engine. This identifier may be empty in case the picture
+         *          element has not been repainted yet. Otherwise it represents an up-to-date
+         *          version of the picture unless the `m_picChanged` value is `true`.
+         */
+        mutable utils::Uuid m_picture;
+
+        /**
+         * @brief - Holds the current status of the picture's identifier. This value indicates
+         *          whether it's safe to use the `m_picture` value or a repaint operation should
+         *          be performed before.
+         */
+        mutable bool m_picChanged;
 
     };
 

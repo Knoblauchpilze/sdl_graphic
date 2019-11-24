@@ -10,7 +10,15 @@ namespace sdl {
     void
     PictureWidget::setImagePath(const std::string& path) {
       Guard guard(m_propsLocker);
-      m_file = path;
+
+      // Create a new image from the input path if needed.
+      if (path.empty()) {
+        m_img.reset();
+      }
+      else {
+        m_img = std::make_shared<core::engine::Image>(path);
+      }
+
       setPictureChanged();
     }
 
@@ -34,8 +42,8 @@ namespace sdl {
       clearPicture();
 
       // Load the image.
-      if (!m_file.empty()) {
-        m_picture = getEngine().createTextureFromFile(m_file, core::engine::Palette::ColorRole::Base);
+      if (m_img != nullptr) {
+        m_picture = getEngine().createTextureFromFile(m_img, core::engine::Palette::ColorRole::Base);
       }
     }
 
