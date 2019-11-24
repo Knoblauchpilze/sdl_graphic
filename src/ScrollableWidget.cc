@@ -79,6 +79,13 @@ namespace sdl {
       utils::Sizef thisSize = getRenderingArea().toSize();
       utils::Boxf viewport = support->getRenderingArea();
 
+      // In case the viewport is larger than the desired size of the support widget
+      // we don't want to do anything: we're already seeing the whole content.
+      utils::Boxf container = utils::Boxf::fromSize(thisSize, true);
+      if (container.contains(viewport)) {
+        return;
+      }
+
       float range = tMax - tMin;
       float localRange = 0.0f;
       switch (orientation) {
@@ -206,10 +213,19 @@ namespace sdl {
       core::SdlWidget* support = getSupportWidget();
       utils::Boxf area = support->getRenderingArea();
       utils::Sizef supportDims = area.toSize();
-      utils::Boxf viewport = utils::Boxf(
+      utils::Sizef thisSize = LayoutItem::getRenderingArea().toSize();
+      utils::Boxf viewport(
         area.getCenter(),
-        LayoutItem::getRenderingArea().toSize()
+        std::min(area.w(), thisSize.w()),
+        std::min(area.h(), thisSize.h())
       );
+
+      // In case the viewport is larger than the desired size of the support widget
+      // we don't want to do anything: we're already seeing the whole content.
+      utils::Boxf container = utils::Boxf::fromSize(thisSize, true);
+      if (container.contains(viewport)) {
+        return false;
+      }
 
       // Make sure that the delta does not mean displaying a non-existing part of
       // the support widget. This can be checked by verifying that the area's center
@@ -326,13 +342,20 @@ namespace sdl {
       // the expected box to apply to the support widget. We now
       // need to clamp it so that we don't try to display invalid
       // areas of the support widget.
-      // We will handle the right and bottom bounds last so that
-      // in case the support widget is too small to occupy the
-      // whole area available it gets nicely displayed on the top
-      // left corner: this comes from the fact that we're indeed
-      // trying to r
-      utils::Boxf expected(center, window.toSize());
-      utils::Boxf bounds = utils::Boxf::fromSize(hint, true);
+      // In order to handle widgets smaller than the viewport, we
+      // will create the expected area to be the minimum between
+      // the window's expected size and the hint size while the
+      // bounds will be the maximum of both sizes.
+      utils::Boxf expected(
+        center,
+        std::min(hint.w(), window.w()),
+        std::min(hint.h(), window.h())
+      );
+      utils::Boxf bounds(
+        utils::Vector2f(),
+        std::max(hint.w(), window.w()),
+        std::max(hint.h(), window.h())
+      );
 
       if (expected.getLeftBound() < bounds.getLeftBound()) {
         expected.x() += (bounds.getLeftBound() - expected.getLeftBound());
