@@ -59,7 +59,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         int
-        getLogicalIDFromPhysicalID(const int physID) const noexcept override;
+        getLogicalIDFromPhysicalID(int physID) const noexcept override;
 
         /**
          * @brief - Reimplementation of the base `Layout` method in order to associate
@@ -70,7 +70,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         int
-        getPhysicalIDFromLogicalID(const int logicID) const noexcept override;
+        getPhysicalIDFromLogicalID(int logicID) const noexcept override;
 
         /**
          * @brief - Reimplementation of the base `Layout` method to provide update of the
@@ -81,8 +81,8 @@ namespace sdl {
          *           and false otherwise.
          */
         bool
-        onIndexRemoved(const int logicID,
-                       const int physID) override;
+        onIndexRemoved(int logicID,
+                       int physID) override;
 
         /**
          * @brief - Used to handle the insertion of the input `item` at the specified

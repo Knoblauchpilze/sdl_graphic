@@ -67,8 +67,8 @@ namespace sdl {
          * @return - true as this layout always needs a rebuild when an item is removed.
          */
         bool
-        onIndexRemoved(const int logicID,
-                       const int physID) override;
+        onIndexRemoved(int logicID,
+                       int physID) override;
 
       protected:
 

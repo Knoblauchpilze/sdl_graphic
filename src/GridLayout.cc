@@ -228,8 +228,8 @@ namespace sdl {
     }
 
     bool
-    GridLayout::onIndexRemoved(const int /*logicID*/,
-                               const int /*physID*/)
+    GridLayout::onIndexRemoved(int /*logicID*/,
+                               int /*physID*/)
     {
       // We need to update the local information about items. This means basically updating the
       // `m_locations` attribute. In order to do so, we need to rely on some invariant properties

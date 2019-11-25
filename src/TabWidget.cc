@@ -21,7 +21,7 @@ namespace sdl {
     TabWidget::~TabWidget() {}
 
     void
-    TabWidget::insertTab(const int index,
+    TabWidget::insertTab(int index,
                          core::SdlWidget* item,
                          const std::string& text)
     {
@@ -81,7 +81,7 @@ namespace sdl {
     }
 
     void
-    TabWidget::removeTab(const int index) {
+    TabWidget::removeTab(int index) {
       // Try to find the name associated whith the input `index`.
       if (index < 0 || index >= static_cast<int>(m_tabs.size())) {
         error(
@@ -290,7 +290,7 @@ namespace sdl {
     }
 
     void
-    TabWidget::createTitleForWidget(const int index,
+    TabWidget::createTitleForWidget(int index,
                                     const std::string& text,
                                     const std::string& item,
                                     bool updateIDs)
@@ -389,7 +389,7 @@ namespace sdl {
     }
 
     void
-    TabWidget::removeIndexFromInternal(const int index) {
+    TabWidget::removeIndexFromInternal(int index) {
       // Create a new list and populate it with the new data.
       Tabs newTabs(m_tabs.size() - 1u);
 

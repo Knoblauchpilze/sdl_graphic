@@ -35,7 +35,7 @@ namespace sdl {
                  const InsertPolicy& policy,
                  core::SdlWidget* parent = nullptr,
                  const utils::Sizef& area = utils::Sizef(),
-                 const int maxVisibleItems = 5);
+                 int maxVisibleItems = 5);
 
         virtual ~ComboBox();
 
@@ -82,12 +82,12 @@ namespace sdl {
          *               ignored and no icon will be associated to the item.
          */
         void
-        insertItem(const int index,
+        insertItem(int index,
                    const std::string& text,
                    const std::string& icon = std::string());
 
         void
-        removeItem(const int index);
+        removeItem(int index);
 
       protected:
 

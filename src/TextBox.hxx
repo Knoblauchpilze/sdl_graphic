@@ -275,7 +275,7 @@ namespace sdl {
 
     inline
     void
-    TextBox::updateCursorToPosition(const unsigned pos) {
+    TextBox::updateCursorToPosition(unsigned pos) {
       const unsigned old = m_cursorIndex;
 
       // Clamp the position when assigning to the internal value. This formula has

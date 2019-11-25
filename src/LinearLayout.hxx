@@ -33,7 +33,7 @@ namespace sdl {
 
     inline
     int
-    LinearLayout::getLogicalIDFromPhysicalID(const int physID) const noexcept {
+    LinearLayout::getLogicalIDFromPhysicalID(int physID) const noexcept {
       // Assume we can't find the logical id.
       int logicID = -1;
 
@@ -52,7 +52,7 @@ namespace sdl {
 
     inline
     int
-    LinearLayout::getPhysicalIDFromLogicalID(const int logicID) const noexcept {
+    LinearLayout::getPhysicalIDFromLogicalID(int logicID) const noexcept {
       // Check whether the input logical id seems valid.
       if (logicID < 0 || logicID >= static_cast<int>(m_idsToPosition.size())) {
         return -1;

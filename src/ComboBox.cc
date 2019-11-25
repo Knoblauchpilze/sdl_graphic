@@ -14,7 +14,7 @@ namespace sdl {
                        const InsertPolicy& policy,
                        core::SdlWidget* parent,
                        const utils::Sizef& area,
-                       const int maxVisibleItems):
+                       int maxVisibleItems):
       core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::White),
 
       m_insertPolicy(policy),
@@ -37,7 +37,7 @@ namespace sdl {
     ComboBox::~ComboBox() {}
 
     void
-    ComboBox::insertItem(const int index,
+    ComboBox::insertItem(int index,
                          const std::string& text,
                          const std::string& icon)
     {
@@ -78,7 +78,7 @@ namespace sdl {
     }
 
     void
-    ComboBox::removeItem(const int index) {
+    ComboBox::removeItem(int index) {
       // Remove the corresponding item if it exists.
       if (index < 0 || index >= getItemsCount()) {
         error(

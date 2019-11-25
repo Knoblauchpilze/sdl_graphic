@@ -104,8 +104,8 @@ namespace sdl {
     }
 
     bool
-    SelectorLayout::onIndexRemoved(const int logicID,
-                                   const int /*physID*/)
+    SelectorLayout::onIndexRemoved(int logicID,
+                                   int /*physID*/)
     {
       log("Removing item " + std::to_string(logicID) + " from selector layout");
 

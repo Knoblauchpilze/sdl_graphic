@@ -214,7 +214,7 @@ namespace sdl {
          * @param pos - the position to assign to the cursor.
          */
         void
-        updateCursorToPosition(const unsigned pos);
+        updateCursorToPosition(unsigned pos);
 
         /**
          * @brief - Add the specified character to the internal text at the position specified

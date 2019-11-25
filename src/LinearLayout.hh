@@ -70,7 +70,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         int
-        getLogicalIDFromPhysicalID(const int physID) const noexcept override;
+        getLogicalIDFromPhysicalID(int physID) const noexcept override;
 
         /**
          * @brief - Reimplementation of the base `Layout` method in order to associate
@@ -81,7 +81,7 @@ namespace sdl {
          *           negative value if no such index exists in the layout.
          */
         int
-        getPhysicalIDFromLogicalID(const int logicID) const noexcept override;
+        getPhysicalIDFromLogicalID(int logicID) const noexcept override;
 
         /**
          * @brief - Reimplementation of the base `Layout` method to provide update of the
@@ -91,8 +91,8 @@ namespace sdl {
          * @return - true as this layout always needs a rebuild when an item is removed.
          */
         bool
-        onIndexRemoved(const int logicID,
-                       const int physID) override;
+        onIndexRemoved(int logicID,
+                       int physID) override;
 
         utils::Sizef
         computeAvailableSize(const utils::Boxf& totalArea) const noexcept override;

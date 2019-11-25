@@ -284,8 +284,8 @@ namespace sdl {
     }
 
     bool
-    LinearLayout::onIndexRemoved(const int logicID,
-                                 const int /*physID*/)
+    LinearLayout::onIndexRemoved(int logicID,
+                                 int /*physID*/)
     {
       // Now update the local information by removing the input item from the internal
       // table. We basically copy all the information except for the deleted item.

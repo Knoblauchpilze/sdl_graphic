@@ -55,7 +55,7 @@ namespace sdl {
          *               name will be used.
          */
         void
-        insertTab(const int index,
+        insertTab(int index,
                   core::SdlWidget* item,
                   const std::string& text = std::string());
 
@@ -65,7 +65,7 @@ namespace sdl {
          * @param index - the position of the tab widget to remove from this layout.
          */
         void
-        removeTab(const int index);
+        removeTab(int index);
 
         /**
          * @brief - Used to remove the tab widget specified by the input pointer. If no such
@@ -100,7 +100,7 @@ namespace sdl {
          *                    otherwise.
          */
         void
-        createTitleForWidget(const int index,
+        createTitleForWidget(int index,
                              const std::string& text,
                              const std::string& item,
                              bool updateIDs = true);
@@ -144,7 +144,7 @@ namespace sdl {
          * @param index - the index to remove from the internal list.
          */
         void
-        removeIndexFromInternal(const int index);
+        removeIndexFromInternal(int index);
 
       private:
 
