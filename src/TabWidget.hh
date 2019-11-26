@@ -80,6 +80,19 @@ namespace sdl {
       private:
 
         /**
+         * @brief - Used to define a maximum size for the titles that can be added to describe
+         *          the elements of a tab widget (i.e. the individual tabs). Defining a maximum
+         *          size helps to keep most of the available space for the tab itself. Note that
+         *          based on the orientation of the tab widget the size will either be applied
+         *          to the width or height of each title.
+         * @return - a value to use when defining any title so that it does not grow past a certain
+         *           point.
+         */
+        static
+        float
+        getMaximumSizeForTitle() noexcept;
+
+        /**
          * @brief - Used to build this component by creating the adequate layout and the component
          *          to use to represent each item of the tab widget.
          */

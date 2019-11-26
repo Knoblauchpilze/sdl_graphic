@@ -224,6 +224,8 @@ namespace sdl {
       // of widgets' titles.
       layoutName = getName() + "_titles_layout";
 
+      utils::Sizef maxSize = utils::Sizef::max();
+
       switch (m_tabLayout) {
         case TabPosition::North:
         case TabPosition::South:
@@ -234,6 +236,7 @@ namespace sdl {
             0.0f,
             1.0f
           );
+          maxSize.h() = getMaximumSizeForTitle();
           break;
         case TabPosition::West:
         case TabPosition::East:
@@ -244,6 +247,7 @@ namespace sdl {
             0.0f,
             1.0f
           );
+          maxSize.w() = getMaximumSizeForTitle();
           break;
         default:
           error(
@@ -254,6 +258,7 @@ namespace sdl {
       }
 
       m_titlesLayout->setNesting(core::Layout::Nesting::Deep);
+      m_titlesLayout->setMaxSize(maxSize);
 
       // Create the selector layout which will contain the various
       // widgets inserted into this component.

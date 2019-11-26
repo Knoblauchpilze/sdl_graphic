@@ -13,6 +13,12 @@ namespace sdl {
     }
 
     inline
+    float
+    TabWidget::getMaximumSizeForTitle() noexcept {
+      return 70.0f;
+    }
+
+    inline
     SelectorWidget&
     TabWidget::getSelector() {
       SelectorWidget* selector = getChildAs<SelectorWidget>(getSelectorName());
