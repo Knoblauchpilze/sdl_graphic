@@ -7,7 +7,10 @@ namespace sdl {
   namespace graphic {
 
     inline
-    Button::~Button() {}
+    Button::~Button() {
+      Guard guard(m_propsLocker);
+      clearBorders();
+    }
 
     inline
     const core::SdlWidget*
@@ -43,6 +46,11 @@ namespace sdl {
       if (e.getButton() == getClickButton()) {
         Guard guard(m_propsLocker);
 
+        // Update the role of the borders.
+        m_borders.hRole = getBorderAlternateColorRole();
+        m_borders.vRole = getBorderColorRole();
+
+        // Request a repaint to see the new look of the button.
         setBordersChanged();
       }
 
@@ -56,6 +64,11 @@ namespace sdl {
       if (e.getButton() == getClickButton()) {
         Guard guard(m_propsLocker);
 
+        // Update the role of the borders.
+        m_borders.hRole = getBorderColorRole();
+        m_borders.vRole = getBorderAlternateColorRole();
+
+        // Request a repaint to see the new look of the button.
         setBordersChanged();
       }
 
@@ -81,6 +94,18 @@ namespace sdl {
     }
 
     inline
+    core::engine::Palette::ColorRole
+    Button::getBorderColorRole() noexcept {
+      return core::engine::Palette::ColorRole::Background;
+    }
+
+    inline
+    core::engine::Palette::ColorRole
+    Button::getBorderAlternateColorRole() noexcept {
+      return core::engine::Palette::ColorRole::Dark;
+    }
+
+    inline
     bool
     Button::bordersChanged() const noexcept {
       return m_bordersChanged;
@@ -100,13 +125,48 @@ namespace sdl {
       // Clear existing borders.
       clearBorders();
 
-      // TODO: Create borders.
+      utils::Boxf area = LayoutItem::getRenderingArea();
+
+      m_borders.hBorder = getEngine().createTexture(
+        utils::Sizef(area.w(), getBorderDims()),
+        m_borders.hRole
+      );
+
+      if (!m_borders.hBorder.valid()) {
+        error(
+          std::string("Unable to create border for button"),
+          std::string("Horizontal border not valid")
+        );
+      }
+
+      m_borders.vBorder = getEngine().createTexture(
+        utils::Sizef(getBorderDims(), area.h()),
+        m_borders.vRole
+      );
+
+      if (!m_borders.vBorder.valid()) {
+        error(
+          std::string("Unable to create border for button"),
+          std::string("Vertical border not valid")
+        );
+      }
+
+      getEngine().fillTexture(m_borders.hBorder, getPalette());
+      getEngine().fillTexture(m_borders.vBorder, getPalette());
     }
 
     inline
     void
     Button::clearBorders() {
-      // TODO: Clear borders.
+      if (m_borders.hBorder.valid()) {
+        getEngine().destroyTexture(m_borders.hBorder);
+        m_borders.hBorder.invalidate();
+      }
+
+      if (m_borders.vBorder.valid()) {
+        getEngine().destroyTexture(m_borders.vBorder);
+        m_borders.vBorder.invalidate();
+      }
     }
 
   }

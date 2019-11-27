@@ -18,13 +18,19 @@ namespace sdl {
 
       m_propsLocker(),
 
-      m_bordersChanged(true)
+      m_bordersChanged(true),
+      m_borders(BordersData{
+        utils::Uuid(),
+        getBorderColorRole(),
+        utils::Uuid(),
+        getBorderAlternateColorRole()
+      })
    {
      build(icon, TextData{text, font, size});
    }
 
     void
-    Button::drawContentPrivate(const utils::Uuid& /*uuid*/,
+    Button::drawContentPrivate(const utils::Uuid& uuid,
                                const utils::Boxf& /*area*/)
     {
       // Acquire the lock on the attributes of this widget.
@@ -36,6 +42,32 @@ namespace sdl {
 
         m_bordersChanged = false;
       }
+
+      // Repaint the borders on the side of the widget.
+      // TODO: Handle the area.
+      utils::Boxf thisArea = LayoutItem::getRenderingArea().toOrigin();
+      utils::Sizef hSize = getEngine().queryTexture(m_borders.hBorder);
+      utils::Sizef vSize = getEngine().queryTexture(m_borders.vBorder);
+
+      // Vertical borders.
+      utils::Boxf vFromL(-thisArea.w() / 2.0f + vSize.w() / 2.0f, 0.0f, vSize);
+      utils::Boxf vFromLEngine = convertToEngineFormat(vFromL, thisArea);
+
+      utils::Boxf vFromR(thisArea.w() / 2.0f - vSize.w() / 2.0f, 0.0f, vSize);
+      utils::Boxf vFromREngine = convertToEngineFormat(vFromR, thisArea);
+
+      getEngine().drawTexture(m_borders.vBorder, nullptr, &uuid, &vFromLEngine);
+      getEngine().drawTexture(m_borders.vBorder, nullptr, &uuid, &vFromREngine);
+
+      // Horizontal borders.
+      utils::Boxf hFromT(0.0f, thisArea.h() / 2.0f - hSize.h() / 2.0f, hSize);
+      utils::Boxf hFromTEngine = convertToEngineFormat(hFromT, thisArea);
+
+      utils::Boxf hFromB(0.0f, -thisArea.h() / 2.0f + hSize.h() / 2.0f, hSize);
+      utils::Boxf hFromBEngine = convertToEngineFormat(hFromB, thisArea);
+
+      getEngine().drawTexture(m_borders.hBorder, nullptr, &uuid, &hFromTEngine);
+      getEngine().drawTexture(m_borders.hBorder, nullptr, &uuid, &hFromBEngine);
     }
 
     void

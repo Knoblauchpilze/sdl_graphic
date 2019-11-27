@@ -117,6 +117,25 @@ namespace sdl {
         getClickButton() noexcept;
 
         /**
+         * @brief - Retrieves the color role to use to display borders for their first possible
+         *          role. Indeed borders in button can have one of two roles based on whether
+         *          the button is pushed.
+         * @return - the first color role to make the borders' colors alternate.
+         */
+        static
+        core::engine::Palette::ColorRole
+        getBorderColorRole() noexcept;
+
+        /**
+         * @brief - Similar method as `getBorderColorRole` but returns the second possible color
+         *          role.
+         * @return - the second color role to make the borders' colors alternate.
+         */
+        static
+        core::engine::Palette::ColorRole
+        getBorderAlternateColorRole() noexcept;
+
+        /**
          * @brief - Used to create the layout needed to represent this button.
          * @param icon - the icon to use for this button.
          * @param text - the text to display for this button.
@@ -159,6 +178,19 @@ namespace sdl {
       private:
 
         /**
+         * @brief - Convenience structure describing the internal properties to use to represent
+         *          the borders for this button.
+         */
+        struct BordersData {
+          // TODO: Instead of horizontal and vertical we should have two sets of
+          // borders as we want to consecutive one to have the same color.
+          utils::Uuid hBorder;
+          core::engine::Palette::ColorRole hRole;
+          utils::Uuid vBorder;
+          core::engine::Palette::ColorRole vRole;
+        };
+
+        /**
          * @brief - Protects concurrent accesses to the properties of this button.
          */
         mutable std::mutex m_propsLocker;
@@ -168,6 +200,11 @@ namespace sdl {
          *          used as is.
          */
         bool m_bordersChanged;
+
+        /**
+         * @brief - The borders' data for this button.
+         */
+        BordersData m_borders;
     };
 
     using ButtonShPtr = std::shared_ptr<Button>;
