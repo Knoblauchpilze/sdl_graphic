@@ -34,6 +34,7 @@ namespace sdl {
     }
 
     PictureWidget::~PictureWidget() {
+      Guard guard(m_propsLocker);
       clearPicture();
     }
 
