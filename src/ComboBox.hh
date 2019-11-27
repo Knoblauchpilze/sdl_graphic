@@ -329,7 +329,6 @@ namespace sdl {
 
         int m_activeItem;
         ItemsMap m_items;
-
     };
 
     using ComboBoxShPtr = std::shared_ptr<ComboBox>;
