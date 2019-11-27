@@ -19,6 +19,7 @@ set (SOURCES
   ScrollArea.cc
   ScrollBar.cc
   ScrollableWidget.cc
+  Button.cc
   )
 
 add_library (sdl_graphic SHARED
