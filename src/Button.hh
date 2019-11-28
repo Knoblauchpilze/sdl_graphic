@@ -40,6 +40,14 @@ namespace sdl {
       protected:
 
         /**
+         * @brief - Reimplementation of the base class method to provide update of the borders
+         *          when a resize is requested.
+         * @param window - the available size to perform the update.
+         */
+        void
+        updatePrivate(const utils::Boxf& window) override;
+
+        /**
          * @brief - Reimplementation of the base `SdlWidget` method. This allows to draw some
          *          sort of border for this button to make it resemble to a button.
          * @param uuid - the identifier of the canvas which we can use to draw a text overlay.
@@ -182,12 +190,12 @@ namespace sdl {
          *          the borders for this button.
          */
         struct BordersData {
-          // TODO: Instead of horizontal and vertical we should have two sets of
-          // borders as we want to consecutive one to have the same color.
-          utils::Uuid hBorder;
-          core::engine::Palette::ColorRole hRole;
-          utils::Uuid vBorder;
-          core::engine::Palette::ColorRole vRole;
+          utils::Uuid hLightBorder;
+          utils::Uuid hDarkBorder;
+          utils::Uuid vLightBorder;
+          utils::Uuid vDarkBorder;
+
+          bool pressed;
         };
 
         /**

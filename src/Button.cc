@@ -21,13 +21,14 @@ namespace sdl {
       m_bordersChanged(true),
       m_borders(BordersData{
         utils::Uuid(),
-        getBorderColorRole(),
         utils::Uuid(),
-        getBorderAlternateColorRole()
+        utils::Uuid(),
+        utils::Uuid(),
+        false
       })
-   {
-     build(icon, TextData{text, font, size});
-   }
+    {
+      build(icon, TextData{text, font, size});
+    }
 
     void
     Button::drawContentPrivate(const utils::Uuid& uuid,
@@ -43,11 +44,17 @@ namespace sdl {
         m_bordersChanged = false;
       }
 
-      // Repaint the borders on the side of the widget.
+      // Repaint the borders on the side of the widget. Note that we assume that both
+      // areas are similar in size (light and dark ones).
       // TODO: Handle the area.
       utils::Boxf thisArea = LayoutItem::getRenderingArea().toOrigin();
-      utils::Sizef hSize = getEngine().queryTexture(m_borders.hBorder);
-      utils::Sizef vSize = getEngine().queryTexture(m_borders.vBorder);
+      utils::Sizef hSize = getEngine().queryTexture(m_borders.hLightBorder);
+      utils::Sizef vSize = getEngine().queryTexture(m_borders.vLightBorder);
+
+      utils::Uuid vl = (m_borders.pressed ? m_borders.vDarkBorder : m_borders.vLightBorder);
+      utils::Uuid vr = (m_borders.pressed ? m_borders.vLightBorder : m_borders.vDarkBorder);
+      utils::Uuid ht = (m_borders.pressed ? m_borders.vDarkBorder : m_borders.vLightBorder);
+      utils::Uuid hb = (m_borders.pressed ? m_borders.vLightBorder : m_borders.vDarkBorder);
 
       // Vertical borders.
       utils::Boxf vFromL(-thisArea.w() / 2.0f + vSize.w() / 2.0f, 0.0f, vSize);
@@ -56,8 +63,8 @@ namespace sdl {
       utils::Boxf vFromR(thisArea.w() / 2.0f - vSize.w() / 2.0f, 0.0f, vSize);
       utils::Boxf vFromREngine = convertToEngineFormat(vFromR, thisArea);
 
-      getEngine().drawTexture(m_borders.vBorder, nullptr, &uuid, &vFromLEngine);
-      getEngine().drawTexture(m_borders.vBorder, nullptr, &uuid, &vFromREngine);
+      getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
+      getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
 
       // Horizontal borders.
       utils::Boxf hFromT(0.0f, thisArea.h() / 2.0f - hSize.h() / 2.0f, hSize);
@@ -66,8 +73,8 @@ namespace sdl {
       utils::Boxf hFromB(0.0f, -thisArea.h() / 2.0f + hSize.h() / 2.0f, hSize);
       utils::Boxf hFromBEngine = convertToEngineFormat(hFromB, thisArea);
 
-      getEngine().drawTexture(m_borders.hBorder, nullptr, &uuid, &hFromTEngine);
-      getEngine().drawTexture(m_borders.hBorder, nullptr, &uuid, &hFromBEngine);
+      getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
+      getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
     }
 
     void
@@ -78,6 +85,10 @@ namespace sdl {
       Guard guard(m_propsLocker);
 
       // TODO: Should propagate the info to the children somehow.
+      // Note that doing nothing here prevents the repaint of this
+      // element which makes no update on hovering and thus kinda
+      // solve the problem.
+      // TODO: Should emit click.
     }
 
     void

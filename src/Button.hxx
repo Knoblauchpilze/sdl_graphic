@@ -40,6 +40,19 @@ namespace sdl {
     }
 
     inline
+    void
+    Button::updatePrivate(const utils::Boxf& window) {
+      // Use the base handler.
+      core::SdlWidget::updatePrivate(window);
+
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // Mark the borders as dirty.
+      setBordersChanged();
+    }
+
+    inline
     bool
     Button::mouseButtonPressEvent(const core::engine::MouseEvent& e) {
       // Check whether the button is the one to use to interact with the button.
@@ -47,11 +60,10 @@ namespace sdl {
         Guard guard(m_propsLocker);
 
         // Update the role of the borders.
-        m_borders.hRole = getBorderAlternateColorRole();
-        m_borders.vRole = getBorderColorRole();
+        m_borders.pressed = !m_borders.pressed;
 
         // Request a repaint to see the new look of the button.
-        setBordersChanged();
+        requestRepaint();
       }
 
       return core::SdlWidget::mouseButtonPressEvent(e);
@@ -65,11 +77,10 @@ namespace sdl {
         Guard guard(m_propsLocker);
 
         // Update the role of the borders.
-        m_borders.hRole = getBorderColorRole();
-        m_borders.vRole = getBorderAlternateColorRole();
+        m_borders.pressed = !m_borders.pressed;
 
         // Request a repaint to see the new look of the button.
-        setBordersChanged();
+        requestRepaint();
       }
 
       return core::SdlWidget::mouseButtonReleaseEvent(e);
@@ -127,45 +138,75 @@ namespace sdl {
 
       utils::Boxf area = LayoutItem::getRenderingArea();
 
-      m_borders.hBorder = getEngine().createTexture(
+      m_borders.hLightBorder = getEngine().createTexture(
         utils::Sizef(area.w(), getBorderDims()),
-        m_borders.hRole
+        getBorderColorRole()
       );
-
-      if (!m_borders.hBorder.valid()) {
+      if (!m_borders.hLightBorder.valid()) {
         error(
           std::string("Unable to create border for button"),
           std::string("Horizontal border not valid")
         );
       }
 
-      m_borders.vBorder = getEngine().createTexture(
-        utils::Sizef(getBorderDims(), area.h()),
-        m_borders.vRole
+      m_borders.hDarkBorder = getEngine().createTexture(
+        utils::Sizef(area.w(), getBorderDims()),
+        getBorderAlternateColorRole()
       );
+      if (!m_borders.hDarkBorder.valid()) {
+        error(
+          std::string("Unable to create border for button"),
+          std::string("Horizontal border not valid")
+        );
+      }
 
-      if (!m_borders.vBorder.valid()) {
+      m_borders.vLightBorder = getEngine().createTexture(
+        utils::Sizef(getBorderDims(), area.h()),
+        getBorderColorRole()
+      );
+      if (!m_borders.vLightBorder.valid()) {
         error(
           std::string("Unable to create border for button"),
           std::string("Vertical border not valid")
         );
       }
 
-      getEngine().fillTexture(m_borders.hBorder, getPalette());
-      getEngine().fillTexture(m_borders.vBorder, getPalette());
+      m_borders.vDarkBorder = getEngine().createTexture(
+        utils::Sizef(getBorderDims(), area.h()),
+        getBorderAlternateColorRole()
+      );
+      if (!m_borders.vDarkBorder.valid()) {
+        error(
+          std::string("Unable to create border for button"),
+          std::string("Vertical border not valid")
+        );
+      }
+
+      getEngine().fillTexture(m_borders.hLightBorder, getPalette());
+      getEngine().fillTexture(m_borders.hDarkBorder, getPalette());
+      getEngine().fillTexture(m_borders.vLightBorder, getPalette());
+      getEngine().fillTexture(m_borders.vDarkBorder, getPalette());
     }
 
     inline
     void
     Button::clearBorders() {
-      if (m_borders.hBorder.valid()) {
-        getEngine().destroyTexture(m_borders.hBorder);
-        m_borders.hBorder.invalidate();
+      if (m_borders.hLightBorder.valid()) {
+        getEngine().destroyTexture(m_borders.hLightBorder);
+        m_borders.hLightBorder.invalidate();
+      }
+      if (m_borders.hDarkBorder.valid()) {
+        getEngine().destroyTexture(m_borders.hDarkBorder);
+        m_borders.hDarkBorder.invalidate();
       }
 
-      if (m_borders.vBorder.valid()) {
-        getEngine().destroyTexture(m_borders.vBorder);
-        m_borders.vBorder.invalidate();
+      if (m_borders.vLightBorder.valid()) {
+        getEngine().destroyTexture(m_borders.vLightBorder);
+        m_borders.vLightBorder.invalidate();
+      }
+      if (m_borders.vDarkBorder.valid()) {
+        getEngine().destroyTexture(m_borders.vDarkBorder);
+        m_borders.vDarkBorder.invalidate();
       }
     }
 
