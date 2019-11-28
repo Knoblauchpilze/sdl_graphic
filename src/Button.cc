@@ -63,6 +63,8 @@ namespace sdl {
       utils::Boxf vFromR(thisArea.w() / 2.0f - vSize.w() / 2.0f, 0.0f, vSize);
       utils::Boxf vFromREngine = convertToEngineFormat(vFromR, thisArea);
 
+      // TODO: Maybe draw the dark borders last so that we always get the full repaint for
+      // these and they don't get hidden by the light ones.
       getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
       getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
 
