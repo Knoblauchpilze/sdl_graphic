@@ -89,8 +89,6 @@ namespace sdl {
       utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, thisArea);
       utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, thisArea);
 
-      log("Left area is " + vFromL.toString() + ", d is " + dVFromL.toString() + ", s is " + sVFromL.toString());
-
       // Draw borders. We want the dark borders to always be displayed on top so
       // that they get most of the area. This also guarantees consistent visual
       // aspect for the button.
