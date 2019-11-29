@@ -13,8 +13,9 @@ namespace sdl {
                    const std::string& font,
                    unsigned size,
                    core::SdlWidget* parent,
-                   const utils::Sizef& area):
-      core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::Yellow),
+                   const utils::Sizef& area,
+                   const core::engine::Color& color):
+      core::SdlWidget(name, area, parent, color),
 
       m_propsLocker(),
 
@@ -63,11 +64,6 @@ namespace sdl {
       utils::Boxf vFromR(thisArea.w() / 2.0f - vSize.w() / 2.0f, 0.0f, vSize);
       utils::Boxf vFromREngine = convertToEngineFormat(vFromR, thisArea);
 
-      // TODO: Maybe draw the dark borders last so that we always get the full repaint for
-      // these and they don't get hidden by the light ones.
-      getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
-      getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
-
       // Horizontal borders.
       utils::Boxf hFromT(0.0f, thisArea.h() / 2.0f - hSize.h() / 2.0f, hSize);
       utils::Boxf hFromTEngine = convertToEngineFormat(hFromT, thisArea);
@@ -75,8 +71,21 @@ namespace sdl {
       utils::Boxf hFromB(0.0f, -thisArea.h() / 2.0f + hSize.h() / 2.0f, hSize);
       utils::Boxf hFromBEngine = convertToEngineFormat(hFromB, thisArea);
 
-      getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
-      getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
+      // Draw borders. We want the dark borders to always be displayed on top so
+      // that they get most of the area. This also guarantees consistent visual
+      // aspect for the button.
+      if (m_borders.pressed) {
+        getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
+        getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
+        getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
+        getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
+      }
+      else {
+        getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
+        getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
+        getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
+        getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
+      }
     }
 
     void
@@ -90,7 +99,6 @@ namespace sdl {
       // Note that doing nothing here prevents the repaint of this
       // element which makes no update on hovering and thus kinda
       // solve the problem.
-      // TODO: Should emit click.
     }
 
     void

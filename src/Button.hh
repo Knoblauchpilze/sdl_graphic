@@ -18,7 +18,8 @@ namespace sdl {
                const std::string& font,
                unsigned size = 15,
                core::SdlWidget* parent = nullptr,
-               const utils::Sizef& area = utils::Sizef());
+               const utils::Sizef& area = utils::Sizef(),
+               const core::engine::Color& color = core::engine::Color::NamedColor::Silver);
 
         virtual ~Button();
 

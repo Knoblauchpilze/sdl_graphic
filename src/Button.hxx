@@ -107,7 +107,7 @@ namespace sdl {
     inline
     core::engine::Palette::ColorRole
     Button::getBorderColorRole() noexcept {
-      return core::engine::Palette::ColorRole::Background;
+      return core::engine::Palette::ColorRole::AlternateBase;
     }
 
     inline
