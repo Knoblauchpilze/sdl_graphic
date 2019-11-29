@@ -30,6 +30,12 @@ namespace sdl {
       // to at least request that the picture can be displayed in full.
       if (!area.valid()) {
         setSizeHint(m_img->getSize());
+        setSizePolicy(
+          sdl::core::SizePolicy(
+            sdl::core::SizePolicy::Name::Preferred,
+            sdl::core::SizePolicy::Name::Preferred
+          )
+        );
       }
     }
 
