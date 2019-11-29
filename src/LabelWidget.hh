@@ -184,7 +184,6 @@ namespace sdl {
          * @brief - Used to protect concurrent accesses to the internal data of this label widget.
          */
         std::mutex m_propsLocker;
-
     };
 
     using LabelWidgetShPtr = std::shared_ptr<LabelWidget>;

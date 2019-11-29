@@ -98,7 +98,6 @@ namespace sdl {
       private:
 
         bool m_switchOnLeftClick;
-
     };
 
     using SelectorWidgetShPtr = std::shared_ptr<SelectorWidget>;

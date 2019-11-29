@@ -99,7 +99,6 @@ namespace sdl {
          *          be performed before.
          */
         mutable bool m_picChanged;
-
     };
 
     using PictureWidgetShPtr = std::shared_ptr<PictureWidget>;

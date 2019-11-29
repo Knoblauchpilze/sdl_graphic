@@ -200,7 +200,6 @@ namespace sdl {
          *          the user).
          */
         Tabs m_tabs;
-
     };
 
     using TabWidgetShPtr = std::shared_ptr<TabWidget>;

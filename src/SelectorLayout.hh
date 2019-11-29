@@ -117,7 +117,6 @@ namespace sdl {
          *          rendering area to widgets based on their index in the layout.
          */
         IdToPosition m_idsToPosition;
-
     };
 
     using SelectorLayoutShPtr = std::shared_ptr<SelectorLayout>;
