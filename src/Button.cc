@@ -33,7 +33,7 @@ namespace sdl {
 
     void
     Button::drawContentPrivate(const utils::Uuid& uuid,
-                               const utils::Boxf& /*area*/)
+                               const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
       Guard guard(m_propsLocker);
@@ -47,44 +47,80 @@ namespace sdl {
 
       // Repaint the borders on the side of the widget. Note that we assume that both
       // areas are similar in size (light and dark ones).
-      // TODO: Handle the area.
       utils::Boxf thisArea = LayoutItem::getRenderingArea().toOrigin();
       utils::Sizef hSize = getEngine().queryTexture(m_borders.hLightBorder);
       utils::Sizef vSize = getEngine().queryTexture(m_borders.vLightBorder);
 
+      // Determine which borders should be displayed where based on the status of this
+      // button. According to whether it is pressed we will alternate the dark and light
+      // borders to create a feeling of depth.
       utils::Uuid vl = (m_borders.pressed ? m_borders.vDarkBorder : m_borders.vLightBorder);
       utils::Uuid vr = (m_borders.pressed ? m_borders.vLightBorder : m_borders.vDarkBorder);
       utils::Uuid ht = (m_borders.pressed ? m_borders.vDarkBorder : m_borders.vLightBorder);
       utils::Uuid hb = (m_borders.pressed ? m_borders.vLightBorder : m_borders.vDarkBorder);
 
-      // Vertical borders.
+      // Compute the position of each border based on its size and the size of this area.
       utils::Boxf vFromL(-thisArea.w() / 2.0f + vSize.w() / 2.0f, 0.0f, vSize);
-      utils::Boxf vFromLEngine = convertToEngineFormat(vFromL, thisArea);
-
       utils::Boxf vFromR(thisArea.w() / 2.0f - vSize.w() / 2.0f, 0.0f, vSize);
-      utils::Boxf vFromREngine = convertToEngineFormat(vFromR, thisArea);
-
-      // Horizontal borders.
       utils::Boxf hFromT(0.0f, thisArea.h() / 2.0f - hSize.h() / 2.0f, hSize);
-      utils::Boxf hFromTEngine = convertToEngineFormat(hFromT, thisArea);
-
       utils::Boxf hFromB(0.0f, -thisArea.h() / 2.0f + hSize.h() / 2.0f, hSize);
-      utils::Boxf hFromBEngine = convertToEngineFormat(hFromB, thisArea);
+
+      // Intersect these boxes with the input area to determine which part of the borders
+      // should be displayed.
+      utils::Boxf dVFromL = vFromL.intersect(area);
+      utils::Boxf dVFromR = vFromR.intersect(area);
+      utils::Boxf dHFromT = hFromT.intersect(area);
+      utils::Boxf dHFromB = hFromB.intersect(area);
+
+      // Determine the source area from the output area.
+      utils::Boxf sVFromL = convertToLocal(dVFromL, vFromL);
+      utils::Boxf sVFromR = convertToLocal(dVFromR, vFromR);
+      utils::Boxf sHFromT = convertToLocal(dHFromT, hFromT);
+      utils::Boxf sHFromB = convertToLocal(dHFromB, hFromB);
+
+      // Convert boxes to engine format.
+      utils::Boxf sVFromLEngine = convertToEngineFormat(sVFromL, vSize);
+      utils::Boxf sVFromREngine = convertToEngineFormat(sVFromR, vSize);
+      utils::Boxf sHFromTEngine = convertToEngineFormat(sHFromT, hSize);
+      utils::Boxf sHFromBEngine = convertToEngineFormat(sHFromB, hSize);
+
+      utils::Boxf dVFromLEngine = convertToEngineFormat(dVFromL, thisArea);
+      utils::Boxf dVFromREngine = convertToEngineFormat(dVFromR, thisArea);
+      utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, thisArea);
+      utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, thisArea);
+
+      log("Left area is " + vFromL.toString() + ", d is " + dVFromL.toString() + ", s is " + sVFromL.toString());
 
       // Draw borders. We want the dark borders to always be displayed on top so
       // that they get most of the area. This also guarantees consistent visual
       // aspect for the button.
       if (m_borders.pressed) {
-        getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
-        getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
-        getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
-        getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
+        if (dVFromR.valid()) {
+          getEngine().drawTexture(vr, &sVFromREngine, &uuid, &dVFromREngine);
+        }
+        if (dHFromB.valid()) {
+          getEngine().drawTexture(hb, &sHFromBEngine, &uuid, &dHFromBEngine);
+        }
+        if (dVFromL.valid()) {
+          getEngine().drawTexture(vl, &sVFromLEngine, &uuid, &dVFromLEngine);
+        }
+        if (dHFromT.valid()) {
+          getEngine().drawTexture(ht, &sHFromTEngine, &uuid, &dHFromTEngine);
+        }
       }
       else {
-        getEngine().drawTexture(vl, nullptr, &uuid, &vFromLEngine);
-        getEngine().drawTexture(ht, nullptr, &uuid, &hFromTEngine);
-        getEngine().drawTexture(vr, nullptr, &uuid, &vFromREngine);
-        getEngine().drawTexture(hb, nullptr, &uuid, &hFromBEngine);
+        if (dVFromL.valid()) {
+          getEngine().drawTexture(vl, &sVFromLEngine, &uuid, &dVFromLEngine);
+        }
+        if (dHFromT.valid()) {
+          getEngine().drawTexture(ht, &sHFromTEngine, &uuid, &dHFromTEngine);
+        }
+        if (dVFromR.valid()) {
+          getEngine().drawTexture(vr, &sVFromREngine, &uuid, &dVFromREngine);
+        }
+        if (dHFromB.valid()) {
+          getEngine().drawTexture(hb, &sHFromBEngine, &uuid, &dHFromBEngine);
+        }
       }
     }
 
