@@ -676,7 +676,7 @@ namespace sdl {
         utils::Boxf srcRect = convertToLocal(dstRectToUpdate, localDst);
 
         // Convert both the source and destination areas to engine format.
-        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(sizeText, true));
+        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, sizeText);
         utils::Boxf dstRectEngine = convertToEngineFormat(dstRectToUpdate, env);
 
         // Draw the `uuid` onto the `canvas` at last.

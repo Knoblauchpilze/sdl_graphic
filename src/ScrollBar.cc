@@ -125,7 +125,7 @@ namespace sdl {
         utils::Boxf dstRectEngine = convertToEngineFormat(dstRectForUpArrow, env);
 
         utils::Boxf srcRect = convertToLocal(dstRectForUpArrow, m_upArrow.box);
-        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
+        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, arrow);
 
         // Draw the texture.
         getEngine().drawTexture(m_upArrow.id, &srcRectEngine, &uuid, &dstRectEngine);
@@ -137,7 +137,7 @@ namespace sdl {
         utils::Boxf dstRectEngine = convertToEngineFormat(dstRectForSlider, env);
 
         utils::Boxf srcRect = convertToLocal(dstRectForSlider, m_slider.box);
-        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(slider, true));
+        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, slider);
 
         // Draw the texture.
         getEngine().drawTexture(m_slider.id, &srcRectEngine, &uuid, &dstRectEngine);
@@ -149,7 +149,7 @@ namespace sdl {
         utils::Boxf dstRectEngine = convertToEngineFormat(dstRectForDownArrow, env);
 
         utils::Boxf srcRect = convertToLocal(dstRectForDownArrow, m_downArrow.box);
-        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, utils::Boxf::fromSize(arrow, true));
+        utils::Boxf srcRectEngine = convertToEngineFormat(srcRect, arrow);
 
         // Draw the texture.
         getEngine().drawTexture(m_downArrow.id, &srcRectEngine, &uuid, &dstRectEngine);
