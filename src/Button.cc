@@ -125,19 +125,6 @@ namespace sdl {
     }
 
     void
-    Button::stateUpdatedFromFocus(const core::FocusState& /*state*/,
-                                  bool /*gainedFocus*/)
-    {
-      // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
-
-      // TODO: Should propagate the info to the children somehow.
-      // Note that doing nothing here prevents the repaint of this
-      // element which makes no update on hovering and thus kinda
-      // solve the problem.
-    }
-
-    void
     Button::build(const std::string& icon,
                   const TextData& text)
     {

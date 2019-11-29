@@ -87,6 +87,18 @@ namespace sdl {
     }
 
     inline
+    void
+    Button::stateUpdatedFromFocus(const core::FocusState& /*state*/,
+                                  bool /*gainedFocus*/)
+    {
+      // Do nothing here. This is to prevent the base class behavior of chaning
+      // the color role of the background and thus making obvious that the button
+      // is actually composed of several elements. We're okay with that because
+      // it only means that we won't get update when the widget gains or loses
+      // focus.
+    }
+
+    inline
     float
     Button::getBorderDims() noexcept {
       return 10.0f;
