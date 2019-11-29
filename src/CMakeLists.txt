@@ -20,6 +20,7 @@ set (SOURCES
   ScrollBar.cc
   ScrollableWidget.cc
   Button.cc
+  ProgressBar.cc
   )
 
 add_library (sdl_graphic SHARED
