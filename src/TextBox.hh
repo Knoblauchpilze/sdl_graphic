@@ -129,7 +129,7 @@ namespace sdl {
          *          the text associated to this textbox along with a visual representation of
          *          the cursor indicating the current character being edited should be drawn
          *          on the provided canvas. Only the specified part is updated by this function.
-         * @param uuid - the identifier of the canvas which we can use to draw a text overlay.
+         * @param uuid - the identifier of the canvas which we can use to draw the overlay.
          * @param area - the area of the canvas to update.
          */
         void

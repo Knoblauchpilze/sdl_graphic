@@ -127,7 +127,7 @@ namespace sdl {
 
         /**
          * @brief - Used to protect concurrent accesses to the internal data of this
-         *          progress bar.
+         *          gradient.
          */
         mutable std::mutex m_propsLocker;
 

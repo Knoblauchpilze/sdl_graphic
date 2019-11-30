@@ -51,7 +51,7 @@ namespace sdl {
         /**
          * @brief - Reimplementation of the base `SdlWidget` method. This allows to draw some
          *          sort of border for this button to make it resemble to a button.
-         * @param uuid - the identifier of the canvas which we can use to draw a text overlay.
+         * @param uuid - the identifier of the canvas which we can use to draw the overlay.
          * @param area - the area of the canvas to update.
          */
         void
