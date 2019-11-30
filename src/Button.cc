@@ -84,10 +84,10 @@ namespace sdl {
       utils::Boxf sHFromTEngine = convertToEngineFormat(sHFromT, hSize);
       utils::Boxf sHFromBEngine = convertToEngineFormat(sHFromB, hSize);
 
-      utils::Boxf dVFromLEngine = convertToEngineFormat(dVFromL, thisArea);
-      utils::Boxf dVFromREngine = convertToEngineFormat(dVFromR, thisArea);
-      utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, thisArea);
-      utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, thisArea);
+      utils::Boxf dVFromLEngine = convertToEngineFormat(dVFromL, area);
+      utils::Boxf dVFromREngine = convertToEngineFormat(dVFromR, area);
+      utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, area);
+      utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, area);
 
       // Draw borders. We want the dark borders to always be displayed on top so
       // that they get most of the area. This also guarantees consistent visual
