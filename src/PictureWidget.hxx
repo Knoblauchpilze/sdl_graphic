@@ -42,7 +42,7 @@ namespace sdl {
       clearPicture();
 
       // Load the image.
-      if (m_img != nullptr) {
+      if (m_img != nullptr && m_img->hasData()) {
         m_picture = getEngine().createTextureFromFile(m_img, core::engine::Palette::ColorRole::Base);
       }
     }
