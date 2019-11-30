@@ -34,7 +34,7 @@ namespace sdl {
       // Clear existing label if any.
       clearText();
 
-      // Load the text
+      // Load the text.
       if (!m_text.empty()) {
         if (!m_font.valid()) {
           // Load the font.
@@ -70,7 +70,7 @@ namespace sdl {
     inline
     void
     LabelWidget::setTextChanged() noexcept {
-      // The test is now dirty.
+      // The text is now dirty.
       m_textChanged = true;
 
       // Request a repaint.

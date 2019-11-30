@@ -18,6 +18,5 @@ namespace sdl {
     void
     ProgressBar::build() {}
 
-    using ProgressBarShPtr = std::shared_ptr<ProgressBar>;
   }
 }

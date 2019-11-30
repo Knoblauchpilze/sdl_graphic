@@ -42,10 +42,7 @@ namespace sdl {
                          const std::string& icon)
     {
       // Create a new item from the input data.
-      ComboBoxItem item = ComboBoxItem{
-        text,
-        icon
-      };
+      ComboBoxItem item = ComboBoxItem{text, icon};
 
       // Check the position of insertion: we want to correctly handle
       // cases where the index is either negative or larger than the
