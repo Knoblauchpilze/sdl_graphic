@@ -21,6 +21,7 @@ set (SOURCES
   ScrollableWidget.cc
   Button.cc
   ProgressBar.cc
+  Gradient.cc
   )
 
 add_library (sdl_graphic SHARED
