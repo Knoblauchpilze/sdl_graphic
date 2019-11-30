@@ -58,6 +58,45 @@ namespace sdl {
         void
         build();
 
+        /**
+         * @brief - Performs the rendering of the texture to use to represent the
+         *          gradient. Note that any existing texture is destroyed and that
+         *          no checks are performed to verify that the repaint is needed.
+         *          Assumes that the `m_propsLocker` is already locked.
+         */
+        void
+        loadGradientTex();
+
+        /**
+         * @brief - Destroys the texture contained in the `m_tex` identifier if it is valid
+         *          and invalidate it.
+         *          Should typically be used when recreating the texture after a modification
+         *          of the associated gradient.
+         *          Assumes that the `m_propsLocker` is already locked.
+         */
+        void
+        clearGradientTex();
+
+        /**
+         * @brief - Return `true` if the gradient has changed since the `m_tex` has been
+         *          created. Typically allows to detect whether the texture should be
+         *          recreated upon processing a repaint event or if we only need to draw
+         *          it again.
+         *          Assumes that the `m_propsLocker` is already locked.
+         * @return - `true` if at least one of the rendering properties have been modified and
+         *           `false` otherwise.
+         */
+        bool
+        gradientTexChanged() const noexcept;
+
+        /**
+         * @brief - Marks the gradient's texture as dirty and indicate that it should be
+         *          created again in the next call to the `drawContentPrivate` method.
+         *          Assumes that the `m_propsLocker` is already locked.
+         */
+        void
+        setGradientTexChanged() noexcept;
+
       private:
 
         /**
@@ -71,6 +110,20 @@ namespace sdl {
          *          will be represented by this object.
          */
         GradientShPtr m_gradient;
+
+        /**
+         * @brief - Used to determine whether the gradient has changed since it has
+         *          been drawn for the last time. As long as this value is `false`
+         *          the `m_tex` can be used as is, otherwise it should be recreated.
+         */
+        bool m_gradientChanged;
+
+        /**
+         * @brief - An identifier returned by the engine when creating the texture
+         *          representing the gradient. This texture is assumed valid as long
+         *          as the `m_gradientChanged` boolean is set to `false`.
+         */
+        utils::Uuid m_gradientTex;
     };
 
     using GradientWidgetShPtr = std::shared_ptr<GradientWidget>;
