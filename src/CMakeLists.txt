@@ -21,7 +21,6 @@ set (SOURCES
   ScrollableWidget.cc
   Button.cc
   ProgressBar.cc
-  Gradient.cc
   GradientWidget.cc
   )
 

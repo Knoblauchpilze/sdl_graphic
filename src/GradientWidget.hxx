@@ -15,7 +15,7 @@ namespace sdl {
 
     inline
     void
-    GradientWidget::setGradient(GradientShPtr gradient) {
+    GradientWidget::setGradient(core::engine::GradientShPtr gradient) {
       // Protect from concurrent accesses.
       Guard guard(m_propsLocker);
 
@@ -26,17 +26,29 @@ namespace sdl {
 
     inline
     void
+    GradientWidget::clearGradientTex() {
+      if (m_gradientTex.valid()) {
+        getEngine().destroyTexture(m_gradientTex);
+        m_gradientTex.invalidate();
+      }
+    }
+
+    inline
+    void
     GradientWidget::loadGradientTex() {
       // Clear existing label if any.
       clearGradientTex();
 
       // Create the gradient texture if needed.
       if (m_gradient != nullptr) {
-        // TODO: Create gradient texture.
-        m_gradientTex = getEngine().createTexture(
-          LayoutItem::getRenderingArea().toSize(),
-          core::engine::Palette::ColorRole::BrightText
-        );
+        // Use a brush to paint the texture representing the gradient.
+        // To do so we will sample the gradient at various percentages
+        // and report the corresponding color in the brush's canvas.
+        utils::Sizef area = LayoutItem::getRenderingArea().toSize();
+        core::engine::BrushShPtr brush = std::make_shared<core::engine::Brush>("grad_brush", area);
+        brush->drawGradient(*m_gradient);
+
+        m_gradientTex = getEngine().createTextureFromBrush(brush);
 
         if (!m_gradientTex.valid()) {
           error(
@@ -46,15 +58,6 @@ namespace sdl {
         }
 
         getEngine().fillTexture(m_gradientTex, getPalette());
-      }
-    }
-
-    inline
-    void
-    GradientWidget::clearGradientTex() {
-      if (m_gradientTex.valid()) {
-        getEngine().destroyTexture(m_gradientTex);
-        m_gradientTex.invalidate();
       }
     }
 

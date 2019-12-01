@@ -5,7 +5,7 @@
 # include <memory>
 # include <string>
 # include <sdl_core/SdlWidget.hh>
-# include "Gradient.hh"
+# include <sdl_engine/Gradient.hh>
 
 namespace sdl {
   namespace graphic {
@@ -22,7 +22,7 @@ namespace sdl {
          * @param hint - the size hint for this widget.
          */
         GradientWidget(const std::string& name,
-                       GradientShPtr gradient,
+                       core::engine::GradientShPtr gradient,
                        core::SdlWidget* parent = nullptr,
                        const utils::Sizef& hint = utils::Sizef());
 
@@ -34,7 +34,7 @@ namespace sdl {
          * @param gradient - the new gradient to assign to this object.
          */
         void
-        setGradient(GradientShPtr gradient);
+        setGradient(core::engine::GradientShPtr gradient);
 
       protected:
 
@@ -109,7 +109,7 @@ namespace sdl {
          * @brief - Describes the gradient associated to this widget. This gradient
          *          will be represented by this object.
          */
-        GradientShPtr m_gradient;
+        core::engine::GradientShPtr m_gradient;
 
         /**
          * @brief - Used to determine whether the gradient has changed since it has

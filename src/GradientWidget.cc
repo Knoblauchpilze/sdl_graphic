@@ -5,7 +5,7 @@ namespace sdl {
   namespace graphic {
 
     GradientWidget::GradientWidget(const std::string& name,
-                                   GradientShPtr gradient,
+                                   core::engine::GradientShPtr gradient,
                                    core::SdlWidget* parent,
                                    const utils::Sizef& hint):
       core::SdlWidget(name, hint, parent, core::engine::Color::NamedColor::Olive),
