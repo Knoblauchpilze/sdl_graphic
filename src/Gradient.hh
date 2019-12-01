@@ -94,6 +94,21 @@ namespace sdl {
         setColorAt(float coord,
                    const core::engine::Color& color);
 
+        /**
+         * @brief - Use to retrieve the color at the specified coordinate. The
+         *          returned color is either one of the stop color defined with
+         *          the `setColorAt` interface or a blend of the colors defined
+         *          for the closest stops.
+         *          If no stops are defined a transparent black color is returned.
+         *          In case the coordinate lies outside of the bounds defined for
+         *          the gradient, the closest color is returned.
+         * @param coord - the coordinate at which the color should be retrieved.
+         * @return - the color at the specified coordinate or transparent black.
+         */
+        core::engine::Color
+        getColorAt(float coord) const noexcept;
+
+
       private:
 
         /**
@@ -121,7 +136,23 @@ namespace sdl {
         bool
         isBeforeStop(float coord,
                      float stop,
-                     bool& replace) noexcept;
+                     bool& replace) const noexcept;
+
+        /**
+         * @brief - Used to compute the color mix to apply to the coordinate specified
+         *          by `coord` given the interval defined by both stops.
+         *          Note that providing identical stops will cause undefined behavior.
+         * @param low - the lower stop.
+         * @param high - the upper stop.
+         * @param coord - a coordinate supposedly lying in the range defined by the `low`
+         *                and `high` stop.
+         * @return - a color corresponding to the mix of `low` and `high` at the `coord`
+         *           coordinates point.
+         */
+        core::engine::Color
+        mixStops(const gradient::Stop& low,
+                 const gradient::Stop& high,
+                 float coord) const noexcept;
 
       private:
 

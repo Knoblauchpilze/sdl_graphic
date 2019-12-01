@@ -66,5 +66,92 @@ namespace sdl {
       it->second = color;
     }
 
+    core::engine::Color
+    Gradient::getColorAt(float coord) const noexcept {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      core::engine::Color transparentBlack = core::engine::Color::fromRGBA(0.0f, 0.0f, 0.0f, 0.0f);
+
+      // Check the case where no stops are provided.
+      if (m_stops.empty()) {
+        return transparentBlack;
+      }
+
+      // If a single stop is provided, we need to return its value
+      // as no matter where the `coord` is located compared to the
+      // stop's position the fill behavior will kicks in.
+      if (m_stops.size() == 1u) {
+        return m_stops[0u].second;
+      }
+
+      // Now check whether the `coord` is smaller than the first
+      // stop's location or larger than the last one: in these
+      // cases we want to return the corresponding color.
+      bool replace = false;
+
+      bool before = isBeforeStop(coord, m_stops[0u].first, replace);
+      if (before) {
+        return m_stops[0u].second;
+      }
+
+      before = isBeforeStop(m_stops.back().first, coord, replace);
+      if (before) {
+        return m_stops.back().second;
+      }
+
+      // At this point we know that the `coord` lies within the
+      // range defined by all the stops. it's just a matter of
+      // finding where.
+      unsigned id = 0u;
+      unsigned upBound = m_stops.size() - 1u;
+      bool smaller = true;
+
+      while (id < upBound && smaller) {
+        // If the current stop is smaller than the input `coord`, continue.
+        smaller = isBeforeStop(coord, m_stops[id + 1u].first, replace);
+        if (smaller) {
+          ++id;
+        }
+      }
+
+      // Check consistency.
+      if (id > upBound) {
+        log(
+          std::string("Could not determine color for coordinate ") + std::to_string(coord) +
+          ", last stop is " + std::to_string(m_stops.back().first),
+          utils::Level::Error
+        );
+
+        return transparentBlack;
+      }
+
+      // Mix colors for both stops.
+      return mixStops(m_stops[id], m_stops[id + 1u], coord);
+    }
+
+    core::engine::Color
+    Gradient::mixStops(const gradient::Stop& low,
+                       const gradient::Stop& high,
+                       float coord) const noexcept
+    {
+      // Compute the percentage of the interval corresponding to the
+      // `coord` position. We assume that the stops are different as
+      // they are provided by the internal methods.
+      float perc = std::min(1.0f, std::max(0.0f, (coord - low.first) / (high.first - low.first)));
+
+      float gradR = high.second.r() - low.second.r();
+      float gradG = high.second.g() - low.second.g();
+      float gradB = high.second.b() - low.second.b();
+      float gradA = high.second.a() - low.second.a();
+
+      return core::engine::Color::fromRGBA(
+        low.second.r() + perc * gradR,
+        low.second.g() + perc * gradG,
+        low.second.b() + perc * gradB,
+        low.second.a() + perc * gradA
+      );
+    }
+
   }
 }
