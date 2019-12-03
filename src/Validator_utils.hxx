@@ -36,7 +36,7 @@ namespace sdl {
     inline
     int
     convertToInt(const std::string& input,
-                bool* ok = nullptr) noexcept
+                 bool* ok = nullptr) noexcept
     {
       // Use the dedicated conversion function.
       char* end = nullptr;
@@ -70,7 +70,7 @@ namespace sdl {
     inline
     float
     convertToFloat(const std::string& input,
-                  bool* ok = nullptr) noexcept
+                   bool* ok = nullptr) noexcept
     {
       // Use the dedicated conversion function.
       size_t end;
