@@ -113,8 +113,13 @@ namespace sdl {
       // both elements.
       layout->addItem(gradWidget);
 
-      // Update the mask size from the initial empty completion.
-      updateMaskSizeFromCompletion();
+      // Theoretically we should update the mask size to ensure the empty
+      // initial completion. BUT as we might not have a queue yet the event
+      // might not be able to be posted anyway.
+      // Anyway as we should get a resize event quite early in the process
+      // and as we already set toeh `m_completion·` to be `0` it should be
+      // automatically enforced when the resize event is received. So we
+      // will consider the job done here.
     }
 
     void
