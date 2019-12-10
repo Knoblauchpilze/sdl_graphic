@@ -48,6 +48,7 @@ namespace sdl {
       // Repaint the borders on the side of the widget. Note that we assume that both
       // areas are similar in size (light and dark ones).
       utils::Boxf thisArea = LayoutItem::getRenderingArea().toOrigin();
+      utils::Sizef sizeEnv = getEngine().queryTexture(uuid);
       utils::Sizef hSize = getEngine().queryTexture(m_borders.hLightBorder);
       utils::Sizef vSize = getEngine().queryTexture(m_borders.vLightBorder);
 
@@ -84,10 +85,10 @@ namespace sdl {
       utils::Boxf sHFromTEngine = convertToEngineFormat(sHFromT, hSize);
       utils::Boxf sHFromBEngine = convertToEngineFormat(sHFromB, hSize);
 
-      utils::Boxf dVFromLEngine = convertToEngineFormat(dVFromL, area);
-      utils::Boxf dVFromREngine = convertToEngineFormat(dVFromR, area);
-      utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, area);
-      utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, area);
+      utils::Boxf dVFromLEngine = convertToEngineFormat(dVFromL, sizeEnv);
+      utils::Boxf dVFromREngine = convertToEngineFormat(dVFromR, sizeEnv);
+      utils::Boxf dHFromTEngine = convertToEngineFormat(dHFromT, sizeEnv);
+      utils::Boxf dHFromBEngine = convertToEngineFormat(dHFromB, sizeEnv);
 
       // Draw borders. We want the dark borders to always be displayed on top so
       // that they get most of the area. This also guarantees consistent visual
