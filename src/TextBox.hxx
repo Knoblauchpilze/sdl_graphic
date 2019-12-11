@@ -72,6 +72,25 @@ namespace sdl {
     }
 
     inline
+    void
+    TextBox::setValue(const std::string& value) {
+      // Acquire the lock on the attributes of this widget.
+      Guard guard(m_propsLocker);
+
+      // Stop any selection if needed.
+      if (m_selectionStarted) {
+        stopSelection();
+      }
+
+      // Assign the text.
+      m_text = value;
+      setTextChanged();
+
+      // Move to the end of the string.
+      updateCursorPosition(CursorMotion::Right, CursorMotionMode::ToEnd);
+    }
+
+    inline
     bool
     TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
       // Acquire the lock on the attributes of this widget.

@@ -56,6 +56,15 @@ namespace sdl {
         std::string
         getValue();
 
+        /**
+         * @brief - Used to assign a new value to the text box. This value might or might
+         *          not be valid, no checks will prevent any assignment here.
+         *          The cursor will be moved to the end of the new string.
+         * @param value - the new value to assign.
+         */
+        void
+        setValue(const std::string& value);
+
       protected:
 
         /**
