@@ -9,7 +9,7 @@ namespace sdl {
                          core::SdlWidget* parent,
                          const TabPosition& tabLayout,
                          const utils::Sizef& area):
-      core::SdlWidget(name, area, parent, core::engine::Color::NamedColor::Magenta),
+      core::SdlWidget(name, area, parent),
       m_tabLayout(tabLayout),
       m_titlesLayout(nullptr),
       m_tabCount(0u),
@@ -61,12 +61,12 @@ namespace sdl {
         // this occurs when we are inserting the second tab into this
         // widget.
         if (m_tabs.size() == 1u) {
-          createTitleForWidget(0u, m_tabs[0].tabName, m_tabs[0].itemName, false);
+          createTitleForWidget(0u, m_tabs[0].tabName, m_tabs[0].itemName, item->getPalette(), false);
         }
 
         // Use the dedicated handler to create the title widget for the
         // input `index`.
-        createTitleForWidget(index, title, item->getName());
+        createTitleForWidget(index, title, item->getName(), item->getPalette());
 
         // Activate the titles layout if needed (i.e. if at least two
         // tabs have been registered into this widget).
@@ -298,6 +298,7 @@ namespace sdl {
     TabWidget::createTitleForWidget(int index,
                                     const std::string& text,
                                     const std::string& item,
+                                    const core::engine::Palette& palette,
                                     bool updateIDs)
     {
       // Create the label widget which will represent this widget in the
@@ -320,7 +321,7 @@ namespace sdl {
         LabelWidget::VerticalAlignment::Center,
         this
       );
-      titleWidget->setPalette(getPalette());
+      titleWidget->setPalette(palette);
 
       // In order to correctly insert the item into the tabwidget we need
       // to both insert its representation into the selector layout but

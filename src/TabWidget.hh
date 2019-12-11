@@ -109,6 +109,7 @@ namespace sdl {
          *                internal titles layout.
          * @param text - the text which should be displayed for this title.
          * @param item - the name of the widget associated with this title.
+         * @param palette - the palette to assign to the widget representing the title.
          * @param updateIDs - true if the internal `m_tabs` array should be updated, false
          *                    otherwise.
          */
@@ -116,6 +117,7 @@ namespace sdl {
         createTitleForWidget(int index,
                              const std::string& text,
                              const std::string& item,
+                             const core::engine::Palette& palette,
                              bool updateIDs = true);
 
         /**
