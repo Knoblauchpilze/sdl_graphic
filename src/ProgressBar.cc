@@ -30,7 +30,7 @@ namespace sdl {
       if (m_completion != newComp) {
         log(
           "Progression is now " + std::to_string(newComp) + " (from " + std::to_string(m_completion) + ")",
-          utils::Level::Notice
+          utils::Level::Verbose
         );
 
         m_completion = newComp;
