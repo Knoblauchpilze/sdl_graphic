@@ -215,9 +215,6 @@ namespace sdl {
             float min = 1.0f * m_value / iRange;
             float max = 1.0f * (m_value + m_pageStep) / iRange;
 
-            scroll::Orientation o = m_orientation;
-            utils::Signal<scroll::Orientation, float, float>& ref = onValueChanged;
-
             log(
               "Emitting on value changed for " + getName() + " with range " +
               "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "] " +
@@ -225,12 +222,10 @@ namespace sdl {
               utils::Level::Notice
             );
 
-            withSafetyNet(
-              [&min, &max, &o, &ref](){
-                ref.emit(o, min, max);
-              },
-              std::string("onValueChanged::emit(") + std::to_string(static_cast<int>(o)) +
-              ", " + std::to_string(min) + std::to_string(max) + ")"
+            onValueChanged.safeEmit(
+              std::string("onValueChanged::emit(") + std::to_string(static_cast<int>(m_orientation)) +
+              ", " + std::to_string(min) + std::to_string(max) + ")",
+              m_orientation, min, max
             );
           }
 
