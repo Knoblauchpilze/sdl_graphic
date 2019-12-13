@@ -4,6 +4,7 @@
 # include <memory>
 # include <string>
 # include <core_utils/Uuid.hh>
+# include <core_utils/Signal.hh>
 # include <sdl_core/SdlWidget.hh>
 # include "Validator.hh"
 
@@ -100,6 +101,17 @@ namespace sdl {
          */
         bool
         keyPressEvent(const core::engine::KeyEvent& e) override;
+
+        /**
+         * @brief - Reimplementation of the base `EngineObject` method to provide
+         *          a validation of the text displayed in the box whenever the user
+         *          press either of the `Return` keys. The corresponding signal is
+         *          triggered as well.
+         * @param e - the event to interpret.
+         * @return - `true` if the event was recognized, `false` otherwise.
+         */
+        bool
+        keyReleaseEvent(const core::engine::KeyEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base `EngineObject` in order to provide
@@ -667,6 +679,15 @@ namespace sdl {
          *          being inserted.
          */
         ValidatorShPtr m_validator;
+
+      public:
+
+        /**
+         * @brief -  Triggered each time the user validates the content of the text box through the
+         *           return keys. Only emitted in this case and not whenever the value displayed in
+         *           the textbox changes.
+         */
+        utils::Signal<const std::string&> onValueChanged;
     };
 
     using TextBoxShPtr = std::shared_ptr<TextBox>;

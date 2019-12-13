@@ -35,7 +35,9 @@ namespace sdl {
 
       m_propsLocker(),
 
-      m_validator(nullptr)
+      m_validator(nullptr),
+
+      onValueChanged()
     {
       // Build the internal state of this box.
       build();

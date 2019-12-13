@@ -122,6 +122,29 @@ namespace sdl {
 
     inline
     bool
+    TextBox::keyReleaseEvent(const core::engine::KeyEvent& e) {
+      // Check whether the event concerns some sort of validation.
+      if (e.getRawKey() != core::engine::RawKey::Return &&
+          e.getRawKey() != core::engine::RawKey::KPEnter)
+      {
+        return core::SdlWidget::keyReleaseEvent(e);
+      }
+
+      // Retrieve the value for this textbox.
+      std::string value = getValue();
+
+      // Notify listeners: we don't want to protect from concurrent
+      // accesses here as we already retrieved the value.
+      onValueChanged.safeEmit(
+        std::string("onValueChanged(") + value + ")",
+        value
+      );
+
+      return core::SdlWidget::keyReleaseEvent(e);
+    }
+
+    inline
+    bool
     TextBox::canTriggerCursorMotion(const core::engine::RawKey& k) const noexcept {
       return
         k == core::engine::RawKey::Left ||
