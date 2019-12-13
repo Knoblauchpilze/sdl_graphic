@@ -271,7 +271,7 @@ namespace sdl {
 
       // Emit a signal to notify listeners of the new area of the support widget
       // displayed. Note that as we want to return the area visible for the support
-      // widget and not from the `ScrollableWidget` perspective we should negate 
+      // widget and not from the `ScrollableWidget` perspective we should negate
       // the center of the area (inversion of coordinate frame).
       if (!notify) {
         return true;

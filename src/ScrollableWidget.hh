@@ -241,7 +241,7 @@ namespace sdl {
         mouseButtonPressEvent(const core::engine::MouseEvent& e) override;
 
         /**
-         * @brief - Reimplementation of the base `core::SdlWidget` method to reset 
+         * @brief - Reimplementation of the base `core::SdlWidget` method to reset
          *          coordinates of the position to follow. Indeed to perform scrolling
          *          on this widget we fix a position that we want to keep below the
          *          current position of the mouse. This behavior should stop whenever
