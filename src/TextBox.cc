@@ -410,15 +410,15 @@ namespace sdl {
       // - in the case of an active selection we want to remove all the characters
       //   between the `m_selectionStart` and the `m_cursorIndex`.
       //
-      // In order to provide some kind of generic behqvior we will rely on providing
+      // In order to provide some kind of generic behavior we will rely on providing
       // two iterators representing the character to erase. This allows to seamlessly
       // handle both the selection and the single character deletion.
       unsigned toRemoveBegin = 0u;
       unsigned toRemoveEnd = 0u;
 
       if (selectionStarted()) {
-        toRemoveBegin = std::min(m_cursorIndex, m_selectionStart);
         toRemoveEnd = std::max(m_cursorIndex, m_selectionStart);
+        toRemoveBegin = std::min(m_cursorIndex, m_selectionStart);
       }
       else {
         if (forward) {
@@ -507,6 +507,12 @@ namespace sdl {
           ++id;
         }
       }
+
+      // In case we reach the last character of the text, we have to decrement the `id`
+      // by one: indeed in order to make sure that we check with all the text the loop
+      // condition reads `<= m_text.size()` but it can lead to having a value for the
+      // id of `m_text.size() + 1`: this is too much and we could go with `m_text.size()`.
+      id = std::min(id, static_cast<unsigned>(m_text.size()));
 
       // We determined the character which allows to move from left to right of the
       // cursor. We know need to determine whether the cursor should be placed on
