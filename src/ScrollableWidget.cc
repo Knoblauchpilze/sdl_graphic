@@ -203,11 +203,6 @@ namespace sdl {
         return false;
       }
 
-      // Compute the distance between the initial position and the desired one: it
-      // gives us an indication of the information of the translation to apply to
-      // the support widget.
-      utils::Vector2f delta(1.0f * motion.x(), 1.0f * motion.y());
-
       // Retrieve the current rendering area of the support widget and update its
       // position with the delta to apply.
       core::SdlWidget* support = getSupportWidget();
@@ -233,24 +228,24 @@ namespace sdl {
       bool updated = false;
       utils::Sizef max = getPreferredSizePrivate();
 
-      if (delta.x() < 0.0f) {
-        float offset = std::max(viewport.getLeftBound() + delta.x(), -max.w() / 2.0f);
+      if (motion.x() < 0.0f) {
+        float offset = std::max(viewport.getLeftBound() + motion.x(), -max.w() / 2.0f);
         area.x() = offset + viewport.w() / 2.0f;
         updated = true;
       }
-      if (delta.x() > 0.0f) {
-        float offset = std::min(viewport.getRightBound() + delta.x(), max.w() / 2.0f);
+      if (motion.x() > 0.0f) {
+        float offset = std::min(viewport.getRightBound() + motion.x(), max.w() / 2.0f);
         area.x() = offset - viewport.w() / 2.0f;
         updated = true;
       }
 
-      if (delta.y() < 0.0f) {
-        float offset = std::max(viewport.getBottomBound() + delta.y(), -max.h() / 2.0f);
+      if (motion.y() < 0.0f) {
+        float offset = std::max(viewport.getBottomBound() + motion.y(), -max.h() / 2.0f);
         area.y() = offset + viewport.h() / 2.0f;
         updated = true;
       }
-      if (delta.y() > 0.0f) {
-        float offset = std::min(viewport.getTopBound() + delta.y(), max.h() / 2.0f);
+      if (motion.y() > 0.0f) {
+        float offset = std::min(viewport.getTopBound() + motion.y(), max.h() / 2.0f);
         area.y() = offset - viewport.h() / 2.0f;
         updated = true;
       }
