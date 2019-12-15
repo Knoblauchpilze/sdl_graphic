@@ -161,8 +161,6 @@ namespace sdl {
       // argument.
       m_coordsToFollow = std::make_shared<utils::Vector2f>(coords);
 
-      log("Scrollable widget should follow " + coords.toString() + " on " + m_supportName, utils::Level::Notice);
-
       // Return the input coordinates.
       return coords;
     }
