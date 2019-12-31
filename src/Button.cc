@@ -136,8 +136,6 @@ namespace sdl {
         2.0f
       );
 
-      layout->allowLog(false);
-
       // And assign the layout to this widget.
       setLayout(layout);
 
@@ -183,6 +181,15 @@ namespace sdl {
 
         label->setFocusPolicy(core::FocusPolicy());
         label->setPalette(getPalette());
+      }
+
+      // Disable log for various component.
+      layout->allowLog(false);
+      if (pic != nullptr) {
+        pic->allowLog(false);
+      }
+      if (label != nullptr) {
+        label->allowLog(false);
       }
 
       // Add each item to the layout if needed.
