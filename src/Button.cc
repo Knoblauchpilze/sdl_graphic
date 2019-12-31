@@ -136,6 +136,8 @@ namespace sdl {
         2.0f
       );
 
+      layout->allowLog(false);
+
       // And assign the layout to this widget.
       setLayout(layout);
 
