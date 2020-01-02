@@ -67,7 +67,7 @@ namespace sdl {
       // - remove a character from the text displayed.
       // - stop processing selection.
       // - do nothing if the key is not handled.
-      const bool toReturn = core::SdlWidget::keyReleaseEvent(e);
+      const bool toReturn = core::SdlWidget::keyPressEvent(e);
 
       // We will handle first the motion of the cursor. It is triggered by using
       // the left and right arrows. The position is updated until no more move is
@@ -346,7 +346,9 @@ namespace sdl {
     void
     TextBox::build() {
       // Disable hovering focus: more precisely only allow click focus.
-      setFocusPolicy(core::FocusPolicy(core::focus::Type::Click));
+      core::FocusPolicy f(core::focus::Type::Click);
+      f.set(core::focus::Type::Tab);
+      setFocusPolicy(f);
 
       // Build a palette which has the same selection color as the base
       // background color.

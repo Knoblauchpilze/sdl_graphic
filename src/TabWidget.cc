@@ -183,7 +183,6 @@ namespace sdl {
       //
       // According to the tab layout associated to this widget
       // we should create the layout accordingly.
-
       LinearLayoutShPtr layout;
 
       std::string layoutName = getName() + "_layout";
@@ -322,6 +321,9 @@ namespace sdl {
         this
       );
       titleWidget->setPalette(palette);
+
+      // Allow hover focus on titles.
+      titleWidget->setFocusPolicy(core::FocusPolicy(core::focus::Type::Hover));
 
       // In order to correctly insert the item into the tabwidget we need
       // to both insert its representation into the selector layout but
