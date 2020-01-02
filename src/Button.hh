@@ -9,6 +9,19 @@
 namespace sdl {
   namespace graphic {
 
+    namespace button {
+
+      /**
+       * @brief - Various mode for a button: can describe a regular button or a toggle
+       *          button which stays in a state until the user clicks again on it.
+       */
+      enum class Type {
+        Regular,
+        Toggle
+      };
+
+    }
+
     class Button: public core::SdlWidget {
       public:
 
@@ -16,6 +29,7 @@ namespace sdl {
                const std::string& text,
                const std::string& icon,
                const std::string& font,
+               const button::Type& type = button::Type::Regular,
                unsigned size = 15,
                core::SdlWidget* parent = nullptr,
                const utils::Sizef& area = utils::Sizef(),
@@ -57,6 +71,16 @@ namespace sdl {
         void
         drawContentPrivate(const utils::Uuid& uuid,
                            const utils::Boxf& area) override;
+
+        /**
+         * @brief - Reimplementation of the base class method to handle cases where the mouse
+         *          is dragged to another widget which would prevent the button to be reset in
+         *          its initial state.
+         * @param e - the event to be interpreted.
+         * @return - `true` if the event was recognized and `false` otherwise.
+         */
+        bool
+        dropEvent(const core::engine::DropEvent& e) override;
 
         /**
          * @brief - Reimplementation of the base class method to provide update of the borders
@@ -184,7 +208,27 @@ namespace sdl {
         void
         clearBorders();
 
+        /**
+         * @brief - Used whenever a meaningful mouse button release event is detected. We want to
+         *          toggle the button if needed and update the borders so that they are accurately
+         *          reflecting the state of the button.
+         *          Note that the locker is assumed to already be acquired.
+         */
+        void
+        updateButtonState();
+
       private:
+
+        /**
+         * @brief - Convenience enumeration describing the current state of the button. This is
+         *          useful in addition to the `pressed` status of the border to allow determine
+         *          precisely the current appearance of the button.
+         */
+        enum class State {
+          Released,
+          Pressed,
+          Toggled
+        };
 
         /**
          * @brief - Convenience structure describing the internal properties to use to represent
@@ -205,6 +249,12 @@ namespace sdl {
         mutable std::mutex m_propsLocker;
 
         /**
+         * @brief - The type of the button. It describes the behavior of the button
+         *          when it is clicked.
+         */
+        button::Type m_type;
+
+        /**
          * @brief - Describes whether the borders should be recomputed or can be
          *          used as is.
          */
@@ -214,6 +264,13 @@ namespace sdl {
          * @brief - The borders' data for this button.
          */
         BordersData m_borders;
+
+        /**
+         * @brief - The current state of the button. This state can only be changed
+         *          through a complete sequence mouse button click and mouse button
+         *          release occurring inside the button.
+         */
+        State m_state;
     };
 
     using ButtonShPtr = std::shared_ptr<Button>;

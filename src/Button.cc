@@ -11,6 +11,7 @@ namespace sdl {
                    const std::string& text,
                    const std::string& icon,
                    const std::string& font,
+                   const button::Type& type,
                    unsigned size,
                    core::SdlWidget* parent,
                    const utils::Sizef& area,
@@ -19,6 +20,8 @@ namespace sdl {
 
       m_propsLocker(),
 
+      m_type(type),
+
       m_bordersChanged(true),
       m_borders(BordersData{
         utils::Uuid(),
@@ -26,7 +29,8 @@ namespace sdl {
         utils::Uuid(),
         utils::Uuid(),
         false
-      })
+      }),
+      m_state(State::Released)
     {
       build(icon, TextData{text, font, size});
     }
