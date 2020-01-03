@@ -80,7 +80,10 @@ namespace sdl {
 
         if (m_state != State::Toggled) {
           // Update the role of the borders.
-          m_borders.pressed = !m_borders.pressed;
+          m_borders.pressed = false;
+
+          // And reset the state of the button.
+          m_state = State::Released;
 
           // Request a repaint to see the new look of the button.
           requestRepaint();
@@ -96,7 +99,10 @@ namespace sdl {
       // want to change anything to the button state. On the other hand
       // if it originated inside this widget we want to make it just like
       // it was a regular mouse button release event.
-      if (e.getButton() == getClickButton() && b.contains(localS)) {
+      if (e.getButton() == getClickButton() &&
+          b.contains(localS) &&
+          b.contains(localE))
+      {
         Guard guard(m_propsLocker);
 
         updateButtonState();
@@ -149,18 +155,6 @@ namespace sdl {
       }
 
       return core::SdlWidget::mouseButtonReleaseEvent(e);
-    }
-
-    inline
-    void
-    Button::stateUpdatedFromFocus(const core::FocusState& /*state*/,
-                                  bool /*gainedFocus*/)
-    {
-      // Do nothing here. This is to prevent the base class behavior of chaning
-      // the color role of the background and thus making obvious that the button
-      // is actually composed of several elements. We're okay with that because
-      // it only means that we won't get update when the widget gains or loses
-      // focus.
     }
 
     inline

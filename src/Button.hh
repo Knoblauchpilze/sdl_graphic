@@ -100,18 +100,6 @@ namespace sdl {
         bool
         mouseButtonReleaseEvent(const core::engine::MouseEvent& e) override;
 
-        /**
-         * @brief - Reimplementation of the base `SdlWidget` method to handle the highlight
-         *          of this element. We want to progpagate the information to the children
-         *          so that we keep a consistent state among all the button.
-         * @param state - the current state of this widget.
-         * @param gainedFocus - `true` if `this` widget just gained focus, `false` if it
-         *                      lost the focus.
-         */
-        void
-        stateUpdatedFromFocus(const core::FocusState& state,
-                              bool gainedFocus) override;
-
       private:
 
         /**
@@ -135,7 +123,7 @@ namespace sdl {
         /**
          * @brief - Used to retrieve the maximum size available for an icon in a button. This
          *          size is assigned when creating the icon for any button.
-         * @return - a size describing the icon maximum dimensions.
+         * @return - a size describing the icon's maximum dimensions.
          */
         static
         utils::Sizef
