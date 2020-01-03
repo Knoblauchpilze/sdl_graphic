@@ -22,6 +22,7 @@ set (SOURCES
   Button.cc
   ProgressBar.cc
   GradientWidget.cc
+  Checkbox.cc
   )
 
 add_library (sdl_graphic SHARED
