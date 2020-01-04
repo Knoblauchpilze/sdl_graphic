@@ -14,6 +14,7 @@ namespace sdl {
                    const button::Type& type,
                    unsigned size,
                    core::SdlWidget* parent,
+                   float bordersSize,
                    const utils::Sizef& area,
                    const core::engine::Color& color):
       core::SdlWidget(name, area, parent, color),
@@ -28,6 +29,9 @@ namespace sdl {
         utils::Uuid(),
         utils::Uuid(),
         utils::Uuid(),
+
+        std::max(0.0f, bordersSize),
+
         false
       }),
       m_state(State::Released)
@@ -136,7 +140,7 @@ namespace sdl {
         "button_layout",
         this,
         LinearLayout::Direction::Horizontal,
-        getBorderDims(),
+        m_borders.size,
         2.0f
       );
 

@@ -32,6 +32,7 @@ namespace sdl {
                const button::Type& type = button::Type::Regular,
                unsigned size = 15,
                core::SdlWidget* parent = nullptr,
+               float bordersSize = 10.0f,
                const utils::Sizef& area = utils::Sizef(),
                const core::engine::Color& color = core::engine::Color::NamedColor::Silver);
 
@@ -111,14 +112,6 @@ namespace sdl {
           std::string font;
           unsigned size;
         };
-
-        /**
-         * @brief - Used to retrieve the border's dimensions for this button.
-         * @return - a value representing the borders' dimensions.
-         */
-        static
-        float
-        getBorderDims() noexcept;
 
         /**
          * @brief - Used to retrieve the maximum size available for an icon in a button. This
@@ -227,6 +220,8 @@ namespace sdl {
           utils::Uuid hDarkBorder;
           utils::Uuid vLightBorder;
           utils::Uuid vDarkBorder;
+
+          float size;
 
           bool pressed;
         };

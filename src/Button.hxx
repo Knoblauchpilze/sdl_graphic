@@ -158,12 +158,6 @@ namespace sdl {
     }
 
     inline
-    float
-    Button::getBorderDims() noexcept {
-      return 10.0f;
-    }
-
-    inline
     utils::Sizef
     Button::getIconMaxDims() noexcept {
       return utils::Sizef(100.0f, 100.0f);
@@ -210,7 +204,7 @@ namespace sdl {
       utils::Boxf area = LayoutItem::getRenderingArea();
 
       m_borders.hLightBorder = getEngine().createTexture(
-        utils::Sizef(area.w(), getBorderDims()),
+        utils::Sizef(area.w(), m_borders.size),
         getBorderColorRole()
       );
       if (!m_borders.hLightBorder.valid()) {
@@ -221,7 +215,7 @@ namespace sdl {
       }
 
       m_borders.hDarkBorder = getEngine().createTexture(
-        utils::Sizef(area.w(), getBorderDims()),
+        utils::Sizef(area.w(), m_borders.size),
         getBorderAlternateColorRole()
       );
       if (!m_borders.hDarkBorder.valid()) {
@@ -232,7 +226,7 @@ namespace sdl {
       }
 
       m_borders.vLightBorder = getEngine().createTexture(
-        utils::Sizef(getBorderDims(), area.h()),
+        utils::Sizef(m_borders.size, area.h()),
         getBorderColorRole()
       );
       if (!m_borders.vLightBorder.valid()) {
@@ -243,7 +237,7 @@ namespace sdl {
       }
 
       m_borders.vDarkBorder = getEngine().createTexture(
-        utils::Sizef(getBorderDims(), area.h()),
+        utils::Sizef(m_borders.size, area.h()),
         getBorderAlternateColorRole()
       );
       if (!m_borders.vDarkBorder.valid()) {
