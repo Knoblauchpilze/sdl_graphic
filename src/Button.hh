@@ -53,6 +53,18 @@ namespace sdl {
         const core::SdlWidget*
         getItemAt(const utils::Vector2f& pos) const noexcept override;
 
+        /**
+         * @brief - Used to switch the state of this button to be toggled or not based on the
+         *          value of the input boolean. Note that this might mess up the events based
+         *          handling of the state so use with care.
+         *          Note also that this method does not have any effect if the button is not
+         *          a toggle button.
+         * @param toggled - `true` if the button state should be set to `Toggled` and `false`
+         *                  otherwise.
+         */
+        void
+        toggle(bool toggled);
+
       protected:
 
         /**

@@ -41,6 +41,35 @@ namespace sdl {
 
     inline
     void
+    Button::toggle(bool toggled) {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      // Check whether the type of the button allows for this manipulation.
+      if (m_type == button::Type::Toggle) {
+        // Un/toggle the button as needed.
+        bool change = (m_state != State::Toggled && toggled) || (m_state != State::Released && !toggled);
+
+        if (change) {
+          // Update the role of the borders.
+          bool old = m_borders.pressed;
+          m_borders.pressed = toggled;
+
+          if (old != m_borders.pressed) {
+            setBordersChanged();
+          }
+
+          // And the state of the buttno.
+          m_state = (toggled ? State::Toggled : State::Released);
+
+          // Request a repaint to see the new look of the button.
+          requestRepaint();
+        }
+      }
+    }
+
+    inline
+    void
     Button::updatePrivate(const utils::Boxf& window) {
       // Use the base handler.
       core::SdlWidget::updatePrivate(window);
