@@ -65,6 +65,15 @@ namespace sdl {
         void
         toggle(bool toggled);
 
+        /**
+         * @brief - Used to determine whether the button is toggled as the time of calling
+         *          this method. Note that in the case of a `Regular` button this method
+         *          can never return `true`.
+         * @return - `true` if the button is toggled and `false` otherwise.
+         */
+        bool
+        toggled();
+
       protected:
 
         /**

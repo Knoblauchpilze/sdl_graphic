@@ -69,6 +69,15 @@ namespace sdl {
     }
 
     inline
+    bool
+    Button::toggled() {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      return m_state == State::Toggled;
+    }
+
+    inline
     void
     Button::updatePrivate(const utils::Boxf& window) {
       // Use the base handler.
