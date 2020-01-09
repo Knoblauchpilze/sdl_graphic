@@ -40,6 +40,32 @@ namespace sdl {
     }
 
     inline
+    bool
+    Checkbox::toggled() {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      return m_toggled;
+    }
+
+    inline
+    void
+    Checkbox::toggle(bool toggled) {
+      // Un/toggle the checkbox as needed.
+      bool change = (m_toggled != toggled);
+
+      if (change) {
+        Guard guard(m_propsLocker);
+
+        m_toggled = toggled;
+
+        // Request a repaint to see the new look
+        // of the checkbox.
+        setBoxChanged();
+      }
+    }
+
+    inline
     void
     Checkbox::updatePrivate(const utils::Boxf& window) {
       // Use the base handler.

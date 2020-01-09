@@ -38,6 +38,23 @@ namespace sdl {
         const core::SdlWidget*
         getItemAt(const utils::Vector2f& pos) const noexcept override;
 
+        /**
+         * @brief - Allow to check whether the checkbox is toggled.
+         * @return - `true` if the checkbox is toggled and `false` otherwise.
+         */
+        bool
+        toggled();
+
+        /**
+         * @brief - Used to switch the state of this checkbox to be toggled or not based on the
+         *          value of the input boolean. Note that this might mess up the events based
+         *          handling of the state so use with care.
+         * @param toggled - `true` if the checkbox state should be set to `Toggled` and `false`
+         *                  otherwise.
+         */
+        void
+        toggle(bool toggled);
+
       protected:
 
         /**
