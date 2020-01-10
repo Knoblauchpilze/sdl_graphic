@@ -1,6 +1,7 @@
 #ifndef    SELECTOR_WIDGET_HH
 # define   SELECTOR_WIDGET_HH
 
+# include <mutex>
 # include <memory>
 # include <string>
 # include <vector>
@@ -29,18 +30,6 @@ namespace sdl {
         setActiveWidget(int index);
 
         /**
-         * @brief - Used to switch to the next item in the layout and activate it.
-         *          According to the order into which the items have been inserted
-         *          in this widget this method will activate the next available
-         *          item in the list.
-         *          If no item is currently selected the first one will be selected
-         *          and if no more items can be found, it will loop over to the first
-         *          item.
-         */
-        void
-        switchToNext();
-
-        /**
          * @brief - Used to insert the input `widget` at the specified `index` in the
          *          internal layout. Raises an error if the insertion cannot be performed
          *          for some reason.
@@ -65,6 +54,14 @@ namespace sdl {
         int
         removeItem(core::SdlWidget* widget);
 
+        /**
+         * @brief - Return the current active widget in the selector. A value of `0` is returned
+         *          in case there are no items registered in this element.
+         * @return - a value indicating the current active widget.
+         */
+        int
+        getActiveItem();
+
       protected:
 
         /**
@@ -87,6 +84,19 @@ namespace sdl {
         bool
         gainFocusEvent(const core::engine::FocusEvent& e) override;
 
+        /**
+         * @brief - Used to switch to the next item in the layout and activate it.
+         *          According to the order into which the items have been inserted
+         *          in this widget this method will activate the next available
+         *          item in the list.
+         *          If no item is currently selected the first one will be selected
+         *          and if no more items can be found, it will loop over to the first
+         *          item.
+         *          Assumes that the locker is already acquired.
+         */
+        void
+        switchToNext();
+
       private:
 
         bool
@@ -97,7 +107,24 @@ namespace sdl {
 
       private:
 
+        /**
+         * @brief - Protects this widget from concurrent accesses.
+         */
+        std::mutex m_propsLocker;
+
+
+        /**
+         * @brief - Describes whether a left click on this widget should select the next
+         *          registered item.
+         */
         bool m_switchOnLeftClick;
+
+        /**
+         * @brief - Holds an indication of the current active item for this selector. Note
+         *          that it is a copy of the data kept internally by the related layout so
+         *          there's not much to be gain from this info.
+         */
+        int m_activeItem;
     };
 
     using SelectorWidgetShPtr = std::shared_ptr<SelectorWidget>;

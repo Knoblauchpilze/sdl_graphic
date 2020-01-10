@@ -9,19 +9,25 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
-      getLayout().setActiveItem(name);
+      Guard guard(m_propsLocker);
+
+      m_activeItem = getLayout().setActiveItem(name);
     }
 
     inline
     void
     SelectorWidget::setActiveWidget(int index) {
-      getLayout().setActiveItem(index);
+      Guard guard(m_propsLocker);
+
+      m_activeItem = getLayout().setActiveItem(index);
     }
 
     inline
-    void
-    SelectorWidget::switchToNext() {
-      getLayout().switchToNext();
+    int
+    SelectorWidget::getActiveItem() {
+      Guard guard(m_propsLocker);
+
+      return m_activeItem;
     }
 
     inline
@@ -42,6 +48,7 @@ namespace sdl {
       // Also we want to only trigger the switch if the event originated in the
       // child: indeed we do not want to consider a focus event from deep in the
       // hierarchy as requesting the switch to the next child.
+      Guard guard(m_propsLocker);
 
       // First thing to verify is that the `switchOnClick` behavior is activated.
       // It can be deactivated for various reasons, either because it is really
@@ -86,6 +93,12 @@ namespace sdl {
       // So at this point we just want to return whether the event was handled: it is
       // the case as we knew how to deal with it.
       return true;
+    }
+
+    inline
+    void
+    SelectorWidget::switchToNext() {
+      m_activeItem = getLayout().switchToNext();
     }
 
     inline

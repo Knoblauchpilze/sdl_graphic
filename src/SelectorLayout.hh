@@ -23,10 +23,10 @@ namespace sdl {
         addItem(core::LayoutItem* item,
                 int index) override;
 
-        void
+        int
         setActiveItem(const std::string& name);
 
-        void
+        int
         setActiveItem(int index);
 
         /**
@@ -37,8 +37,9 @@ namespace sdl {
          *          If no item is currently selected the first one will be selected
          *          and if no more items can be found, it will loop over to the first
          *          item.
+         * @return - the current active item.
          */
-        void
+        int
         switchToNext();
 
         int

@@ -17,7 +17,7 @@ namespace sdl {
 
     SelectorLayout::~SelectorLayout() {}
 
-    void
+    int
     SelectorLayout::setActiveItem(int index) {
       // Check whether the provided index is valid.
       if (!isValidIndex(index)) {
@@ -30,29 +30,31 @@ namespace sdl {
       // If the index corresponds to the currently active item we don't have to
       // do anything.
       if (index == m_activeItem) {
-        return;
+        return m_activeItem;
       }
 
       // Activate the input item and invalidate the layout.
       m_activeItem = index;
       makeGeometryDirty();
+
+      return m_activeItem;
     }
 
-    void
+    int
     SelectorLayout::switchToNext() {
       // If no items are registered in the layout, return early.
       if (empty()) {
-        return;
+        return m_activeItem;
       }
 
       // If no active item are set, assign the first one.
       if (m_activeItem < 0) {
-        setActiveItem(0);
+        return setActiveItem(0);
       }
 
       // In any other case, activate the next item and loop to
       // the first if needed.
-      setActiveItem((m_activeItem + 1) % getItemsCount());
+      return setActiveItem((m_activeItem + 1) % getItemsCount());
     }
 
     void

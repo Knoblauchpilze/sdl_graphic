@@ -32,7 +32,7 @@ namespace sdl {
     }
 
     inline
-    void
+    int
     SelectorLayout::setActiveItem(const std::string& name) {
       // Try to retrieve the index of the item with the input name.
       // Not that we will activate the first item which name corresponds
@@ -40,7 +40,7 @@ namespace sdl {
       const int id = getIndexOf(name);
 
       // Activate this item using the dedicated handler.
-      setActiveItem(id);
+      return setActiveItem(id);
     }
 
     inline

@@ -10,9 +10,19 @@ namespace sdl {
                                    const core::engine::Color& color,
                                    const utils::Sizef& area):
       core::SdlWidget(name, area, parent, color),
-      m_switchOnLeftClick(switchOnLeftClick)
+
+      m_propsLocker(),
+
+      m_switchOnLeftClick(switchOnLeftClick),
+      m_activeItem(0u)
     {
-      setLayout(std::make_shared<SelectorLayout>(std::string("selector_layout_for_") + getName(), this, 0.0f));
+      setLayout(
+        std::make_shared<SelectorLayout>(
+          std::string("selector_layout_for_") + getName(),
+          this,
+          0.0f
+        )
+      );
     }
 
     void
@@ -26,11 +36,16 @@ namespace sdl {
         );
       }
 
+      Guard guard(m_propsLocker);
+
       // Insert the input widget as child of this widget so that it gets redrawn.
       widget->setParent(this);
 
       // We rely on the internal layout method to perform the insertion.
-      getLayout().addItem(widget, index);
+      SelectorLayout& l = getLayout();
+      l.addItem(widget, index);
+
+      m_activeItem = l.getActiveItemId();
     }
 
     int
@@ -43,11 +58,19 @@ namespace sdl {
         );
       }
 
+      Guard guard(m_propsLocker);
+
       // Remove the widget from the layout.
-      int logicID = getLayout().removeItem(widget);
+      SelectorLayout& l = getLayout();
+      int logicID = l.removeItem(widget);
 
       // Now we can remove the input `widget` from the children' list.
       removeWidget(widget);
+
+      m_activeItem = 0u;
+      if (l.getItemsCount()) {
+        m_activeItem = l.getActiveItemId();
+      }
 
       // Return the index of this widget.
       return logicID;
