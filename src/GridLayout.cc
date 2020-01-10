@@ -5,6 +5,8 @@
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
+# include <iostream>
+
 namespace sdl {
   namespace graphic {
 
@@ -1349,7 +1351,7 @@ namespace sdl {
 
         const unsigned itemID = cells[item].item;
 
-        // Retireve the area spanned by this item.
+        // Retrieve the area spanned by this item.
         LocationsMap::const_iterator locIt = m_locations.find(itemID);
         if (locIt == m_locations.cend()) {
           error(
@@ -1398,7 +1400,7 @@ namespace sdl {
 
         const unsigned itemID = cells[item].item;
 
-        // Retireve the area spanned by this item.
+        // Retrieve the area spanned by this item.
         LocationsMap::const_iterator locIt = m_locations.find(itemID);
         if (locIt == m_locations.cend()) {
           error(
