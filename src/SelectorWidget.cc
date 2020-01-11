@@ -16,13 +16,14 @@ namespace sdl {
       m_switchOnLeftClick(switchOnLeftClick),
       m_activeItem(0u)
     {
-      setLayout(
-        std::make_shared<SelectorLayout>(
-          std::string("selector_layout_for_") + getName(),
-          this,
-          0.0f
-        )
+      SelectorLayoutShPtr layout = std::make_shared<SelectorLayout>(
+        std::string("selector_layout_for_") + getName(),
+        this,
+        0.0f
       );
+      layout->allowLog(false);
+
+      setLayout(layout);
     }
 
     void
