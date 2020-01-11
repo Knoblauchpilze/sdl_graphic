@@ -289,7 +289,7 @@ namespace sdl {
          *          action of the user and thus we don't need to notify it (as listeners
          *          are probably already aware of that).
          */
-        utils::Signal<bool> onButtonToggled;
+        utils::Signal<std::string, bool> onButtonToggled;
     };
 
     using ButtonShPtr = std::shared_ptr<Button>;

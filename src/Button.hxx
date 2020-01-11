@@ -348,6 +348,7 @@ namespace sdl {
       // Notify external listeners.
       onButtonToggled.safeEmit(
         std::string("onButtonToggled(") + std::to_string(m_state == State::Toggled) + ")",
+        getName(),
         m_state == State::Toggled
       );
     }
