@@ -275,6 +275,21 @@ namespace sdl {
          *          release occurring inside the button.
          */
         State m_state;
+
+      public:
+
+        /**
+         * @brief - Signal used to notify external listeners that this button has bee,
+         *          toggled. Note that this signal is fired in addition to the `onClick`
+         *          signal from the base class but only for toggle buttons.
+         *          Regular buttons will never use this signal. The parameter allows to
+         *          determine whether the new state of the button is toggled.
+         *          Note finally that the signal is *not* emitted when the `toggle`
+         *          method is called as we suppose that this comes from a deliberate
+         *          action of the user and thus we don't need to notify it (as listeners
+         *          are probably already aware of that).
+         */
+        utils::Signal<bool> onButtonToggled;
     };
 
     using ButtonShPtr = std::shared_ptr<Button>;

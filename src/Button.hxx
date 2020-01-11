@@ -59,7 +59,7 @@ namespace sdl {
             setBordersChanged();
           }
 
-          // And the state of the buttno.
+          // And the state of the button.
           m_state = (toggled ? State::Toggled : State::Released);
 
           // Request a repaint to see the new look of the button.
@@ -122,6 +122,9 @@ namespace sdl {
 
           // And reset the state of the button.
           m_state = State::Released;
+
+          // No need to fire the `onButtonToggled` signal as we know
+          // that the state was not toggled
 
           // Request a repaint to see the new look of the button.
           requestRepaint();
@@ -341,6 +344,12 @@ namespace sdl {
         // Request a repaint to see the new look of the button.
         requestRepaint();
       }
+
+      // Notify external listeners.
+      onButtonToggled.safeEmit(
+        std::string("onButtonToggled(") + std::to_string(m_state == State::Toggled) + ")",
+        m_state == State::Toggled
+      );
     }
 
   }

@@ -34,7 +34,9 @@ namespace sdl {
 
         false
       }),
-      m_state(State::Released)
+      m_state(State::Released),
+
+      onButtonToggled()
     {
       build(icon, TextData{text, font, size});
     }
