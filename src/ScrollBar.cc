@@ -534,7 +534,7 @@ namespace sdl {
       // A second task of this method is to update the position of the slider so
       // that it is consistent with the actual value it is meant to represent.
       // For example if the slider is at the minimum possible value it should be
-      // rendered right below (or on the right) of the top arrwo. As the value
+      // rendered right below (or on the right) of the top arrow. As the value
       // increases it should be drawn closer and closer to the down arrow.
 
       // Handle trivial case of `NoAction`.

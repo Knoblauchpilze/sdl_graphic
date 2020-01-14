@@ -373,7 +373,7 @@ namespace sdl {
                         bool notify = true);
 
         /**
-         * @brief - Used to try to performt he requested action and update the value of
+         * @brief - Used to try to perform the requested action and update the value of
          *          the scroll bar within the admissible range. Note that the internal
          *          conditions will be considered in order to only execute the action
          *          if the consistency while doing so is preserved. If the action can
