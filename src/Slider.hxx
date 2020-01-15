@@ -49,7 +49,7 @@ namespace sdl {
 
       // Otherwise compute the percentage reached by the current step.
       // We consider that the step can range within `[0u; steps - 1]`.
-      return data.range.x() + (data.range.y() - data.range.x()) * data.value / (data.steps - 1);
+      return data.range.x() + (data.range.y() - data.range.x()) * data.value / data.steps;
     }
 
     inline
