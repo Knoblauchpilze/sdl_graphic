@@ -84,6 +84,22 @@ namespace sdl {
     }
 
     inline
+    float
+    Slider::getStepRoundingThreshold() noexcept {
+      return 0.01f;
+    }
+
+    inline
+    int
+    Slider::getStepFromValue(float /*value*/,
+                             const utils::Vector2f& /*range*/,
+                             int /*steps*/) noexcept
+    {
+      // TODO: Implementation.
+      return 0;
+    }
+
+    inline
     LabelWidget*
     Slider::getValueLabel() {
       return getChildAs<LabelWidget>(getValueLabelName());

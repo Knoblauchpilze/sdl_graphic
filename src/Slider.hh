@@ -239,6 +239,32 @@ namespace sdl {
         getInteractionButton() noexcept;
 
         /**
+         * @brief - Used to define a threshold that is applied when the user provides a value
+         *          to detect when it's too far off one of the step to notify that there's
+         *          probably an issue with the value.
+         * @return - a threshold used to detect rounding errors when assigning the value of
+         *           the slider from a steps count.
+         */
+        static
+        float
+        getStepRoundingThreshold() noexcept;
+
+        /**
+         * @brief - Used to compute the step's index from a value given the input range. THis
+         *          can be used to convert a real world value into internal semantic that uses
+         *          steps to measure the progression of the slider.
+         * @param value - the value to convert (should be in the input range).
+         * @param range - the bounds of the value.
+         * @param steps - the number of steps the range is divided into.
+         * @return - the step count of the input value.
+         */
+        static
+        int
+        getStepFromValue(float value,
+                         const utils::Vector2f& range,
+                         int steps) noexcept;
+
+        /**
          * @brief - Used internally upon constructing the slider to initialize internal
          *          states.
          * @param font - the font to use when creating the label displaying the current

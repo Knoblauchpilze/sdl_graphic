@@ -6,7 +6,7 @@ namespace sdl {
   namespace graphic {
 
     Slider::Slider(const std::string& name,
-                   float /*value*/,
+                   float value,
                    const utils::Vector2f& range,
                    int steps,
                    const std::string& font,
@@ -25,7 +25,7 @@ namespace sdl {
         steps,
         5,
 
-        0u, // TODO: Should use the input `value` after converting it to a number of steps.
+        getStepFromValue(value, range, steps), // TODO: Should use the input `value` after converting it to a number of steps.
         utils::Boxf(),
         utils::Boxf()
       }),
@@ -37,7 +37,18 @@ namespace sdl {
 
       onValueChanged()
     {
+      // Build the component.
       build(font, size);
+
+      // Check whether the value could be assigned.
+      if (std::abs(getValueFromRangeData(m_data) - m_data.value) > getStepRoundingThreshold()) {
+        log(
+          std::string("Set slider's value to ") + std::to_string(getValueFromRangeData(m_data)) +
+          " instead of " + std::to_string(value) + " which is consistent with " +
+          std::to_string(m_data.value) + " step(s)",
+          utils::Level::Warning
+        );
+      }
     }
 
     void
