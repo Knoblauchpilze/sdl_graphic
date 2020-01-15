@@ -43,7 +43,7 @@ namespace sdl {
       build(font, size);
 
       // Check whether the value could be assigned.
-      if (std::abs(getValueFromRangeData(m_data) - m_data.value) > getStepRoundingThreshold()) {
+      if (std::abs(getValueFromRangeData(m_data) - value) > getStepRoundingThreshold()) {
         log(
           std::string("Set slider's value to ") + std::to_string(getValueFromRangeData(m_data)) +
           " instead of " + std::to_string(value) + " which is consistent with " +
