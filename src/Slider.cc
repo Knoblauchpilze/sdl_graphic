@@ -9,6 +9,7 @@ namespace sdl {
                    float value,
                    const utils::Vector2f& range,
                    int steps,
+                   unsigned decimals,
                    const std::string& font,
                    unsigned size,
                    SdlWidget* parent,
@@ -25,10 +26,11 @@ namespace sdl {
         steps,
         5,
 
-        getStepFromValue(value, range, steps), // TODO: Should use the input `value` after converting it to a number of steps.
+        getStepFromValue(value, range, steps),
         utils::Boxf(),
         utils::Boxf()
       }),
+      m_decimals(decimals),
 
       m_sliderChanged(true),
       m_sliderItem(nullptr),
@@ -45,7 +47,8 @@ namespace sdl {
         log(
           std::string("Set slider's value to ") + std::to_string(getValueFromRangeData(m_data)) +
           " instead of " + std::to_string(value) + " which is consistent with " +
-          std::to_string(m_data.value) + " step(s)",
+          std::to_string(m_data.value) + " step(s) with range [" + std::to_string(m_data.range.x()) +
+          " - " + std::to_string(m_data.range.y()) + "]",
           utils::Level::Warning
         );
       }
@@ -282,6 +285,8 @@ namespace sdl {
         2.0f
       );
 
+      layout->allowLog(false);
+
       setLayout(layout);
 
       // Create the virtual item holding the space used to represent the
@@ -300,7 +305,7 @@ namespace sdl {
       // it to display the provided value.
       LabelWidget* label = new LabelWidget(
         getValueLabelName(),
-        std::to_string(getValueFromRangeData(m_data)),
+        stringifyValue(getValueFromRangeData(m_data), m_decimals),
         font,
         size,
         LabelWidget::HorizontalAlignment::Left,
@@ -396,6 +401,11 @@ namespace sdl {
           std::string("Invalid mobile area texture")
         );
       }
+
+      // Update the position of the areas as well: indeed calling this method
+      // usually means that the size of the widget has changed and thus could
+      // use some update of the positions.
+      updateSliderPosFromValue();
     }
 
     void

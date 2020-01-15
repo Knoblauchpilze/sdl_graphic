@@ -23,6 +23,8 @@ namespace sdl {
          * @param steps - the number of steps to create between both bounds. If
          *                the value does not lie exactly on such a step it is
          *                rounded to be on a whole step.
+         * @param decimals - the number of decimals to allow in the label for
+         *                   this slider.
          * @param font - the name of the font to use to render the current
          *               value selected.
          * @param size - the size of the font to set for the label indicating
@@ -34,12 +36,20 @@ namespace sdl {
                float value,
                const utils::Vector2f& range,
                int steps,
+               unsigned decimals,
                const std::string& font,
                unsigned size = 15,
                SdlWidget* parent = nullptr,
                const utils::Sizef& area = utils::Sizef());
 
         virtual ~Slider();
+
+        /**
+         * @brief - Used to retrieve the current value of the slider.
+         * @return - the current value of the slider.
+         */
+        float
+        getValue();
 
       protected:
 
@@ -265,6 +275,18 @@ namespace sdl {
                          int steps) noexcept;
 
         /**
+         * @brief - Perform the conversion of the input `value` to a string with the specified
+         *          number of decimals.
+         * @param value - the value to convert.
+         * @param decimals - the number of decimals to use to represent the value.
+         * @return - the string representing the `value` with the specified number of decimals.
+         */
+        static
+        std::string
+        stringifyValue(float value,
+                       unsigned decimals) noexcept;
+
+        /**
          * @brief - Used internally upon constructing the slider to initialize internal
          *          states.
          * @param font - the font to use when creating the label displaying the current
@@ -413,6 +435,13 @@ namespace sdl {
          *          controlled as to not allow inconsistent values.
          */
         RangeData m_data;
+
+        /**
+         * @brief - The number of decimals to display in the label associated to this slider.
+         *          It allows to customize the length of the label and simulate some sort of
+         *          an integer slider.
+         */
+        unsigned m_decimals;
 
         /**
          * @brief - Describes whether the slider's representation has changed or can be used

@@ -2,6 +2,8 @@
 # define   SLIDER_HXX
 
 # include "Slider.hh"
+# include <sstream>
+# include <iomanip>
 
 namespace sdl {
   namespace graphic {
@@ -12,6 +14,15 @@ namespace sdl {
       Guard guard(m_propsLocker);
 
       clearSlider();
+    }
+
+    inline
+    float
+    Slider::getValue() {
+      // Protect from concurrent accesses.
+      Guard guard(m_propsLocker);
+
+      return getValueFromRangeData(m_data);
     }
 
     inline
@@ -91,12 +102,29 @@ namespace sdl {
 
     inline
     int
-    Slider::getStepFromValue(float /*value*/,
-                             const utils::Vector2f& /*range*/,
-                             int /*steps*/) noexcept
+    Slider::getStepFromValue(float value,
+                             const utils::Vector2f& range,
+                             int steps) noexcept
     {
-      // TODO: Implementation.
-      return 0;
+      // Compute the number of steps represented by the input `value`.
+      // We don't consider that being too far off a real step is an
+      // issue in this method. It is up to the caller to determine if
+      // this is the case.
+      float stepsLen = (range.y() - range.x()) / steps;
+      int stepVal = static_cast<int>(std::round((value - range.x()) / stepsLen));
+
+      return std::min(std::max(0, stepVal), steps - 1);
+    }
+
+    inline
+    std::string
+    Slider::stringifyValue(float value,
+                           unsigned decimals) noexcept
+    {
+      std::stringstream ss;
+      ss << std::setprecision(decimals) << value;
+
+      return ss.str();
     }
 
     inline
@@ -234,15 +262,20 @@ namespace sdl {
           if (notify) {
             float value = getValueFromRangeData(m_data);
 
+            // Update the label's text.
+            LabelWidget* label = getValueLabel();
+            if (label != nullptr) {
+              label->setText(stringifyValue(value, m_decimals));
+            }
+
             log(
               "Emitting on value changed for " + getName() + " with range " +
               m_data.range.toString() + ", steps: " + std::to_string(m_data.steps) +
               " (current: " + std::to_string(m_data.value) + ", page: " + std::to_string(m_data.pageStep) + ")" +
               " value: " + std::to_string(value),
-              utils::Level::Notice
+              utils::Level::Verbose
             );
 
-            // TODO: We should update the label's text to reflect the new value of the slider.
             onValueChanged.safeEmit(
               std::string("onValueChanged(") + std::to_string(value) + ")",
               value
