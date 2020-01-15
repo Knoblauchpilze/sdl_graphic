@@ -5,8 +5,6 @@
 # include <unordered_set>
 # include <sdl_core/SdlWidget.hh>
 
-# include <iostream>
-
 namespace sdl {
   namespace graphic {
 
