@@ -123,7 +123,7 @@ namespace sdl {
 
         /**
          * @brief - Convenience structure allowing to group properties rleated to the
-         *          range of this slider. It describes both the bounds and the step 
+         *          range of this slider. It describes both the bounds and the step
          *          (i.e. the minimum increment of the slider) and the current value.
          */
         struct RangeData {
