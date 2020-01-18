@@ -16,7 +16,7 @@ namespace sdl {
       // Try to convert the input string to a float value: if this cannot be done
       // we have a trivial case of an invalid input.
       bool ok = false;
-      float val = convertToFloat(input, &ok);
+      float val = utils::convert(input, 0.0f, ok);
 
       // Trivial case of the empty string which allows to safely access at least the
       // first characters in later tests.

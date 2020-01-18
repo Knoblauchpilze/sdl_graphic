@@ -1,6 +1,7 @@
 
 # include "IntValidator.hh"
 # include <cmath>
+# include <core_utils/Conversion.hh>
 # include "Validator_utils.hxx"
 
 namespace sdl {
@@ -15,7 +16,7 @@ namespace sdl {
       // Try to convert the input string to an integer value: if this cannot be done
       // we have a trivial case of an invalid input.
       bool ok = false;
-      int val = convertToInt(input, &ok);
+      int val = utils::convert(input, 0, ok);
 
       // Trivial case of the empty string which allows to safely access at least the
       // first characters in later tests.

@@ -4,6 +4,7 @@
 # include <string>
 # include <sstream>
 # include <stdexcept>
+# include <core_utils/Conversion.hh>
 # include <core_utils/CoreException.hh>
 
 namespace sdl {
@@ -20,101 +21,6 @@ namespace sdl {
         Scientific
       };
 
-    }
-
-    /**
-     * @brief - Used to attempt to convert the input string to a valid integer value.
-     *          Note that if the input string cannot be converted the returned value
-     *          will be `0` and the `ok` boolean will be set to `false` if it is not
-     *          set to `nullptr`.
-     * @param input - the string to convert to an integer.
-     * @param ok - a pointer which should be set if the user wants to know whether the
-     *             input string could be successfully converted to an integer value.
-     * @return - the integer represented by the input string or `0` if the string is
-     *           not a valid number.
-     */
-    inline
-    int
-    convertToInt(const std::string& input,
-                 bool* ok = nullptr) noexcept
-    {
-      // Use the dedicated conversion function.
-      char* end = nullptr;
-      int val = static_cast<int>(strtol(input.c_str(), &end, 10));
-
-      // Analyze the result of the conversion.
-      if (ok != nullptr) {
-        *ok = (*end == '\0');
-      }
-
-      // Assign a `0` value in case the conversion failed.
-      if (*end != '\0') {
-        val = 0;
-      }
-
-      // Return the converted value.
-      return val;
-    }
-
-    /**
-     * @brief - Used to attempt to convert the input string to a valid float value.
-     *          Note that if the input string cannot be converted the returned value
-     *          will be `0.0` and the `ok` boolean will be set to `false` if it is
-     *          not set to `nullptr`.
-     * @param input - the string to convert to a float.
-     * @param ok - a pointer which should be set if the user wants to know whether the
-     *             input string could be successfully converted to a float value.
-     * @return - the float represented by the input string or `0.0` if the string is
-     *           not a valid number.
-     */
-    inline
-    float
-    convertToFloat(const std::string& input,
-                   bool* ok = nullptr) noexcept
-    {
-      // Use the dedicated conversion function.
-      size_t end;
-      bool scientific = false;
-      float val;
-      bool valid = true;
-
-      try {
-        val = std::stof(input.c_str(), &end);
-      }
-      catch (const std::invalid_argument& e) {
-        // No conversion could be performed.
-        valid = false;
-      }
-      catch (const std::out_of_range& e) {
-        // The value seems to be valid but cannot be represented using a float value.
-        valid = false;
-      }
-
-      // If the parsing was not valid it might mean that we're facing something written
-      // with scientific notation. Let's try to convert it using a string stream. It
-      // might allow for some more conversions even though after testing it seems that
-      // the standard `stof` approach handles these cases just fine.
-      if (!valid || end < input.size()) {
-        std::stringstream stream(input);
-        stream >> val;
-
-        // Check whether the conversion did happen successfully.
-        valid = !stream.fail();
-        scientific = true;
-      }
-
-      // Analyze the result of the conversion.
-      if (ok != nullptr) {
-        *ok = valid && (scientific || end >= input.size());
-      }
-
-      // Assign a `0` value in case the conversion failed.
-      if (!valid || (!scientific && end < input.size())) {
-        val = 0;
-      }
-
-      // Return the converted value.
-      return val;
     }
 
     /**
@@ -190,7 +96,7 @@ namespace sdl {
           *leading = 0;
         }
         else {
-          *leading = convertToInt(strLead, &ok);
+          *leading = utils::convertToInt(strLead, &ok);
           if (!ok) {
             throw utils::CoreException(
               std::string("Could not convert leading part of number \"") + input + "\"",
@@ -212,7 +118,7 @@ namespace sdl {
           *decimals = 0;
         }
         else {
-          *decimals = convertToInt(strDec, &ok);
+          *decimals = utils::convertToInt(strDec, &ok);
           if (!ok) {
             throw utils::CoreException(
               std::string("Could not convert decimals part of number \"") + input + "\"",
@@ -234,7 +140,7 @@ namespace sdl {
           *exponent = 0;
         }
         else {
-          *exponent = convertToInt(strExp, &ok);
+          *exponent = utils::convertToInt(strExp, &ok);
           if (!ok) {
             throw utils::CoreException(
               std::string("Could not convert exponent part of number \"") + input + "\"",
