@@ -117,7 +117,7 @@ namespace sdl {
       // initial completion. BUT as we might not have a queue yet the event
       // might not be able to be posted anyway.
       // Anyway as we should get a resize event quite early in the process
-      // and as we already set toeh `m_completion·` to be `0` it should be
+      // and as we already set the `m_completion·` to be `0` it should be
       // automatically enforced when the resize event is received. So we
       // will consider the job done here.
     }
@@ -136,21 +136,33 @@ namespace sdl {
       // Compute the masked part of the widget: this corresponds to the part that
       // it is not completed yet. We consider that the left part of the progress
       // bar is the part that is completed.
-      float masked = 1.0f - m_completion;
+      float masked = std::min(1.0f, std::max(0.0f, 1.0f - m_completion));
 
       utils::Sizef dims(masked * window.w(), window.h());
       utils::Vector2f center(window.w() / 2.0f - dims.w() / 2.0f, 0.0f);
 
-      // Create the resize event for the mask.
+      // Create the resize event for the mask. Note that in case the mask is
+      // set with a null width (typically when the percentage reaches `100%`
+      // we will instead hide the mask.
       core::SdlWidget* mask = getMask();
 
-      postEvent(
-        std::make_shared<core::engine::ResizeEvent>(
-          utils::Boxf(center, dims),
-          mask->getRenderingArea(),
-          mask
-        )
-      );
+      if (dims.w() < 1.0f) {
+        mask->setVisible(false);
+      }
+      else {
+        // Make the mask visible if needed.
+        if (!mask->isVisible()) {
+          mask->setVisible(true);
+        }
+
+        postEvent(
+          std::make_shared<core::engine::ResizeEvent>(
+            utils::Boxf(center, dims),
+            mask->getRenderingArea(),
+            mask
+          )
+        );
+      }
     }
 
   }
