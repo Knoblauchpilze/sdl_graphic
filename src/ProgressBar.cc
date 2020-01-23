@@ -107,6 +107,7 @@ namespace sdl {
       }
       mask->setZOrder(1);
       mask->setFocusPolicy(core::FocusPolicy());
+      mask->allowLog(false);
 
       // Add only the gradient widget to the layout, the masking element
       // is handled manually as we want some sort of overlapping between
