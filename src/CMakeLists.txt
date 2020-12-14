@@ -30,7 +30,7 @@ add_library (sdl_graphic SHARED
   ${SOURCES}
   )
 
-set(SDL_GRAPHIC_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+set (SDL_GRAPHIC_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 
 target_link_libraries(sdl_graphic
   core_utils
