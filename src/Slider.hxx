@@ -113,7 +113,7 @@ namespace sdl {
       float stepsLen = (range.y() - range.x()) / steps;
       int stepVal = static_cast<int>(std::round((value - range.x()) / stepsLen));
 
-      return std::min(std::max(0, stepVal), steps - 1);
+      return utils::clamp(stepVal, 0, steps - 1);
     }
 
     inline

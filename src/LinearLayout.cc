@@ -1,7 +1,7 @@
 
 # include "LinearLayout.hh"
-
 # include <unordered_set>
+# include <maths_utils/ComparisonUtils.hh>
 # include <sdl_core/SdlWidget.hh>
 
 namespace sdl {
@@ -268,7 +268,7 @@ namespace sdl {
       // First, normalize the index: don't forget that the current size of
       // the layout *includes* the item we want to insert (because `addItem`
       // has already been called).
-      int normalized = std::min(std::max(0, index), getItemsCount() - 1);
+      int normalized = utils::clamp(0, index, getItemsCount() - 1);
 
       // Update the label of existing items if it exceeds the new desired
       // logical index.
