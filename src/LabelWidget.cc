@@ -47,7 +47,7 @@ namespace sdl {
                                     const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the text: this should happen only if the text has changed since
       // last draw operation. This can either mean that the text itself has
@@ -167,7 +167,7 @@ namespace sdl {
       // actual role of the texture we will just mark the text as dirty and wait
       // for the next `drawContentPrivate` operation to update the text's role.
       // This can only occur if this widget is the source of the focus change.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       setTextChanged();
     }
 

@@ -1,43 +1,27 @@
 
-set (CMAKE_CXX_STANDARD 14)
-
-set (CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-set (SOURCES
-  LinearLayout.cc
-  GridLayout.cc
-  SelectorLayout.cc
-  PictureWidget.cc
-  LabelWidget.cc
-  SelectorWidget.cc
-  ComboBox.cc
-  TabWidget.cc
-  TextBox.cc
-  IntValidator.cc
-  FloatValidator.cc
-  VirtualLayoutItem.cc
-  ScrollArea.cc
-  ScrollBar.cc
-  ScrollableWidget.cc
-  Button.cc
-  ProgressBar.cc
-  GradientWidget.cc
-  Checkbox.cc
-  Slider.cc
-  )
-
-add_library (sdl_graphic SHARED
-  ${SOURCES}
-  )
-
-set (SDL_GRAPHIC_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-
-target_link_libraries(sdl_graphic
-  core_utils
-  sdl_engine
-  sdl_core
-  )
-
 target_include_directories (sdl_graphic PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+	${CMAKE_CURRENT_SOURCE_DIR}
+	)
+
+target_sources (sdl_graphic PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/LinearLayout.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/GridLayout.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/SelectorLayout.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/PictureWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/LabelWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/SelectorWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/ComboBox.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/TabWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/TextBox.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/IntValidator.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/FloatValidator.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/VirtualLayoutItem.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/ScrollArea.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/ScrollBar.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/ScrollableWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/Button.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/ProgressBar.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/GradientWidget.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/Checkbox.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/Slider.cc
+	)

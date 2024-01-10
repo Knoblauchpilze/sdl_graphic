@@ -43,8 +43,8 @@ namespace sdl {
       // requesting constantly information or setting information multiple times.
       std::vector<WidgetInfo> itemsInfo = computeItemsInfo();
 
-      log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
-      log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
+      notice("Available size: " + std::to_string(window.w()) + "x" + std::to_string(window.h()));
+      notice("Internal size: " + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()));
 
       std::vector<utils::Boxf> outputBoxes(getItemsCount());
 
@@ -177,11 +177,7 @@ namespace sdl {
       }
 
       if (!allSpaceUsed) {
-        log(
-          std::string("Could only achieve size of ") + achievedSize.toString() +
-          " but available space is " + window.toString(),
-          utils::Level::Error
-        );
+        warn("Could only achieve size of " + achievedSize.toString() + " but available space is " + window.toString());
       }
 
       // All items have suited dimensions, we can now handle the position of each

@@ -462,7 +462,7 @@ namespace sdl {
         newSize = getDroppedSize();
       }
 
-      log("Old size is " + m_closedBox.toString() + ", new is " + newSize.toString());
+      debug("Old size is " + m_closedBox.toString() + ", new is " + newSize.toString());
 
       // Update the internal state.
       m_state = state;
@@ -569,7 +569,7 @@ namespace sdl {
       // which has been clicked.
       const int id = getIDFromWidgetName(name);
 
-      log("Clicked on element " + name + ", id: " + std::to_string(id));
+      debug("Clicked on element " + name + ", id: " + std::to_string(id));
 
       // Set this item as active: note that if the user clicks on a widget
       // which is already active nothing will happen.

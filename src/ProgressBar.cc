@@ -21,17 +21,14 @@ namespace sdl {
     void
     ProgressBar::setCompletion(float value) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the progression if it is different.
       bool changed = false;
       float newComp = std::max(0.0f, std::min(1.0f, value));
 
       if (m_completion != newComp) {
-        log(
-          "Progression is now " + std::to_string(newComp) + " (from " + std::to_string(m_completion) + ")",
-          utils::Level::Verbose
-        );
+        verbose("Progression is now " + std::to_string(newComp) + " (from " + std::to_string(m_completion) + ")");
 
         m_completion = newComp;
         changed = true;
@@ -107,7 +104,7 @@ namespace sdl {
       }
       mask->setZOrder(1);
       mask->setFocusPolicy(core::FocusPolicy());
-      mask->allowLog(false);
+      mask->setAllowLog(false);
 
       // Add only the gradient widget to the layout, the masking element
       // is handled manually as we want some sort of overlapping between

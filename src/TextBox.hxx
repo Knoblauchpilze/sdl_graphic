@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     TextBox::setValidator(ValidatorShPtr validator) {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the validator to the internal object. We might reset a previously
       // installed filter by doing so.
@@ -20,7 +20,7 @@ namespace sdl {
     std::string
     TextBox::getValue() {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether a validator is set for this object: if this is the case we
       // should apply it on the value displayed, try to fix it if needed and both
@@ -51,10 +51,7 @@ namespace sdl {
               else {
                 // The text was not made valid, continue by keeping this text but by
                 // logging something.
-                log(
-                  std::string("Could not make text \"") + m_text + "\" valid against validator, using it as is",
-                  utils::Level::Warning
-                );
+                warn("Could not make text \"" + m_text + "\" valid against validator, using it as is");
               }
             }
             break;
@@ -75,7 +72,7 @@ namespace sdl {
     void
     TextBox::setValue(const std::string& value) {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Stop any selection if needed.
       if (m_selectionStarted) {
@@ -94,7 +91,7 @@ namespace sdl {
     bool
     TextBox::keyboardGrabbedEvent(const core::engine::Event& e) {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Update the cursor visible status, considering that as we just grabbed the
       // keyboard focus we are ready to make some modifications on the textbox and
@@ -109,7 +106,7 @@ namespace sdl {
     bool
     TextBox::keyboardReleasedEvent(const core::engine::Event& e) {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Update the cursor visible status, considering that as we just lost the
       // keyboard focus the user does not want to perform modifications on the
@@ -245,7 +242,7 @@ namespace sdl {
             }
             break;
           default:
-            log("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)), utils::Level::Warning);
+            warn("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)));
             break;
         }
       }
@@ -309,7 +306,7 @@ namespace sdl {
             }
             break;
           default:
-            log("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)), utils::Level::Warning);
+            warn("Could not move cursor given mode " + std::to_string(static_cast<int>(mode)));
             break;
         }
       }
@@ -347,13 +344,13 @@ namespace sdl {
       if (m_validator) {
         Validator::State s = m_validator->validate(m_text);
         if (s == Validator::State::Valid) {
-          log("Textbox content \"" + m_text + "\" is valid", utils::Level::Info);
+          info("Textbox content \"" + m_text + "\" is valid");
         }
         else if (s == Validator::State::Intermediate) {
-          log("Textbox content \"" + m_text + "\" is intermediate", utils::Level::Warning);
+          warn("Textbox content \"" + m_text + "\" is intermediate");
         }
         else {
-          log("Textbox content \"" + m_text + "\" is invalid", utils::Level::Error);
+          warn("Textbox content \"" + m_text + "\" is invalid");
         }
       }
     }
@@ -373,11 +370,7 @@ namespace sdl {
     TextBox::stopSelection() noexcept {
       // Detect cases where the selection was not active.
       if (!m_selectionStarted) {
-        log(
-          std::string("Stopping selection while none has been started"),
-          utils::Level::Warning
-        );
-
+        warn("Stopping selection while none has been started");
         return;
       }
 
@@ -436,10 +429,9 @@ namespace sdl {
         if (hasLeftTextPart()) {
           // Check for empty text and display a debug to help understand the problem.
           if (getLeftText().empty()) {
-            log(
+            warn(
               "Trying to render left text ranging from " + std::to_string(m_selectionStart) + " to " +
-              std::to_string(m_cursorIndex) + " which lead to empty text",
-              utils::Level::Error
+              std::to_string(m_cursorIndex) + " which lead to empty text"
             );
           }
 
@@ -449,10 +441,9 @@ namespace sdl {
         if (hasSelectedTextPart()) {
           // Check for empty text and display a debug to help understand the problem.
           if (getSelectedText().empty()) {
-            log(
+            warn(
               "Trying to render selected text ranging from " + std::to_string(m_selectionStart) + " to " +
-              std::to_string(m_cursorIndex) + " which lead to empty text",
-              utils::Level::Error
+              std::to_string(m_cursorIndex) + " which lead to empty text"
             );
           }
 
@@ -487,10 +478,9 @@ namespace sdl {
         if (hasRightTextPart()) {
           // Check for empty text and display a debug to help understand the problem.
           if (getRightText().empty()) {
-            log(
+            warn(
               "Trying to render right text ranging from " + std::to_string(m_selectionStart) + " to " +
-              std::to_string(m_cursorIndex) + " which lead to empty text",
-              utils::Level::Error
+              std::to_string(m_cursorIndex) + " which lead to empty text"
             );
           }
 

@@ -44,12 +44,11 @@ namespace sdl {
 
       // Check whether the value could be assigned.
       if (std::abs(getValueFromRangeData(m_data) - value) > getStepRoundingThreshold()) {
-        log(
+        warn(
           std::string("Set slider's value to ") + std::to_string(getValueFromRangeData(m_data)) +
           " instead of " + std::to_string(value) + " which is consistent with " +
           std::to_string(m_data.value) + " step(s) with range [" + std::to_string(m_data.range.x()) +
-          " - " + std::to_string(m_data.range.y()) + "]",
-          utils::Level::Warning
+          " - " + std::to_string(m_data.range.y()) + "]"
         );
       }
     }
@@ -59,7 +58,7 @@ namespace sdl {
                                const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the slider's visuals if needed.
       if (sliderChanged()) {
@@ -108,7 +107,7 @@ namespace sdl {
       bool update = false;
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       switch (e.getRawKey()) {
         case core::engine::RawKey::Down:
@@ -167,7 +166,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool increase = m_data.maBox.x() <= local.x();
       bool decrease = m_data.maBox.x() > local.x();
@@ -203,7 +202,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool increase = m_data.maBox.x() <= local.x();
       bool decrease = m_data.maBox.x() > local.x();
@@ -255,7 +254,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Convert in terms of `slider's reference frame`.
       int desired = getValueFromSliderPos(local);
@@ -285,7 +284,7 @@ namespace sdl {
         2.0f
       );
 
-      layout->allowLog(false);
+      layout->setAllowLog(false);
 
       setLayout(layout);
 

@@ -89,10 +89,9 @@ namespace sdl {
       utils::Sizef area = computeSizeFromPolicy(bboxes[realID], componentSize, itemsInfo[realID]);
 
       if (!area.compareWithTolerance(componentSize, 0.5f)) {
-        log(
+        warn(
           std::string("Could only achieve size of ") + area.toString() +
-          " but available space is " + componentSize.toString(),
-          utils::Level::Error
+          " but available space is " + componentSize.toString()
         );
       }
 
@@ -109,7 +108,7 @@ namespace sdl {
     SelectorLayout::onIndexRemoved(int logicID,
                                    int /*physID*/)
     {
-      log("Removing item " + std::to_string(logicID) + " from selector layout");
+      debug("Removing item " + std::to_string(logicID) + " from selector layout");
 
       // Now update the local information by removing the input item from the internal
       // table. We basically copy all the information except for the deleted item.

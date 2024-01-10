@@ -21,7 +21,7 @@ namespace sdl {
         this,
         0.0f
       );
-      layout->allowLog(false);
+      layout->setAllowLog(false);
 
       setLayout(layout);
     }
@@ -37,7 +37,7 @@ namespace sdl {
         );
       }
 
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Insert the input widget as child of this widget so that it gets redrawn.
       widget->setParent(this);
@@ -59,7 +59,7 @@ namespace sdl {
         );
       }
 
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Remove the widget from the layout.
       SelectorLayout& l = getLayout();

@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     LabelWidget::setText(const std::string& text) noexcept {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       m_text = text;
       setTextChanged();
     }
@@ -17,14 +17,14 @@ namespace sdl {
     inline
     void
     LabelWidget::setHorizontalAlignment(const HorizontalAlignment& alignment) noexcept {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       m_hAlignment = alignment;
     }
 
     inline
     void
     LabelWidget::setVerticalAlignment(const VerticalAlignment& alignment) noexcept {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       m_vAlignment = alignment;
     }
 
@@ -82,9 +82,7 @@ namespace sdl {
     LabelWidget::updateTextRole(const utils::Uuid& base) {
       // Check whether the input `base` texture is valid.
       if (!base.valid()) {
-        log("Cannot update text role using invalid base texture identifier", utils::Level::Warning);
-
-        // Return early.
+        warn("Cannot update text role using invalid base texture identifier");
         return;
       }
 

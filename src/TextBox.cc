@@ -59,7 +59,7 @@ namespace sdl {
     bool
     TextBox::keyPressEvent(const core::engine::KeyEvent& e) {
       // Lock this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Depending on the type of key pressed by the user we might:
       // - add a new character to the text displayed.
@@ -154,7 +154,7 @@ namespace sdl {
     bool
     TextBox::mouseButtonReleaseEvent(const core::engine::MouseEvent& e) {
       // Lock this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // The goal here is to move the cursor between the characters which are closest
       // of the location of the click. A summary of the algorithm consists in moving
@@ -201,7 +201,7 @@ namespace sdl {
     bool
     TextBox::mouseDoubleClickEvent(const core::engine::MouseEvent& e) {
       // Lock this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Perform a selection of the entirety of the text inserted in the textbox. We will
       // also move the cursor to the end of the displayed text.
@@ -216,7 +216,7 @@ namespace sdl {
     bool
     TextBox::mouseDragEvent(const core::engine::MouseEvent& e) {
       // Lock this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // We only want to react if the drag event includes at least the left mouse
       // button: this is the button triggering the selection behavior.
@@ -262,10 +262,9 @@ namespace sdl {
         // is still relevant compared to the local start of the selection.
         if (m_selectionStart != idStart) {
           // This is weird.
-          log(
+          warn(
             std::string("Drag event references beginning at character ") + std::to_string(idStart) +
-            " but internal registered value was " + std::to_string(m_selectionStart),
-            utils::Level::Warning
+            " but internal registered value was " + std::to_string(m_selectionStart)
           );
 
           m_selectionStart = idStart;
@@ -287,7 +286,7 @@ namespace sdl {
                                 const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the text: this should happen only if the text has changed since
       // last draw operation. This can either mean that the text itself has
@@ -478,11 +477,7 @@ namespace sdl {
 
       // Handle the case where the font is not valid.
       if (!m_font.valid()) {
-        log(
-          std::string("Could not find closest character from position ") + pos.toString() + ", font not loaded",
-          utils::Level::Warning
-        );
-
+        warn("Could not find closest character from position " + pos.toString() + ", font not loaded");
         return 0u;
       }
 

@@ -37,7 +37,7 @@ namespace sdl {
                                  float max)
     {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // The input percentage represent the range that is visible on the content
       // associated to this area. The minimal value represents the smallest part
@@ -68,10 +68,9 @@ namespace sdl {
       float desired = tMin;
       int target = static_cast<int>(m_minimum + 1.0f * desired * iRange);
 
-      log(
+      notice(
         std::string("Handling range [") + std::to_string(min) + "; " + std::to_string(max) + "], " +
-        "moving from " + std::to_string(m_value) + " to " + std::to_string(target),
-        utils::Level::Notice
+        "moving from " + std::to_string(m_value) + " to " + std::to_string(target)
       );
 
       bool updated = performAction(Action::Move, target, false);
@@ -86,7 +85,7 @@ namespace sdl {
                                   const utils::Boxf& area)
     {
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the elements: this should happen only if the geometry of the scroll bar
       // has changed since last draw operation. This can either mean that the way the
@@ -161,7 +160,7 @@ namespace sdl {
                                      bool /*gainedFocus*/)
     {
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Basically what we want here is react on complete loss of focus to deactivate the
       // highlight on any element that was highlighted until then.
@@ -209,7 +208,7 @@ namespace sdl {
       bool update = false;
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       switch (e.getRawKey()) {
         case core::engine::RawKey::Up:
@@ -259,7 +258,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool isInUpArrow = m_upArrow.box.contains(local);
       bool isInSlider = m_slider.box.contains(local);
@@ -310,7 +309,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool isInUpArrow = m_upArrow.box.contains(local);
       bool isInDownArrow = m_downArrow.box.contains(local);
@@ -346,7 +345,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool isInUpArrow = m_upArrow.box.contains(local);
       bool isInDownArrow = m_downArrow.box.contains(local);
@@ -399,7 +398,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Convert in terms of `slider's reference frame`.
       int desired = getValueFromSliderPos(local);
@@ -433,7 +432,7 @@ namespace sdl {
       utils::Vector2f local = mapFromGlobal(e.getMousePosition());
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Use the dedicated handler to handle roles update.
       if (updateElementsRolesFromMousePos(local)) {
@@ -469,7 +468,7 @@ namespace sdl {
       int total = pageStepAdd - pageStepSub;
 
       // Acquire the lock on the data contained in this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       bool update = false;
       Action action = (total < 0 ? Action::PageStepSub : Action::PageStepAdd);

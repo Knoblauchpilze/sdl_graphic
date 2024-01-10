@@ -372,7 +372,7 @@ namespace sdl {
       int id = 0;
       bool found = false;
       while (!found && id < getTabsCount()) {
-        log("Trying to activate \"" + name + "\", item " + std::to_string(id) + " has item name \"" + m_tabs[id].itemName + "\" and tab name \"" + m_tabs[id].tabName + "\" and title name \"" + m_tabs[id].titleWidgetName + "\"", utils::Level::Verbose);
+        verbose("Trying to activate \"" + name + "\", item " + std::to_string(id) + " has item name \"" + m_tabs[id].itemName + "\" and tab name \"" + m_tabs[id].tabName + "\" and title name \"" + m_tabs[id].titleWidgetName + "\"");
         if (m_tabs[id].titleWidgetName == name) {
           found = true;
         }
@@ -381,14 +381,11 @@ namespace sdl {
         }
       }
 
-      log("Clicked on tab " + name + " which is on id " + std::to_string(id));
+      debug("Clicked on tab " + name + " which is on id " + std::to_string(id));
 
       // Check for errors.
       if (!found) {
-        log(
-          std::string("Could not activate widget from clicked title \"") + name + "\"",
-          utils::Level::Warning
-        );
+        warn("Could not activate widget from clicked title \"" + name + "\"");
         return;
       }
 

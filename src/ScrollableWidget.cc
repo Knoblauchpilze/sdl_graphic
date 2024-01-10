@@ -21,7 +21,7 @@ namespace sdl {
     void
     ScrollableWidget::setSupport(core::SdlWidget* widget) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Try to retrieve the existing support widget and remove it.
       core::SdlWidget* sup = getChildOrNull<core::SdlWidget>(m_supportName);
@@ -49,7 +49,7 @@ namespace sdl {
                                         float max)
     {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // We should update the rendering area of the support widget assigned to
       // this element based on the new values provided by the input event. The
@@ -154,7 +154,7 @@ namespace sdl {
     void
     ScrollableWidget::updatePrivate(const utils::Boxf& window) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Use the dedicated handler to compute the new rendering area
       // of the support widget.
@@ -279,10 +279,9 @@ namespace sdl {
         viewport.h() / supportDims.h()
       );
 
-      log(
+      notice(
         getName() + " changed visible area to " + box.toString() + " (support: " + supportDims.toString() +
-        ", visible: " + utils::Boxf(-area.getCenter(), viewport.toSize()).toString() + ")",
-        utils::Level::Notice
+        ", visible: " + utils::Boxf(-area.getCenter(), viewport.toSize()).toString() + ")"
       );
 
       onHorizontalAxisChanged.safeEmit(
@@ -376,7 +375,7 @@ namespace sdl {
       }
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the new coordinates.
       createOrGetCoordsToFollow(local, true);
@@ -408,7 +407,7 @@ namespace sdl {
       }
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       utils::Vector2f start = createOrGetCoordsToFollow(dragStart);
       utils::Vector2f localEnd = mapFromGlobal(e.getMousePosition());
@@ -435,7 +434,7 @@ namespace sdl {
       // repaint area.
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // First check whether there is a support widget: if this is not the
       // case we are sure that we won't receive such repaint events.

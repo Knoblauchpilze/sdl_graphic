@@ -208,8 +208,8 @@ namespace sdl {
       int decDigits = (decimals == 0 ? 1 : static_cast<int>(std::log10(std::abs(decimals)) + 1));
       int expDigits = (exponent == 0 ? 1 : static_cast<int>(std::log10(std::abs(exponent)) + 1));
 
-      log("Number \"" + digits + " parsed to l: " + std::to_string(leading) + ", d: " + std::to_string(decimals) + ", e: " + std::to_string(exponent));
-      log("Digits: (" + std::to_string(leadingDigits) + ", " + std::to_string(decDigits) + ", " + std::to_string(expDigits) + ")");
+      debug("Number \"" + digits + " parsed to l: " + std::to_string(leading) + ", d: " + std::to_string(decimals) + ", e: " + std::to_string(exponent));
+      debug("Digits: (" + std::to_string(leadingDigits) + ", " + std::to_string(decDigits) + ", " + std::to_string(expDigits) + ")");
 
       // Number with more that one digit in the leading part are clearly invalid.
       if (leadingDigits > 1) {

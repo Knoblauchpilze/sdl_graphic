@@ -2,14 +2,14 @@
 # define   SCROLL_BAR_HXX
 
 # include "ScrollBar.hh"
-# include <core_utils/CoreWrapper.hh>
+# include <core_utils/SafetyNet.hh>
 
 namespace sdl {
   namespace graphic {
 
     inline
     ScrollBar::~ScrollBar() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       clearElements();
     }
@@ -18,7 +18,7 @@ namespace sdl {
     void
     ScrollBar::setMinimum(int minimum) {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether the new value is different from the current value.
       if (minimum != m_minimum) {
@@ -46,7 +46,7 @@ namespace sdl {
     void
     ScrollBar::setMaximum(int maximum) {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether the new value is different from the current value.
       if (maximum != m_maximum) {
@@ -74,7 +74,7 @@ namespace sdl {
     void
     ScrollBar::setPageStep(int step) {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether the new value is different from the current value.
       int save = m_pageStep;
@@ -106,7 +106,7 @@ namespace sdl {
     void
     ScrollBar::setValue(int value) {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Use the dedicated handler.
       setValuePrivate(value);
@@ -116,7 +116,7 @@ namespace sdl {
     void
     ScrollBar::updatePrivate(const utils::Boxf& /*window*/) {
       // Acquire the lock on this object.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Invalidate the cache for internal elements.
       setElementsChanged();
@@ -215,11 +215,10 @@ namespace sdl {
             float min = 1.0f * m_value / iRange;
             float max = 1.0f * (m_value + m_pageStep) / iRange;
 
-            log(
+            notice(
               "Emitting on value changed for " + getName() + " with range " +
               "[" + std::to_string(m_value) + ", " + std::to_string(m_value + m_pageStep) + "] " +
-              "(" + std::to_string(min) + " - " + std::to_string(max) + ")",
-              utils::Level::Notice
+              "(" + std::to_string(min) + " - " + std::to_string(max) + ")"
             );
 
             onValueChanged.safeEmit(

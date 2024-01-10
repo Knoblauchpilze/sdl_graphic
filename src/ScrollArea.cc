@@ -23,14 +23,14 @@ namespace sdl {
 
       m_hBarSignals(
         ScrollBarSignals{
-          utils::Signal<const std::string, float, float, float>::NoID,
-          utils::Signal<const std::string, float, float, float>::NoID
+          utils::Signal<const std::string, float, float, float>::NO_ID,
+          utils::Signal<const std::string, float, float, float>::NO_ID
         }
       ),
       m_vBarSignals(
         ScrollBarSignals{
-          utils::Signal<const std::string, float, float, float>::NoID,
-          utils::Signal<const std::string, float, float, float>::NoID
+          utils::Signal<const std::string, float, float, float>::NO_ID,
+          utils::Signal<const std::string, float, float, float>::NO_ID
         }
       ),
 
@@ -44,7 +44,7 @@ namespace sdl {
     void
     ScrollArea::setCornerWidget(core::SdlWidget* corner) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // First thing is to remove any existing corner widget.
       core::SdlWidget* wid = getChildOrNull<core::SdlWidget>(m_cornerName);
@@ -80,7 +80,7 @@ namespace sdl {
     void
     ScrollArea::setHorizontalScrollBar(ScrollBar* scrollBar) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // First thing is to remove any existing scroll bar.
       ScrollBar* bar = getChildOrNull<ScrollBar>(m_hBarName);
@@ -134,7 +134,7 @@ namespace sdl {
     void
     ScrollArea::setVerticalScrollBar(ScrollBar* scrollBar) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // First thing is to remove any existing scroll bar.
       ScrollBar* bar = getChildOrNull<ScrollBar>(m_vBarName);
@@ -197,7 +197,7 @@ namespace sdl {
       }
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Note that we're not directly handling the viewport widget but instead
       // delegate most of it to the internal scrollable widget. We will do this
@@ -221,7 +221,7 @@ namespace sdl {
     void
     ScrollArea::updatePrivate(const utils::Boxf& window) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Use the dedicated handler.
       updateControls(window.toSize());
@@ -472,14 +472,14 @@ namespace sdl {
       int maxV = static_cast<int>(viewport.h());
       int stepV = static_cast<int>(vRatio * viewport.h());
 
-      log(
+      debug(
         "Internal is " + internal.toString() + ", viewport is " + viewport.toString() + ", " +
         "hBar is " + sHBar.toString() + ", vBar is " + sVBar.toString()
       );
 
       // Assign the size of the controls to each scroll bar.
       if (hBar != nullptr && needHBar) {
-        log(
+        debug(
           "Setting range to [" + std::to_string(minH) + " - " + std::to_string(stepH) +
           " - " + std::to_string(maxH) + "] for " + hBar->getName()
         );
@@ -487,7 +487,7 @@ namespace sdl {
       }
 
       if (vBar != nullptr && needVBar) {
-        log(
+        debug(
           "Setting range to [" + std::to_string(minV) + " - " + std::to_string(stepV) +
           " - " + std::to_string(maxV) + "] for " + hBar->getName()
         );

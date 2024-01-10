@@ -10,7 +10,7 @@ namespace sdl {
     void
     ScrollArea::setHorizontalScrollBarPolicy(const BarPolicy& policy) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the new display policy if needed.
       if (policy != m_hBarPolicy) {
@@ -27,7 +27,7 @@ namespace sdl {
     void
     ScrollArea::setVerticalScrollBarPolicy(const BarPolicy& policy) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the new display policy if needed.
       if (policy != m_vBarPolicy) {

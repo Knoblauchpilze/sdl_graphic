@@ -10,7 +10,7 @@ namespace sdl {
     utils::Sizef
     ScrollableWidget::getPreferredSize() const noexcept {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Use the dedicated handler.
       return getPreferredSizePrivate();
@@ -23,7 +23,7 @@ namespace sdl {
       const core::SdlWidget* wid = core::SdlWidget::getItemAt(pos);
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether this widget has a support: if this is not the case
       // whatever we found is considered valid.
@@ -137,7 +137,7 @@ namespace sdl {
       }
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Reset the coordinates to follow.
       m_coordsToFollow.reset();

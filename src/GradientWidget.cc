@@ -18,7 +18,7 @@ namespace sdl {
       m_gradientTex()
     {
       if (m_gradient == nullptr) {
-        log(std::string("Gradient widget has null gradient"), utils::Level::Warning);
+        warn("Gradient widget has null gradient");
       }
 
       build();
@@ -29,7 +29,7 @@ namespace sdl {
                                        const utils::Boxf& area)
     {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Recreate the gradient's texture if needed.
       if (gradientTexChanged()) {

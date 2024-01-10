@@ -40,7 +40,7 @@ namespace sdl {
     }
 
     PictureWidget::~PictureWidget() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       clearPicture();
     }
 
@@ -49,7 +49,7 @@ namespace sdl {
                                       const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the picture: this should happen only if the picture has changed
       // since last draw operation.

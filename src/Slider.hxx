@@ -11,7 +11,7 @@ namespace sdl {
     inline
     Slider::~Slider() {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       clearSlider();
     }
@@ -20,7 +20,7 @@ namespace sdl {
     float
     Slider::getValue() {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       return getValueFromRangeData(m_data);
     }
@@ -32,7 +32,7 @@ namespace sdl {
       core::SdlWidget::updatePrivate(window);
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       setSliderChanged();
     }
@@ -268,12 +268,11 @@ namespace sdl {
               label->setText(stringifyValue(value, m_decimals));
             }
 
-            log(
+            verbose(
               "Emitting on value changed for " + getName() + " with range " +
               m_data.range.toString() + ", steps: " + std::to_string(m_data.steps) +
               " (current: " + std::to_string(m_data.value) + ", page: " + std::to_string(m_data.pageStep) + ")" +
-              " value: " + std::to_string(value),
-              utils::Level::Verbose
+              " value: " + std::to_string(value)
             );
 
             onValueChanged.safeEmit(

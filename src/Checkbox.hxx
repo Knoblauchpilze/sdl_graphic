@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     Checkbox::~Checkbox() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       clearBox();
     }
 
@@ -16,7 +16,7 @@ namespace sdl {
     const core::SdlWidget*
     Checkbox::getItemAt(const utils::Vector2f& pos) const noexcept {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // We want to prevent children from receiving the requests that
       // are usually associated to the `getItemAt` call. To do so we
@@ -43,7 +43,7 @@ namespace sdl {
     bool
     Checkbox::toggled() {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       return m_toggled;
     }
@@ -55,7 +55,7 @@ namespace sdl {
       bool change = (m_toggled != toggled);
 
       if (change) {
-        Guard guard(m_propsLocker);
+        const std::lock_guard guard(m_propsLocker);
 
         m_toggled = toggled;
 
@@ -72,7 +72,7 @@ namespace sdl {
       core::SdlWidget::updatePrivate(window);
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       setBoxChanged();
     }
@@ -97,7 +97,7 @@ namespace sdl {
       {
         // The drop event started and ended in this widget we can
         // safely toggle this checkbox.
-        Guard guard(m_propsLocker);
+        const std::lock_guard guard(m_propsLocker);
 
         m_toggled = !m_toggled;
         setBoxChanged();
@@ -118,7 +118,7 @@ namespace sdl {
         // there so we will just discard this case here.
         // What's left to process is the case where the use just toggled the checkbox.
         if (!e.wasDragged()) {
-          Guard guard(m_propsLocker);
+          const std::lock_guard guard(m_propsLocker);
 
           m_toggled = !m_toggled;
           setBoxChanged();

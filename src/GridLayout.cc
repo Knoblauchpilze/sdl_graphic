@@ -111,8 +111,8 @@ namespace sdl {
       // will directly impact it.
       adjustItemToConstraints(internalSize, itemsInfo);
 
-      log(std::string("Available size: ") + std::to_string(window.w()) + "x" + std::to_string(window.h()), utils::Level::Notice);
-      log(std::string("Internal size: ") + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()), utils::Level::Notice);
+      notice("Available size: " + std::to_string(window.w()) + "x" + std::to_string(window.h()));
+      notice("Internal size: " + std::to_string(internalSize.w()) + "x" + std::to_string(internalSize.h()));
 
       // We now have a working set of dimensions which we can begin to apply to items
       // in order to build the layout.
@@ -137,21 +137,21 @@ namespace sdl {
       // we might have to redo an adjustment for single-cell items afterwards.
 
       // Proceed to adjust the columns' width.
-      log(std::string("Adjusting columns width"), utils::Level::Notice);
+      notice("Adjusting columns width");
       std::vector<float> columnsDims = adjustColumnsWidth(internalSize, itemsInfo, cells);
 
       // Adjust rows' height.
-      log(std::string("Adjusting rows height"), utils::Level::Notice);
+      notice("Adjusting rows height");
       std::vector<float> rowsDims = adjustRowHeight(internalSize, itemsInfo, cells);
 
       // Adjust multi-cell item to make them span the columns/rows they are spanning.
       // When shrinking the item we might indeed shrink too much some items which
       // creates some weird distribution where a multi-cell is smaller than a single cell
       // just because it was able to get one more shrinking iteration.
-      log(std::string("Adjusting multi-cell width"), utils::Level::Notice);
+      notice("Adjusting multi-cell width");
       adjustMultiCellWidth(columnsDims, itemsInfo, cells);
 
-      log(std::string("Adjusting multi-cell height"), utils::Level::Notice);
+      notice("Adjusting multi-cell height");
       adjustMultiCellHeight(rowsDims, itemsInfo, cells);
 
       // All items have suited dimensions, we can now handle the position of each
@@ -745,7 +745,7 @@ namespace sdl {
         // Compute the achieved size from consolidated dimensions.
         achievedWidth = 0.0f;
         for (unsigned column = 0u ; column < m_columns ; ++column) {
-          log(std::string("Column ") + std::to_string(column) + " has size " + std::to_string(columns[column]));
+          debug("Column " + std::to_string(column) + " has size " + std::to_string(columns[column]));
           achievedWidth += columns[column];
         }
 
@@ -911,10 +911,9 @@ namespace sdl {
 
       // Warn the user in case we could not use all the space.
       if (!allSpaceUsed) {
-        log(
+        warn(
           std::string("Could only achieve width of ") + std::to_string(achievedWidth) +
-          " but available space is " + std::to_string(window.w()),
-          utils::Level::Error
+          " but available space is " + std::to_string(window.w())
         );
       }
 
@@ -1148,7 +1147,7 @@ namespace sdl {
         // Compute the achieved size from consolidated dimensions.
         achievedHeight = 0.0f;
         for (unsigned row = 0u ; row < m_rows ; ++row) {
-          log(std::string("Row ") + std::to_string(row) + " has size " + std::to_string(rows[row]));
+          debug("Row " + std::to_string(row) + " has size " + std::to_string(rows[row]));
           achievedHeight += rows[row];
         }
 
@@ -1314,10 +1313,9 @@ namespace sdl {
 
       // Warn the user in case we could not use all the space.
       if (!allSpaceUsed) {
-        log(
+        warn(
           std::string("Could only achieve height of ") + std::to_string(achievedHeight) +
-          " but available space is " + std::to_string(window.h()),
-          utils::Level::Error
+          " but available space is " + std::to_string(window.h())
         );
       }
 

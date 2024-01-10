@@ -46,7 +46,7 @@ namespace sdl {
                                const utils::Boxf& area)
     {
       // Acquire the lock on the attributes of this widget.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Load the borders if needed.
       if (bordersChanged()) {
@@ -194,12 +194,12 @@ namespace sdl {
       }
 
       // Disable log for various component.
-      layout->allowLog(false);
+      layout->setAllowLog(false);
       if (pic != nullptr) {
-        pic->allowLog(false);
+        pic->setAllowLog(false);
       }
       if (label != nullptr) {
-        label->allowLog(false);
+        label->setAllowLog(false);
       }
 
       // Add each item to the layout if needed.

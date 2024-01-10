@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setImagePath(const std::string& path) {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Create a new image from the input path if needed.
       if (path.empty()) {
@@ -25,7 +25,7 @@ namespace sdl {
     inline
     void
     PictureWidget::setMode(const Mode& mode) {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       m_mode = mode;
     }
 

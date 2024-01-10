@@ -9,7 +9,7 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(const std::string& name) {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       m_activeItem = getLayout().setActiveItem(name);
     }
@@ -17,7 +17,7 @@ namespace sdl {
     inline
     void
     SelectorWidget::setActiveWidget(int index) {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       m_activeItem = getLayout().setActiveItem(index);
     }
@@ -25,7 +25,7 @@ namespace sdl {
     inline
     int
     SelectorWidget::getActiveItem() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       return m_activeItem;
     }
@@ -48,7 +48,7 @@ namespace sdl {
       // Also we want to only trigger the switch if the event originated in the
       // child: indeed we do not want to consider a focus event from deep in the
       // hierarchy as requesting the switch to the next child.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // First thing to verify is that the `switchOnClick` behavior is activated.
       // It can be deactivated for various reasons, either because it is really
@@ -76,7 +76,7 @@ namespace sdl {
       core::SdlWidget* child = getChildAs<core::SdlWidget>(e.getEmitter()->getName());
 
       // Post a focus out event for this widget.
-      log("Posting focus out event for " + child->getName() + " in order to switch active child");
+      debug("Posting focus out event for " + child->getName() + " in order to switch active child");
       core::engine::FocusEventShPtr lfe = core::engine::FocusEvent::createFocusOutEvent(e.getReason(), false, child);
       postEvent(lfe, false, true);
 

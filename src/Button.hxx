@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     Button::~Button() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
       clearBorders();
     }
 
@@ -16,7 +16,7 @@ namespace sdl {
     const core::SdlWidget*
     Button::getItemAt(const utils::Vector2f& pos) const noexcept {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       const utils::Vector2f local = mapFromGlobal(pos);
 
@@ -43,7 +43,7 @@ namespace sdl {
     void
     Button::toggle(bool toggled) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Check whether the type of the button allows for this manipulation.
       if (m_type == button::Type::Toggle) {
@@ -72,7 +72,7 @@ namespace sdl {
     bool
     Button::toggled() {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       return m_state == State::Toggled;
     }
@@ -84,7 +84,7 @@ namespace sdl {
       core::SdlWidget::updatePrivate(window);
 
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Mark the borders as dirty.
       setBordersChanged();
@@ -114,7 +114,7 @@ namespace sdl {
         // needed to release the borders.
         // This is the case if the button state is not set to `Toggled`
         // (in which case the borders will stay pressed).
-        Guard guard(m_propsLocker);
+        const std::lock_guard guard(m_propsLocker);
 
         if (m_state != State::Toggled) {
           // Update the role of the borders.
@@ -144,7 +144,7 @@ namespace sdl {
           b.contains(localS) &&
           b.contains(localE))
       {
-        Guard guard(m_propsLocker);
+        const std::lock_guard guard(m_propsLocker);
 
         updateButtonState();
       }
@@ -157,7 +157,7 @@ namespace sdl {
     Button::mouseButtonPressEvent(const core::engine::MouseEvent& e) {
       // Check whether the button is the one to use to interact with the button.
       if (e.getButton() == getClickButton()) {
-        Guard guard(m_propsLocker);
+        const std::lock_guard guard(m_propsLocker);
 
         // Update the role of the borders if needed (i.e. if the button is not
         // already toggled).
@@ -190,7 +190,7 @@ namespace sdl {
         // do something over there. We will ignore dragged events in here in
         // consequence.
         if (!e.wasDragged()) {
-          Guard guard(m_propsLocker);
+          const std::lock_guard guard(m_propsLocker);
           updateButtonState();
         }
       }

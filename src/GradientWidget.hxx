@@ -8,7 +8,7 @@ namespace sdl {
 
     inline
     GradientWidget::~GradientWidget() {
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       clearGradientTex();
     }
@@ -17,7 +17,7 @@ namespace sdl {
     void
     GradientWidget::setGradient(core::engine::GradientShPtr gradient) {
       // Protect from concurrent accesses.
-      Guard guard(m_propsLocker);
+      const std::lock_guard guard(m_propsLocker);
 
       // Assign the new gradient and request a repaint operation.
       m_gradient = gradient;
